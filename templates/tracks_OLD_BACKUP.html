@@ -1,0 +1,818 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+  /* ─── Tracks Page ─────────────────────────────────── */
+  .tracks-hero {
+    text-align: center;
+    padding: 80px 20px 60px;
+    background: linear-gradient(135deg, rgba(0,217,255,.05), rgba(49,89,255,.05));
+    border-bottom: 2px solid rgba(0,217,255,.3);
+  }
+  .tracks-hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 48px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #00d9ff, #0099cc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 15px;
+    letter-spacing: 2px;
+  }
+  .tracks-hero p {
+    font-size: 18px;
+    color: #b0b0b0;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* ─── Domain list ─────────────────────────────────── */
+  .tracks-container {
+    max-width: 1100px;
+    margin: 60px auto;
+    padding: 0 20px;
+  }
+  .domain-block {
+    margin-bottom: 60px;
+  }
+  .domain-header {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid rgba(0,217,255,.25);
+  }
+  .domain-icon { font-size: 40px; }
+  .domain-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: #00d9ff;
+    margin: 0;
+  }
+  .domain-budget {
+    margin-left: auto;
+    background: rgba(0,217,255,.1);
+    border: 1px solid rgba(0,217,255,.3);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 13px;
+    color: #00d9ff;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* ─── 5 × 1 PS matrix ────────────────────────────── */
+  .ps-matrix {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .ps-card {
+    background: linear-gradient(135deg, #1a1f3a 0%, #16213e 100%);
+    border: 1.5px solid rgba(0,217,255,.3);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color .25s ease;
+  }
+  .ps-card:hover { border-color: #00d9ff; }
+
+  /* ─── PS header (always visible) ─────────────────── */
+  .ps-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 22px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .ps-number {
+    min-width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: rgba(0,217,255,.12);
+    border: 1px solid rgba(0,217,255,.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #00d9ff;
+    flex-shrink: 0;
+  }
+  .ps-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: #e0e0e0;
+    flex: 1;
+  }
+  .ps-chevron {
+    color: #00d9ff;
+    font-size: 18px;
+    transition: transform .3s ease;
+    flex-shrink: 0;
+  }
+  .ps-card.open .ps-chevron { transform: rotate(180deg); }
+
+  /* ─── PS dropdown body ────────────────────────────── */
+  .ps-body {
+    display: none;
+    padding: 0 22px 22px;
+    border-top: 1px solid rgba(0,217,255,.15);
+  }
+  .ps-card.open .ps-body { display: block; }
+
+  .ps-section {
+    margin-top: 18px;
+  }
+  .ps-section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #00d9ff;
+    margin-bottom: 8px;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .ps-section-content {
+    font-size: 14px;
+    color: #b0b0b0;
+    line-height: 1.65;
+  }
+  .ps-section-content ul {
+    margin: 6px 0 0 0;
+    padding-left: 18px;
+  }
+  .ps-section-content ul li {
+    margin-bottom: 5px;
+  }
+
+  /* rubric table */
+  .rubric-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 8px;
+  }
+  .rubric-table th {
+    text-align: left;
+    color: #00d9ff;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border-bottom: 1px solid rgba(0,217,255,.2);
+  }
+  .rubric-table td {
+    padding: 7px 10px;
+    color: #b0b0b0;
+    border-bottom: 1px solid rgba(255,255,255,.05);
+    vertical-align: top;
+  }
+  .rubric-table tr:last-child td { border-bottom: none; }
+  .rubric-weight {
+    color: #00d9ff;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 768px) {
+    .tracks-hero h1 { font-size: 32px; }
+    .domain-header { flex-wrap: wrap; }
+    .domain-budget { margin-left: 0; }
+    .ps-title { font-size: 14px; }
+  }
+</style>
+
+<!-- ═══════════════════════════════════════
+     HERO
+═══════════════════════════════════════ -->
+<section class="tracks-hero">
+  <h1>CHALLENGE TRACKS</h1>
+  <p>Five domains. Five problem statements each. Choose your battlefield.</p>
+</section>
+
+<!-- ═══════════════════════════════════════
+     DOMAINS
+═══════════════════════════════════════ -->
+<section class="tracks-container">
+
+  <!-- ── Domain 1: Edge AI ───────────────────────────── -->
+  <div class="domain-block">
+    <div class="domain-header">
+      <span class="domain-icon">🤖</span>
+      <h2 class="domain-title">Edge AI, Embedded Systems & IoT</h2>
+      <span class="domain-budget">💰 Budget: ₹2000 / team</span>
+    </div>
+    <div class="ps-matrix">
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 1</div>
+          <div class="ps-title">EdgeShield — Wireless Threat Detection</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section">
+            <div class="ps-section-label">Description</div>
+            <div class="ps-section-content">Build a real-time wireless intrusion detection system that runs entirely on a microcontroller. The device must sniff 802.11 management frames and flag anomalies without cloud connectivity.</div>
+          </div>
+          <div class="ps-section">
+            <div class="ps-section-label">Context</div>
+            <div class="ps-section-content">Industrial environments often lack reliable internet. Security must happen at the edge — latency budgets are measured in milliseconds, not seconds.</div>
+          </div>
+          <div class="ps-section">
+            <div class="ps-section-label">Minimum Requirements</div>
+            <div class="ps-section-content"><ul>
+              <li>Detect at least 3 types of wireless anomalies (deauth floods, rogue APs, probe storms)</li>
+              <li>Alert latency &lt; 500 ms</li>
+              <li>No cloud dependency — fully offline operation</li>
+              <li>Visual or serial output for alerts</li>
+            </ul></div>
+          </div>
+          <div class="ps-section">
+            <div class="ps-section-label">Dependencies</div>
+            <div class="ps-section-content"><ul>
+              <li>Arduino UNO R4 WiFi or ESP32 with monitor-mode support</li>
+              <li>802.11 packet capture library (e.g. ESP32 promiscuous mode)</li>
+              <li>Budget: ₹2000 (hardware must be sourced within this)</li>
+            </ul></div>
+          </div>
+          <div class="ps-section">
+            <div class="ps-section-label">Rubric</div>
+            <div class="ps-section-content">
+              <table class="rubric-table">
+                <tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr>
+                <tr><td>Threat detection accuracy</td><td class="rubric-weight">30%</td><td>False positive rate penalised</td></tr>
+                <tr><td>Latency under load</td><td class="rubric-weight">25%</td><td>Tested with 50 concurrent devices</td></tr>
+                <tr><td>Code quality & documentation</td><td class="rubric-weight">20%</td><td>Inline comments + README</td></tr>
+                <tr><td>Demo & explainability</td><td class="rubric-weight">15%</td><td>Live demo mandatory</td></tr>
+                <tr><td>Innovation</td><td class="rubric-weight">10%</td><td>Novel detection heuristics</td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 2</div>
+          <div class="ps-title">TinyML Gesture Controller</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section">
+            <div class="ps-section-label">Description</div>
+            <div class="ps-section-content">Train and deploy a gesture recognition model on a microcontroller using IMU sensor data. The system must classify at least 6 distinct gestures in real-time and trigger corresponding device actions.</div>
+          </div>
+          <div class="ps-section">
+            <div class="ps-section-label">Context</div>
+            <div class="ps-section-content">Touchless control interfaces are increasingly critical in sterile, industrial, and accessibility-focused environments. TinyML brings this capability to ₹500 hardware.</div>
+          </div>
+          <div class="ps-section">
+            <div class="ps-section-label">Minimum Requirements</div>
+            <div class="ps-section-content"><ul>
+              <li>≥ 6 gesture classes with ≥ 85% accuracy on a held-out test set</li>
+              <li>Inference on-device (no streaming to PC)</li>
+              <li>Model size ≤ 256 KB flash</li>
+              <li>Real-time output: LED, buzzer, or serial trigger</li>
+            </ul></div>
+          </div>
+          <div class="ps-section">
+            <div class="ps-section-label">Dependencies</div>
+            <div class="ps-section-content"><ul>
+              <li>Arduino Nano 33 BLE Sense or Seeed XIAO nRF52840</li>
+              <li>Edge Impulse SDK or TensorFlow Lite Micro</li>
+              <li>IMU (MPU-6050 or on-board)</li>
+            </ul></div>
+          </div>
+          <div class="ps-section">
+            <div class="ps-section-label">Rubric</div>
+            <div class="ps-section-content">
+              <table class="rubric-table">
+                <tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr>
+                <tr><td>Classification accuracy</td><td class="rubric-weight">35%</td><td>Judges will test live</td></tr>
+                <tr><td>Model efficiency (size/speed)</td><td class="rubric-weight">25%</td><td>Smaller + faster = better</td></tr>
+                <tr><td>Dataset quality & collection method</td><td class="rubric-weight">20%</td><td>Diversity of subjects</td></tr>
+                <tr><td>Demo clarity</td><td class="rubric-weight">20%</td><td>Can a non-expert use it?</td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 3</div>
+          <div class="ps-title">Predictive Maintenance Sentinel</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section">
+            <div class="ps-section-label">Description</div>
+            <div class="ps-section-content">Build an embedded system that monitors vibration and temperature of a rotating machine and predicts failure before it occurs using anomaly detection running on the microcontroller.</div>
+          </div>
+          <div class="ps-section">
+            <div class="ps-section-label">Context</div>
+            <div class="ps-section-content">Unplanned downtime in manufacturing costs billions. A ₹500 edge sensor that predicts failures 10 minutes in advance changes the economics of maintenance entirely.</div>
+          </div>
+          <div class="ps-section">
+            <div class="ps-section-label">Minimum Requirements</div>
+            <div class="ps-section-content"><ul>
+              <li>Continuous acquisition of vibration (accelerometer) + temperature</li>
+              <li>On-device anomaly scoring (no cloud)</li>
+              <li>Alert triggered ≥ 2 minutes before simulated failure</li>
+              <li>OLED or serial dashboard showing current health score</li>
+            </ul></div>
+          </div>
+          <div class="ps-section">
+            <div class="ps-section-label">Dependencies</div>
+            <div class="ps-section-content"><ul>
+              <li>ESP32 or STM32</li>
+              <li>ADXL345 or MPU-6050 accelerometer</li>
+              <li>DS18B20 or NTC thermistor</li>
+            </ul></div>
+          </div>
+          <div class="ps-section">
+            <div class="ps-section-label">Rubric</div>
+            <div class="ps-section-content">
+              <table class="rubric-table">
+                <tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr>
+                <tr><td>Detection lead time</td><td class="rubric-weight">30%</td><td>Earlier warning = higher score</td></tr>
+                <tr><td>False alarm rate</td><td class="rubric-weight">25%</td><td>Must stay below 10%</td></tr>
+                <tr><td>System robustness</td><td class="rubric-weight">25%</td><td>Runs for 24 hours unattended</td></tr>
+                <tr><td>Presentation of insights</td><td class="rubric-weight">20%</td><td>Dashboard clarity</td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 4</div>
+          <div class="ps-title">Autonomous Rover Navigation</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section">
+            <div class="ps-section-label">Description</div>
+            <div class="ps-section-content">Design a rover that navigates an obstacle course autonomously using only onboard sensors — no camera, no GPS. The rover must complete a mapped path and return to start.</div>
+          </div>
+          <div class="ps-section">
+            <div class="ps-section-label">Context</div>
+            <div class="ps-section-content">GPS-denied environments (underground, warehouses, disaster zones) require robust dead-reckoning and sensor-fusion navigation. This PS tests those fundamentals at low cost.</div>
+          </div>
+          <div class="ps-section">
+            <div class="ps-section-label">Minimum Requirements</div>
+            <div class="ps-section-content"><ul>
+              <li>Complete a 2m × 2m obstacle course without human intervention</li>
+              <li>Return to origin within ±15 cm</li>
+              <li>No camera or external positioning system</li>
+              <li>Onboard obstacle avoidance (ultrasonic or IR)</li>
+            </ul></div>
+          </div>
+          <div class="ps-section">
+            <div class="ps-section-label">Dependencies</div>
+            <div class="ps-section-content"><ul>
+              <li>Arduino Mega or ESP32</li>
+              <li>HC-SR04 ultrasonic sensors (×3 minimum)</li>
+              <li>Encoder-equipped DC motors</li>
+              <li>L298N or L293D motor driver</li>
+            </ul></div>
+          </div>
+          <div class="ps-section">
+            <div class="ps-section-label">Rubric</div>
+            <div class="ps-section-content">
+              <table class="rubric-table">
+                <tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr>
+                <tr><td>Course completion</td><td class="rubric-weight">35%</td><td>Timed; fewer collisions = bonus</td></tr>
+                <tr><td>Return accuracy</td><td class="rubric-weight">25%</td><td>Euclidean distance from origin</td></tr>
+                <tr><td>Algorithm design</td><td class="rubric-weight">25%</td><td>Elegance & extensibility</td></tr>
+                <tr><td>Build quality</td><td class="rubric-weight">15%</td><td>Mechanical reliability</td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 5</div>
+          <div class="ps-title">Smart Energy Harvesting Node</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section">
+            <div class="ps-section-label">Description</div>
+            <div class="ps-section-content">Build a battery-less IoT sensor node that harvests energy from ambient sources (solar, RF, or vibration) and transmits periodic sensor readings over a low-power wireless protocol.</div>
+          </div>
+          <div class="ps-section">
+            <div class="ps-section-label">Context</div>
+            <div class="ps-section-content">Deploying thousands of sensors in the field is impractical when each needs a battery change every 6 months. Zero-power sensing enables truly pervasive IoT at scale.</div>
+          </div>
+          <div class="ps-section">
+            <div class="ps-section-label">Minimum Requirements</div>
+            <div class="ps-section-content"><ul>
+              <li>No primary battery — must operate on harvested or supercapacitor energy</li>
+              <li>At least one sensor reading (temp, humidity, or light) transmitted every 5 minutes</li>
+              <li>Wireless range ≥ 5 m (BLE, LoRa, or Zigbee)</li>
+              <li>Demonstrate cold-start from zero charge</li>
+            </ul></div>
+          </div>
+          <div class="ps-section">
+            <div class="ps-section-label">Dependencies</div>
+            <div class="ps-section-content"><ul>
+              <li>Ambiq Apollo or nRF52 ultra-low-power MCU</li>
+              <li>Solar cell or RF energy harvester (e.g. P2110B)</li>
+              <li>Supercapacitor (1F–10F)</li>
+              <li>BLE or LoRa module</li>
+            </ul></div>
+          </div>
+          <div class="ps-section">
+            <div class="ps-section-label">Rubric</div>
+            <div class="ps-section-content">
+              <table class="rubric-table">
+                <tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr>
+                <tr><td>Energy autonomy</td><td class="rubric-weight">35%</td><td>Longest gap without harvest wins</td></tr>
+                <tr><td>Transmission reliability</td><td class="rubric-weight">25%</td><td>Packet loss rate under test</td></tr>
+                <tr><td>Hardware design</td><td class="rubric-weight">25%</td><td>PCB or neat breadboard</td></tr>
+                <tr><td>Scalability argument</td><td class="rubric-weight">15%</td><td>Cost-per-node if mass produced</td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /.ps-matrix -->
+  </div><!-- /.domain-block -->
+
+
+  <!-- ── Domain 2: Aviation & Space ──────────────────── -->
+  <div class="domain-block">
+    <div class="domain-header">
+      <span class="domain-icon">🚀</span>
+      <h2 class="domain-title">Aviation & Space Technology</h2>
+      <span class="domain-budget">💰 Budget: ₹2000 / team</span>
+    </div>
+    <div class="ps-matrix">
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 1</div>
+          <div class="ps-title">Altitude-Hold Drone Controller</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section"><div class="ps-section-label">Description</div><div class="ps-section-content">Implement a PID-based altitude-hold controller on a microcontroller that keeps a quad-rotor at a target height using only a barometric pressure sensor and IMU.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Context</div><div class="ps-section-content">GPS-independent altitude hold is critical for indoor drones, micro-UAVs, and low-altitude inspection platforms where satellite signals are unavailable.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Minimum Requirements</div><div class="ps-section-content"><ul><li>Altitude hold accuracy ±20 cm for 30 seconds</li><li>Response to manual setpoint change within 2 seconds</li><li>No GPS — baro + IMU only</li><li>Safety cutoff if tilt exceeds 45°</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Dependencies</div><div class="ps-section-content"><ul><li>STM32 or ESP32</li><li>BMP280 barometric sensor</li><li>MPU-6050 IMU</li><li>ESC + brushless motors (within budget)</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Rubric</div><div class="ps-section-content"><table class="rubric-table"><tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr><tr><td>Altitude precision</td><td class="rubric-weight">35%</td><td>RMS error over 30 s</td></tr><tr><td>Disturbance rejection</td><td class="rubric-weight">25%</td><td>Judge applies gentle push</td></tr><tr><td>PID tuning methodology</td><td class="rubric-weight">25%</td><td>Documented tuning process</td></tr><tr><td>Safety features</td><td class="rubric-weight">15%</td><td>Failsafe demonstrated</td></tr></table></div></div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 2</div>
+          <div class="ps-title">CubeSat Attitude Estimator</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section"><div class="ps-section-label">Description</div><div class="ps-section-content">Implement a Madgwick or Mahony filter on a microcontroller to estimate the 3D orientation of a simulated CubeSat using magnetometer, accelerometer, and gyroscope data.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Context</div><div class="ps-section-content">Attitude determination is one of the most fundamental problems in small satellite design. Doing it accurately on a microcontroller is a core embedded skill for space teams.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Minimum Requirements</div><div class="ps-section-content"><ul><li>Quaternion output at ≥ 100 Hz</li><li>Yaw, pitch, roll error &lt; 3° under slow rotation</li><li>Magnetic distortion compensation</li><li>Real-time 3D visualisation (serial or BLE to PC)</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Dependencies</div><div class="ps-section-content"><ul><li>Arduino Nano 33 BLE or equivalent 9-DOF IMU board</li><li>Python visualiser (PySerial + matplotlib or Processing)</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Rubric</div><div class="ps-section-content"><table class="rubric-table"><tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr><tr><td>Angular accuracy</td><td class="rubric-weight">35%</td><td>Compared to reference</td></tr><tr><td>Update rate</td><td class="rubric-weight">20%</td><td>Measured with oscilloscope or timer</td></tr><tr><td>Disturbance handling</td><td class="rubric-weight">25%</td><td>Magnet placed near sensor</td></tr><tr><td>Visualisation quality</td><td class="rubric-weight">20%</td><td>Smooth, lag-free rendering</td></tr></table></div></div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 3</div>
+          <div class="ps-title">Ground Station Telemetry Decoder</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section"><div class="ps-section-label">Description</div><div class="ps-section-content">Build a real-time telemetry receiver that decodes LoRa packets from a simulated satellite transmitter, displays flight data on a dashboard, and flags anomalies automatically.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Context</div><div class="ps-section-content">CubeSat ground stations require reliable, low-latency telemetry with built-in health monitoring. This PS simulates that pipeline end-to-end.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Minimum Requirements</div><div class="ps-section-content"><ul><li>Decode at least 10 telemetry fields (altitude, temp, battery, RSSI…)</li><li>Live dashboard on PC (web or desktop)</li><li>Auto-alert on any field crossing threshold</li><li>Packet loss recovery / retransmit request</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Dependencies</div><div class="ps-section-content"><ul><li>2× LoRa modules (SX1278 or Ra-02)</li><li>ESP32 or Raspberry Pi Pico W for ground station</li><li>Dashboard: any language/framework</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Rubric</div><div class="ps-section-content"><table class="rubric-table"><tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr><tr><td>Decoding accuracy</td><td class="rubric-weight">30%</td><td>All fields correct under noise</td></tr><tr><td>Dashboard usability</td><td class="rubric-weight">25%</td><td>Non-engineer must understand it</td></tr><tr><td>Anomaly detection</td><td class="rubric-weight">25%</td><td>True positives tested by judges</td></tr><tr><td>Packet loss handling</td><td class="rubric-weight">20%</td><td>Graceful degradation</td></tr></table></div></div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 4</div>
+          <div class="ps-title">Parachute Deployment Timer</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section"><div class="ps-section-label">Description</div><div class="ps-section-content">Design a flight computer that detects apogee and triggers a parachute deployment mechanism at the correct moment using barometric and accelerometric data fusion.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Context</div><div class="ps-section-content">Model rocketry flight computers must reliably detect apogee within milliseconds. Premature or missed deployment means loss of vehicle. This PS demands safety-critical embedded thinking.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Minimum Requirements</div><div class="ps-section-content"><ul><li>Apogee detection within ±100 ms on simulated flight profile</li><li>Arm/safe switch with LED indicators</li><li>Black-box logging to SD card</li><li>Servo or relay actuator trigger</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Dependencies</div><div class="ps-section-content"><ul><li>Arduino Nano or STM32 Blue Pill</li><li>BMP388 (high-resolution baro)</li><li>MicroSD breakout</li><li>SG90 servo for deployment sim</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Rubric</div><div class="ps-section-content"><table class="rubric-table"><tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr><tr><td>Apogee detection timing</td><td class="rubric-weight">40%</td><td>Tested on 3 profiles</td></tr><tr><td>Black-box log integrity</td><td class="rubric-weight">25%</td><td>Readable after power cut</td></tr><tr><td>Safety switch implementation</td><td class="rubric-weight">20%</td><td>No accidental deployment</td></tr><tr><td>Code reliability</td><td class="rubric-weight">15%</td><td>No crashes over 24 h</td></tr></table></div></div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 5</div>
+          <div class="ps-title">Wind-Aware Fixed-Wing Autopilot</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section"><div class="ps-section-label">Description</div><div class="ps-section-content">Implement a heading-hold autopilot for a fixed-wing UAV that compensates for crosswind using an airspeed sensor and IMU, maintaining the desired ground track.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Context</div><div class="ps-section-content">Wind compensation is the difference between a UAV that can fly a survey grid and one that drifts off-track. This PS targets that core control challenge at low hardware cost.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Minimum Requirements</div><div class="ps-section-content"><ul><li>Hold heading ±5° under simulated crosswind (fan)</li><li>Airspeed-based throttle control</li><li>Waypoint sequencing (min 3 waypoints)</li><li>Manual override with smooth handoff</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Dependencies</div><div class="ps-section-content"><ul><li>STM32F4 or Pixhawk-compatible board</li><li>PITOT tube + differential pressure sensor (MPXV7002)</li><li>Servo outputs for aileron/elevator sim</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Rubric</div><div class="ps-section-content"><table class="rubric-table"><tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr><tr><td>Heading hold accuracy</td><td class="rubric-weight">35%</td><td>Tested at 3 wind speeds</td></tr><tr><td>Waypoint tracking</td><td class="rubric-weight">25%</td><td>Cross-track error measured</td></tr><tr><td>Override smoothness</td><td class="rubric-weight">20%</td><td>No actuator jerk on handoff</td></tr><tr><td>Code architecture</td><td class="rubric-weight">20%</td><td>State machine clarity</td></tr></table></div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ── Domain 3: Security & Privacy ────────────────── -->
+  <div class="domain-block">
+    <div class="domain-header">
+      <span class="domain-icon">🔐</span>
+      <h2 class="domain-title">Security & Privacy</h2>
+      <span class="domain-budget">💰 Budget: ₹2000 / team</span>
+    </div>
+    <div class="ps-matrix">
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 1</div>
+          <div class="ps-title">Hardware Security Key (FIDO2 Lite)</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section"><div class="ps-section-label">Description</div><div class="ps-section-content">Build a USB HID security key on a microcontroller that performs challenge-response authentication using ECDSA, mimicking the FIDO2 protocol flow.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Context</div><div class="ps-section-content">Hardware tokens are the strongest form of two-factor authentication. Understanding their internals — and building one from scratch — reveals the full trust chain.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Minimum Requirements</div><div class="ps-section-content"><ul><li>USB HID enumeration on any OS without drivers</li><li>ECDSA P-256 sign/verify on-device</li><li>User presence button (physical touch required)</li><li>Demonstrate working login to a test app</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Dependencies</div><div class="ps-section-content"><ul><li>STM32 with USB FS or Raspberry Pi Pico</li><li>micro-ecc or MbedTLS library</li><li>USB HID descriptors (HID keyboard or custom)</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Rubric</div><div class="ps-section-content"><table class="rubric-table"><tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr><tr><td>Cryptographic correctness</td><td class="rubric-weight">40%</td><td>Verified with known test vectors</td></tr><tr><td>USB compatibility</td><td class="rubric-weight">25%</td><td>Tested on Win/Mac/Linux</td></tr><tr><td>User presence enforcement</td><td class="rubric-weight">20%</td><td>Must fail without button press</td></tr><tr><td>Code documentation</td><td class="rubric-weight">15%</td><td>Security assumptions stated</td></tr></table></div></div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 2</div>
+          <div class="ps-title">Encrypted LoRa Messaging Device</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section"><div class="ps-section-label">Description</div><div class="ps-section-content">Build a pair of handheld devices that exchange end-to-end encrypted text messages over LoRa with no internet dependency, using AES-256 and a shared key exchange protocol.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Context</div><div class="ps-section-content">Off-grid secure communication is essential for disaster relief, activism, and military edge operations. This PS builds the minimum viable secure messenger.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Minimum Requirements</div><div class="ps-section-content"><ul><li>End-to-end AES-256 encryption</li><li>Key exchange without pre-shared secret (DH or ECDH)</li><li>OLED display + keypad or serial input</li><li>Range ≥ 100 m line-of-sight</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Dependencies</div><div class="ps-section-content"><ul><li>2× ESP32 + RA-02 LoRa modules</li><li>2× SSD1306 OLED displays</li><li>AES library (mbedTLS or Arduino Cryptography)</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Rubric</div><div class="ps-section-content"><table class="rubric-table"><tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr><tr><td>Encryption correctness</td><td class="rubric-weight">35%</td><td>Intercept + decrypt attempt by judges</td></tr><tr><td>Key exchange security</td><td class="rubric-weight">25%</td><td>MITM resistance explained</td></tr><tr><td>Range & reliability</td><td class="rubric-weight">25%</td><td>Packet loss &lt; 5% at 100 m</td></tr><tr><td>UX</td><td class="rubric-weight">15%</td><td>Usable without manual</td></tr></table></div></div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 3</div>
+          <div class="ps-title">Side-Channel Attack Demonstrator</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section"><div class="ps-section-label">Description</div><div class="ps-section-content">Demonstrate a power analysis attack on an unprotected AES implementation running on a microcontroller. Then harden it and show the attack fails.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Context</div><div class="ps-section-content">Side-channel attacks break cryptography without touching the math. Understanding them is essential for anyone shipping secure hardware — and this PS teaches both the attack and the defence.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Minimum Requirements</div><div class="ps-section-content"><ul><li>Capture power traces using current-sense resistor + ADC</li><li>Recover at least 1 byte of AES key via SPA or DPA</li><li>Implement masking countermeasure</li><li>Show attack failure rate before vs after hardening</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Dependencies</div><div class="ps-section-content"><ul><li>STM32 or Arduino running AES</li><li>Current-sense resistor (1 Ω)</li><li>Oscilloscope or high-speed ADC (ADS1115 or ESP32 ADC)</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Rubric</div><div class="ps-section-content"><table class="rubric-table"><tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr><tr><td>Attack success</td><td class="rubric-weight">35%</td><td>Key byte recovered live</td></tr><tr><td>Countermeasure effectiveness</td><td class="rubric-weight">30%</td><td>Attack fails on hardened version</td></tr><tr><td>Explanation quality</td><td class="rubric-weight">20%</td><td>Can explain to a non-expert</td></tr><tr><td>Trace visualisation</td><td class="rubric-weight">15%</td><td>Clear, annotated plots</td></tr></table></div></div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 4</div>
+          <div class="ps-title">Intrusion Detection via CAN Bus Anomaly</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section"><div class="ps-section-label">Description</div><div class="ps-section-content">Monitor a simulated CAN bus network (automotive) for injected anomalous frames and trigger real-time alerts using a microcontroller-based IDS.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Context</div><div class="ps-section-content">Modern vehicles are networks on wheels. CAN bus attacks are real — demonstrated on Jeep Cherokee in 2015. This PS builds the embedded IDS that should have been there.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Minimum Requirements</div><div class="ps-section-content"><ul><li>Passively sniff CAN frames (no disruption to bus)</li><li>Detect replay, flooding, and spoofing attacks</li><li>Alert within 50 ms of attack start</li><li>Whitelist-based and frequency-based detection modes</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Dependencies</div><div class="ps-section-content"><ul><li>Arduino Uno or STM32 + MCP2515 CAN controller</li><li>CAN bus simulator (second MCU injecting frames)</li><li>CAN transceiver MCP2551</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Rubric</div><div class="ps-section-content"><table class="rubric-table"><tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr><tr><td>Detection coverage</td><td class="rubric-weight">35%</td><td>All 3 attack types tested</td></tr><tr><td>Alert latency</td><td class="rubric-weight">25%</td><td>Measured with logic analyser</td></tr><tr><td>False positive rate</td><td class="rubric-weight">25%</td><td>Must be &lt; 1% on clean traffic</td></tr><tr><td>Documentation</td><td class="rubric-weight">15%</td><td>Attack taxonomy explained</td></tr></table></div></div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 5</div>
+          <div class="ps-title">Biometric Vault — Fingerprint-Gated Storage</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section"><div class="ps-section-label">Description</div><div class="ps-section-content">Build a hardware-encrypted file vault that unlocks only after fingerprint verification, stores data on an SD card using AES-256, and wipes on repeated failed attempts.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Context</div><div class="ps-section-content">Physical data security requires both "something you are" and "something you have." This PS combines biometric auth with hardware-level encryption — the basis of every secure enclave.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Minimum Requirements</div><div class="ps-section-content"><ul><li>Fingerprint enrolment + verification (FAR &lt; 0.1%)</li><li>AES-256 file encryption on SD</li><li>Auto-wipe after 5 failed attempts</li><li>Re-enrolment after wipe (secure reset flow)</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Dependencies</div><div class="ps-section-content"><ul><li>Arduino Mega or ESP32</li><li>AS608 or R307 fingerprint sensor</li><li>MicroSD module</li><li>AES library</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Rubric</div><div class="ps-section-content"><table class="rubric-table"><tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr><tr><td>Auth accuracy</td><td class="rubric-weight">30%</td><td>FAR and FRR measured</td></tr><tr><td>Encryption integrity</td><td class="rubric-weight">30%</td><td>File unreadable on raw SD read</td></tr><tr><td>Wipe mechanism</td><td class="rubric-weight">25%</td><td>Verified by judges — no bypass</td></tr><tr><td>Reset flow UX</td><td class="rubric-weight">15%</td><td>Clean re-enrol without residual data</td></tr></table></div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ── Domain 4: Communications & Signal Processing ── -->
+  <div class="domain-block">
+    <div class="domain-header">
+      <span class="domain-icon">🌊</span>
+      <h2 class="domain-title">Communications & Signal Processing</h2>
+      <span class="domain-budget">💰 Budget: ₹2000 / team</span>
+    </div>
+    <div class="ps-matrix">
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 1</div>
+          <div class="ps-title">Software-Defined Radio APRS Decoder</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section"><div class="ps-section-label">Description</div><div class="ps-section-content">Build an SDR-based APRS (Automatic Packet Reporting System) decoder that receives 144.800 MHz transmissions and displays real-time GPS position data on a map.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Context</div><div class="ps-section-content">APRS is used by amateur radio operators, weather balloons, and emergency services. Decoding it from raw RF teaches the full communication stack — modulation, framing, error correction.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Minimum Requirements</div><div class="ps-section-content"><ul><li>Decode AFSK 1200 baud AX.25 frames</li><li>Extract callsign, lat/lon, timestamp</li><li>Display on live map (Folium, Leaflet, or similar)</li><li>Decode ≥ 5 unique packets during demo</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Dependencies</div><div class="ps-section-content"><ul><li>RTL-SDR dongle (₹800–1200)</li><li>Python: pyrtlsdr, NumPy, SciPy</li><li>APRS replay file provided by organisers if live signal unavailable</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Rubric</div><div class="ps-section-content"><table class="rubric-table"><tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr><tr><td>Decode accuracy</td><td class="rubric-weight">35%</td><td>Compared to reference decoder</td></tr><tr><td>Map visualisation</td><td class="rubric-weight">25%</td><td>Live update, clean UI</td></tr><tr><td>Pipeline architecture</td><td class="rubric-weight">25%</td><td>DSP stages documented</td></tr><tr><td>Edge cases handled</td><td class="rubric-weight">15%</td><td>Corrupt frames, overlapping TX</td></tr></table></div></div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 2</div>
+          <div class="ps-title">Real-Time Speech Noise Canceller</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section"><div class="ps-section-label">Description</div><div class="ps-section-content">Implement a real-time adaptive noise cancellation algorithm on a microcontroller that processes microphone input at 16 kHz and outputs clean audio via a speaker or DAC.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Context</div><div class="ps-section-content">Industrial comms, hearing aids, and voice interfaces all require robust noise cancellation with sub-10 ms latency. This PS builds it from scratch in firmware.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Minimum Requirements</div><div class="ps-section-content"><ul><li>16 kHz sample rate, real-time (no offline batch)</li><li>SNR improvement ≥ 10 dB on white noise test</li><li>Latency &lt; 10 ms end-to-end</li><li>Adaptive to changing noise floor</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Dependencies</div><div class="ps-section-content"><ul><li>STM32F4 (FPU required) or ESP32-S3</li><li>I2S microphone (INMP441)</li><li>I2S DAC (MAX98357A) or PWM output</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Rubric</div><div class="ps-section-content"><table class="rubric-table"><tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr><tr><td>SNR improvement</td><td class="rubric-weight">35%</td><td>Measured with calibrated noise</td></tr><tr><td>Latency</td><td class="rubric-weight">25%</td><td>Oscilloscope measured</td></tr><tr><td>Adaptability</td><td class="rubric-weight">25%</td><td>Noise type changed mid-demo</td></tr><tr><td>Code efficiency</td><td class="rubric-weight">15%</td><td>CPU% reported</td></tr></table></div></div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 3</div>
+          <div class="ps-title">OFDM Modem on FPGA/MCU</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section"><div class="ps-section-label">Description</div><div class="ps-section-content">Implement a simplified OFDM transmitter and receiver over an audio channel (3.5 mm jack) that achieves reliable data transfer at ≥ 1 kbps with audible carrier.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Context</div><div class="ps-section-content">OFDM underlies 4G, 5G, Wi-Fi, and DSL. Building one from scratch — even at audio frequencies — makes the modulation concept concrete and deeply understood.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Minimum Requirements</div><div class="ps-section-content"><ul><li>≥ 4 subcarriers</li><li>BER &lt; 1% on a clean cable connection</li><li>Synchronisation handled (pilot tones or correlation)</li><li>Bit error rate displayed live</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Dependencies</div><div class="ps-section-content"><ul><li>STM32F4 with DAC/ADC or audio codec</li><li>Alternatively: Python TX + MCU RX (or vice versa)</li><li>3.5 mm TRS cable for loopback test</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Rubric</div><div class="ps-section-content"><table class="rubric-table"><tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr><tr><td>BER performance</td><td class="rubric-weight">35%</td><td>Tested at 3 SNR levels</td></tr><tr><td>Throughput</td><td class="rubric-weight">25%</td><td>Bits/sec over 60 s</td></tr><tr><td>Sync robustness</td><td class="rubric-weight">25%</td><td>Cold start < 500 ms</td></tr><tr><td>Architecture explanation</td><td class="rubric-weight">15%</td><td>FFT stages clearly described</td></tr></table></div></div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 4</div>
+          <div class="ps-title">Driver Drowsiness Detection System</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section"><div class="ps-section-label">Description</div><div class="ps-section-content">Build an embedded system that detects driver drowsiness using EEG-like signals or eye-blink frequency from a sensor, and triggers a haptic or audio alert before microsleep onset.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Context</div><div class="ps-section-content">Drowsy driving causes 1 in 5 fatal accidents. A low-cost embedded detector that works without a camera addresses the problem in markets where camera-based ADAS is unaffordable.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Minimum Requirements</div><div class="ps-section-content"><ul><li>Detect drowsiness indicator (EEG delta-wave proxy, blink rate, or head-nod via IMU)</li><li>Alert within 2 seconds of drowsiness onset</li><li>False alert rate &lt; 5% during 10-minute alert test</li><li>Haptic or buzzer alert, not just LED</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Dependencies</div><div class="ps-section-content"><ul><li>ESP32 or Arduino Mega</li><li>MPU-6050 (head-nod) OR AD8232 ECG (repurposed for bio-signal) OR IR eye sensor</li><li>Vibration motor or piezo buzzer</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Rubric</div><div class="ps-section-content"><table class="rubric-table"><tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr><tr><td>Detection sensitivity</td><td class="rubric-weight">35%</td><td>Judges simulate drowsy behaviour</td></tr><tr><td>False alarm rate</td><td class="rubric-weight">30%</td><td>Alert on normal driving sim</td></tr><tr><td>Alert effectiveness</td><td class="rubric-weight">20%</td><td>Haptic must be perceptible</td></tr><tr><td>System robustness</td><td class="rubric-weight">15%</td><td>Works with glasses, head movement</td></tr></table></div></div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 5</div>
+          <div class="ps-title">Acoustic Leak Detector</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section"><div class="ps-section-label">Description</div><div class="ps-section-content">Use an array of MEMS microphones and cross-correlation to locate the source of an acoustic leak in a pipe, displaying distance-to-leak on an OLED without GPS or vision.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Context</div><div class="ps-section-content">Water utilities lose 20–30% of supply to leaks. Acoustic localization is the gold standard detection method — and it can run on a ₹500 microcontroller.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Minimum Requirements</div><div class="ps-section-content"><ul><li>≥ 2 microphone array with ≥ 1 m separation</li><li>Locate simulated leak to within ±20 cm on a 3 m pipe</li><li>Real-time cross-correlation processing on MCU</li><li>OLED display of distance estimate</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Dependencies</div><div class="ps-section-content"><ul><li>STM32F4 or ESP32-S3 (I2S microphones)</li><li>2× INMP441 microphones</li><li>PVC pipe segment for demo (provided by organisers)</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Rubric</div><div class="ps-section-content"><table class="rubric-table"><tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr><tr><td>Localisation accuracy</td><td class="rubric-weight">40%</td><td>3 test positions, mean error scored</td></tr><tr><td>Processing speed</td><td class="rubric-weight">25%</td><td>Result in &lt; 1 s of signal capture</td></tr><tr><td>Signal processing depth</td><td class="rubric-weight">20%</td><td>Filtering, windowing explained</td></tr><tr><td>Hardware robustness</td><td class="rubric-weight">15%</td><td>Survives handling during demo</td></tr></table></div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ── Domain 5: Open Innovation ───────────────────── -->
+  <div class="domain-block">
+    <div class="domain-header">
+      <span class="domain-icon">⚡</span>
+      <h2 class="domain-title">Open Innovation (Wildcard)</h2>
+      <span class="domain-budget">💰 Budget: ₹2000 / team</span>
+    </div>
+    <div class="ps-matrix">
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 1</div>
+          <div class="ps-title">Smart Grid Micro-Inverter Controller</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section"><div class="ps-section-label">Description</div><div class="ps-section-content">Design an embedded MPPT (Maximum Power Point Tracking) controller for a small solar panel that maximises energy harvest and feeds into a simulated load with efficiency monitoring.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Context</div><div class="ps-section-content">Rooftop solar is the fastest growing energy source globally. The micro-inverter is its brain — and building one from a microcontroller up teaches power electronics fundamentals.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Minimum Requirements</div><div class="ps-section-content"><ul><li>Perturb-and-Observe or Incremental Conductance MPPT</li><li>Efficiency ≥ 85% at rated load</li><li>Real-time power curve display (OLED or serial)</li><li>Over-voltage and reverse polarity protection</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Dependencies</div><div class="ps-section-content"><ul><li>STM32 or ESP32 with PWM output</li><li>5W–10W solar panel</li><li>Buck converter (synchronous preferred)</li><li>INA219 current/voltage sensor</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Rubric</div><div class="ps-section-content"><table class="rubric-table"><tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr><tr><td>MPPT efficiency</td><td class="rubric-weight">35%</td><td>Vs. fixed-duty reference</td></tr><tr><td>Tracking speed</td><td class="rubric-weight">25%</td><td>Response to shade transition</td></tr><tr><td>Protection circuits</td><td class="rubric-weight">25%</td><td>Must not fry on judge test</td></tr><tr><td>Data logging</td><td class="rubric-weight">15%</td><td>Energy harvested over 1 hour</td></tr></table></div></div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 2</div>
+          <div class="ps-title">Haptic Braille Display Controller</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section"><div class="ps-section-label">Description</div><div class="ps-section-content">Build a refreshable Braille cell driver using solenoids or piezo actuators, controlled by a microcontroller that receives text via BLE and renders it as tactile Braille output.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Context</div><div class="ps-section-content">Commercial Braille displays cost ₹50,000–2,00,000. A single-cell proof-of-concept using hobby actuators demonstrates the accessibility gap that embedded engineers can close.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Minimum Requirements</div><div class="ps-section-content"><ul><li>At least 1 full Braille cell (6 dots) with tactile pin height ≥ 0.5 mm</li><li>BLE text input from a phone app or serial terminal</li><li>Correct Grade 1 Braille mapping for A–Z and 0–9</li><li>Auto-advance on timeout or button press</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Dependencies</div><div class="ps-section-content"><ul><li>Arduino Nano 33 BLE or ESP32 with BLE</li><li>6× mini solenoids or servo-driven cams</li><li>ULN2003 driver array</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Rubric</div><div class="ps-section-content"><table class="rubric-table"><tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr><tr><td>Braille accuracy</td><td class="rubric-weight">35%</td><td>Blind evaluator or reference chart</td></tr><tr><td>Tactile feel</td><td class="rubric-weight">25%</td><td>Pin height and force measured</td></tr><tr><td>BLE reliability</td><td class="rubric-weight">25%</td><td>50 characters without drop</td></tr><tr><td>Accessibility impact statement</td><td class="rubric-weight">15%</td><td>Bill of materials vs. commercial cost</td></tr></table></div></div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 3</div>
+          <div class="ps-title">Flood Early-Warning Sensor Node</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section"><div class="ps-section-label">Description</div><div class="ps-section-content">Build a solar-powered water level sensor node that transmits alerts over LoRa when river levels exceed configurable thresholds, with local LED and siren output.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Context</div><div class="ps-section-content">Flash floods kill thousands annually, often because warning systems are expensive or absent. A ₹1500 node that transmits 10 km without internet changes what's deployable.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Minimum Requirements</div><div class="ps-section-content"><ul><li>Ultrasonic or pressure-based water level sensing</li><li>LoRa alert to base station ≥ 500 m away</li><li>Solar charging with battery backup (supercap or LiPo)</li><li>Configurable threshold via base station command</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Dependencies</div><div class="ps-section-content"><ul><li>ESP32 + LoRa (Ra-02)</li><li>JSN-SR04T waterproof ultrasonic sensor</li><li>6V solar panel + TP4056 charger + 18650 cell</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Rubric</div><div class="ps-section-content"><table class="rubric-table"><tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr><tr><td>Sensing accuracy</td><td class="rubric-weight">30%</td><td>±2 cm at test depths</td></tr><tr><td>LoRa range & reliability</td><td class="rubric-weight">25%</td><td>Tested at 100 m minimum</td></tr><tr><td>Power autonomy</td><td class="rubric-weight">30%</td><td>Runtime without sun calculated</td></tr><tr><td>Remote configurability</td><td class="rubric-weight">15%</td><td>Threshold changed from base station</td></tr></table></div></div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 4</div>
+          <div class="ps-title">Embedded Spectrum Analyser</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section"><div class="ps-section-label">Description</div><div class="ps-section-content">Build a real-time audio spectrum analyser on a microcontroller with a live LED matrix or OLED waterfall display, using FFT computed entirely on-chip.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Context</div><div class="ps-section-content">Spectrum analysis is fundamental to debugging RF, audio, and vibration signals. Building one from scratch — FFT to pixels — solidifies DSP intuition like nothing else.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Minimum Requirements</div><div class="ps-section-content"><ul><li>256-point FFT at ≥ 30 frames/second</li><li>Frequency resolution ≤ 100 Hz / bin</li><li>Visual display: LED matrix, OLED, or serial plotter</li><li>Peak frequency label shown numerically</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Dependencies</div><div class="ps-section-content"><ul><li>STM32F4 or ESP32 (hardware FPU preferred)</li><li>INMP441 microphone or 3.5 mm ADC input</li><li>WS2812B LED matrix or SSD1306 OLED</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Rubric</div><div class="ps-section-content"><table class="rubric-table"><tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr><tr><td>FFT accuracy</td><td class="rubric-weight">30%</td><td>Known tones verified</td></tr><tr><td>Frame rate</td><td class="rubric-weight">25%</td><td>Measured with oscilloscope trigger</td></tr><tr><td>Display quality</td><td class="rubric-weight">25%</td><td>Resolution, brightness, clarity</td></tr><tr><td>Feature depth</td><td class="rubric-weight">20%</td><td>Peak hold, windowing, log scale</td></tr></table></div></div>
+        </div>
+      </div>
+
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS 5</div>
+          <div class="ps-title">Open Problem — Team's Choice</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-section"><div class="ps-section-label">Description</div><div class="ps-section-content">Propose and build your own embedded systems solution to a real-world problem of your choice. The problem statement must be submitted and approved within the first 2 hours of the hackathon.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Context</div><div class="ps-section-content">The best problems are ones teams actually care about. This slot exists so that genuinely novel ideas don't get shoehorned into the wrong domain. Full creative freedom — with full accountability.</div></div>
+          <div class="ps-section"><div class="ps-section-label">Minimum Requirements</div><div class="ps-section-content"><ul><li>Problem statement approved by a judge within the first 2 hours</li><li>Hardware + firmware component mandatory (not pure software)</li><li>Real-world use case with named beneficiary</li><li>Working demo at judging time — no PowerPoint-only submissions</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Dependencies</div><div class="ps-section-content"><ul><li>Team's own hardware selection (within ₹2000 budget)</li><li>PS approval form submitted to organisers by Hour 2</li></ul></div></div>
+          <div class="ps-section"><div class="ps-section-label">Rubric</div><div class="ps-section-content"><table class="rubric-table"><tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr><tr><td>Problem significance</td><td class="rubric-weight">25%</td><td>Real need, real beneficiary</td></tr><tr><td>Technical depth</td><td class="rubric-weight">30%</td><td>Not a tutorial project</td></tr><tr><td>Demo quality</td><td class="rubric-weight">25%</td><td>Works live, judge can operate it</td></tr><tr><td>Innovation</td><td class="rubric-weight">20%</td><td>Would this be novel at a conference?</td></tr></table></div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</section><!-- /.tracks-container -->
+
+<script>
+  function togglePS(header) {
+    const card = header.closest('.ps-card');
+    card.classList.toggle('open');
+  }
+</script>
+
+{% endblock %}

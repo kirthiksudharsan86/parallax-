@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}About — PARALLAX 2026 · VIT Chennai{% endblock %}
+{% block body_class %}page-about-ref{% endblock %}
+{% block content %}
+<main class="ref-about">
+  <div class="ref-about-stars" aria-hidden="true"></div>
+  <section class="about-top">
+    <div class="about-kicker">ABOUT PARALLAX 2026</div>
+    <h1>ABOUT US</h1>
+    <p>Parallax is the annual flagship hackathon of VIT Chennai,<br> brought to you by the School of Electronics Engineering.<br> We bring together curious minds, diverse skills, and bold ideas<br> to solve real-world problems from new perspectives.</p>
+  </section>
+
+  <section class="org-panel">
+    <h2 class="panel-heading">FACULTY COORDINATORS</h2>
+    <div class="faculty-row">
+      <article class="faculty-card"><div class="faculty-icon"><i class="fa-regular fa-user"></i></div><h3>Dr. S. Arivazhagan</h3><p>Associate Professor<br>School of Electronics<br>Engineering</p></article>
+      <article class="faculty-card"><div class="faculty-icon"><i class="fa-regular fa-user"></i></div><h3>Dr. V. Sangeetha</h3><p>Assistant Professor<br>School of Electronics<br>Engineering</p></article>
+    </div>
+    <div class="org-connector connector-top"><span></span></div>
+    <h2 class="panel-heading core-heading">CORE COMMITTEE</h2>
+    <div class="people-row core-row">
+      <article class="person"><div class="portrait">AP</div><h3>Aditya R.</h3><p>Overall<br>Coordinator</p></article>
+      <article class="person"><div class="portrait">NS</div><h3>Nandhini S.</h3><p>Technical<br>Coordinator</p></article>
+      <article class="person"><div class="portrait">VR</div><h3>Vignesh R.</h3><p>Operations<br>Coordinator</p></article>
+      <article class="person"><div class="portrait">HM</div><h3>Harini M.</h3><p>Design<br>Coordinator</p></article>
+      <article class="person"><div class="portrait">KP</div><h3>Karthik P.</h3><p>Finance<br>Coordinator</p></article>
+      <article class="person"><div class="portrait">TS</div><h3>Sowmya T.</h3><p>Outreach<br>Coordinator</p></article>
+      <article class="person"><div class="portrait">YK</div><h3>Yashwanth K.</h3><p>Documentation<br>Coordinator</p></article>
+    </div>
+    <div class="org-connector connector-bottom"><span></span></div>
+    <div class="lead-grid">
+      <section class="lead-box"><h2>TECHNICAL COMMITTEE LEADS</h2><div class="lead-pair"><article class="person"><div class="portrait">AP</div><h3>Arjun P.</h3><p>Technical Lead</p></article><article class="person"><div class="portrait">RM</div><h3>Rithika M.</h3><p>Technical Lead</p></article></div></section>
+      <section class="lead-box"><h2>OPERATIONS COMMITTEE LEADS</h2><div class="lead-pair"><article class="person"><div class="portrait">PV</div><h3>Pranav V.</h3><p>Operations Lead</p></article><article class="person"><div class="portrait">DS</div><h3>Diya Shree.</h3><p>Operations Lead</p></article></div></section>
+      <section class="lead-box"><h2>MEDIA &amp; DESIGN TEAM LEADS</h2><div class="lead-pair"><article class="person"><div class="portrait">GN</div><h3>Gokul N.</h3><p>Media Lead</p></article><article class="person"><div class="portrait">SR</div><h3>Sneha R.</h3><p>Design Lead</p></article></div></section>
+    </div>
+
+    <div class="about-inside">
+      <div class="about-art"><img src="{% static 'img/parallax-logo-clean.png' %}" alt="Parallax"></div>
+      <div class="about-inside-copy"><h2 class="panel-heading">ABOUT PARALLAX</h2><p>Parallax is a 48-hour innovation challenge where students, developers,<br> designers, and thinkers come together to build meaningful solutions<br> across diverse domains. It's a platform to learn, collaborate, and create<br> impact that goes beyond the hackathon.</p>
+        <div class="feature-grid"><div><i class="fa-solid fa-bullseye"></i><span><b>Problem Statements</b><small>Real-world challenges<br>curated across industries.</small></span></div><div><i class="fa-solid fa-users"></i><span><b>Diverse Participants</b><small>From different disciplines<br>and institutions.</small></span></div><div><i class="fa-solid fa-code"></i><span><b>Build &amp; Innovate</b><small>Design, prototype and<br>build in 48 hours.</small></span></div><div><i class="fa-solid fa-trophy"></i><span><b>Prizes &amp; Recognition</b><small>Exciting prizes and<br>recognition for winners.</small></span></div></div>
+      </div>
+    </div>
+
+    <div class="expect-wrap"><h2 class="panel-heading">WHAT TO EXPECT</h2><div class="expect-grid"><article><i class="fa-solid fa-rocket"></i><h3>Innovation</h3><p>Push boundaries and<br>build something new.</p></article><article><i class="fa-regular fa-handshake"></i><h3>Collaboration</h3><p>Work with amazing<br>people and mentors.</p></article><article><i class="fa-solid fa-graduation-cap"></i><h3>Learning</h3><p>Gain new skills and<br>real-world exposure.</p></article><article><i class="fa-solid fa-wand-magic-sparkles"></i><h3>Fun &amp; Experience</h3><p>Unforgettable memories<br>and experiences.</p></article></div></div>
+    <div class="about-final"><div class="final-slogan">SAME PROBLEM.<br><span>DIFFERENT VIEW.</span><br>BETTER ANSWER.</div><div><p>Parallax is where ideas shift perspectives<br>and perspectives create impact.</p><strong>SEE YOU AT PARALLAX 2026!</strong></div></div>
+  </section>
+</main>
+{% endblock %}

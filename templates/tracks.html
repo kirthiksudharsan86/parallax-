@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tracks — PARALLAX 2026{% endblock %}
+
+{% block content %}
+
+<style>
+  /* ─── Tracks Page ─────────────────────────────────── */
+  .tracks-hero {
+    text-align: center;
+    padding: 80px 20px 60px;
+    background: linear-gradient(135deg, rgba(0,217,255,.05), rgba(49,89,255,.05));
+    border-bottom: 2px solid rgba(0,217,255,.3);
+  }
+  .tracks-hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 48px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #00d9ff, #0099cc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 15px;
+    letter-spacing: 2px;
+  }
+  .tracks-hero p {
+    font-size: 18px;
+    color: #b0b0b0;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* ─── Domain grid: 3 boxes row 1, 2 boxes row 2, centered ── */
+  .domain-grid-container {
+    max-width: 1100px;
+    margin: 70px auto;
+    padding: 0 20px;
+  }
+  .domain-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 28px;
+  }
+  .domain-box {
+    flex: 0 1 300px;
+    background: linear-gradient(135deg, #1a1f3a 0%, #16213e 100%);
+    border: 1.5px solid rgba(0,217,255,.3);
+    border-radius: 14px;
+    padding: 36px 26px;
+    text-align: center;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+  }
+  .domain-box:hover {
+    transform: translateY(-6px);
+    border-color: #00d9ff;
+    box-shadow: 0 12px 30px rgba(0,217,255,.18);
+  }
+  .domain-box-icon {
+    font-size: 46px;
+    line-height: 1;
+  }
+  .domain-box-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 21px;
+    font-weight: 700;
+    color: #e0e0e0;
+    margin: 0;
+    line-height: 1.3;
+  }
+  .domain-box-tagline {
+    font-size: 13.5px;
+    color: #8fa3b0;
+    line-height: 1.5;
+    margin: 0;
+  }
+  .domain-box-budget {
+    margin-top: 6px;
+    background: rgba(0,217,255,.1);
+    border: 1px solid rgba(0,217,255,.3);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 12px;
+    color: #00d9ff;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .domain-box-cta {
+    margin-top: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #00d9ff;
+    letter-spacing: .5px;
+  }
+  .domain-box-cta i { margin-left: 6px; transition: transform .25s ease; }
+  .domain-box:hover .domain-box-cta i { transform: translateX(4px); }
+
+  @media (max-width: 768px) {
+    .tracks-hero h1 { font-size: 32px; }
+    .domain-box { flex: 1 1 100%; max-width: 380px; }
+  }
+</style>
+
+<!-- ═══════════════════════════════════════
+     HERO
+═══════════════════════════════════════ -->
+<section class="tracks-hero">
+  <h1>CHALLENGE TRACKS</h1>
+  <p>Five domains. Five problem statements each. Choose your battlefield.</p>
+</section>
+
+<!-- ═══════════════════════════════════════
+     DOMAIN BOXES — 3 in row 1, 2 in row 2, centered
+═══════════════════════════════════════ -->
+<section class="domain-grid-container" id="tracks">
+  <div class="domain-grid">
+    {% for domain in domains %}
+      <a href="{% url 'domain_detail' domain.slug %}" class="domain-box">
+        <span class="domain-box-icon">{{ domain.icon }}</span>
+        <h2 class="domain-box-name">{{ domain.name }}</h2>
+        {% if domain.tagline %}<p class="domain-box-tagline">{{ domain.tagline }}</p>{% endif %}
+        <span class="domain-box-budget">💰 Budget: {{ domain.budget }}</span>
+        <span class="domain-box-cta">View problem statements <i class="fa-solid fa-arrow-right"></i></span>
+      </a>
+    {% empty %}
+      <p style="color:#b0b0b0;">No domains published yet.</p>
+    {% endfor %}
+  </div>
+</section>
+
+{% endblock %}

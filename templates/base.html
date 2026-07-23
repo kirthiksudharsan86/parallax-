@@ -1,0 +1,149 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{% block meta %}PARALLAX 2026 — See Beyond. Build Beyond. VIT Chennai's 48-hour cross-discipline hackathon.{% endblock %}">
+  <title>{% block title %}PARALLAX 2026 — VIT Chennai{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/parallax.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- PROGRESS BAR -->
+<div id="progress-bar"></div>
+<!-- CURSOR GLOW -->
+<div id="cursor-glow"></div>
+
+<!-- ═══════════════════════════════════════
+     NAV — 3 zones: logos | links | register
+═══════════════════════════════════════ -->
+<nav id="nav">
+
+  <!-- LEFT: Logos -->
+  <div class="nav-left">
+    <a href="{% url 'home' %}" class="nav-logo-link vit-only-link">
+      <img src="{% static 'img/vit-logo.png' %}" alt="VIT Chennai" class="nav-logo-vit reference-nav-vit">
+    </a>
+  </div>
+
+  <!-- CENTER: Nav links -->
+  <div class="nav-center">
+    <a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a>
+    <a href="{% url 'tracks' %}#tracks" class="nav-link">Tracks</a>
+    <a href="#" class="nav-link nav-placeholder">Schedule</a>
+    <a href="#" class="nav-link nav-placeholder">Prizes</a>
+    <a href="#" class="nav-link nav-placeholder">Guidelines</a>
+    <a href="#" class="nav-link nav-placeholder">Stays</a>
+    <a href="{% url 'about' %}" class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}">About</a>
+  </div>
+
+  <!-- RIGHT: Register CTA -->
+  <div class="nav-right">
+    <a href="{% url 'home' %}#home-cta" class="nav-register-btn">Register <i class="fa-solid fa-arrow-right"></i></a>
+  </div>
+
+</nav>
+
+{% block content %}{% endblock %}
+
+<!-- ═══════════════════════════════════════
+     FOOTER — 4 columns + bottom bar
+═══════════════════════════════════════ -->
+<footer>
+  <div class="footer-grid">
+
+    <!-- COL 1: Brand + Social -->
+    <div class="footer-brand-col">
+      <img src="{% static 'img/parallax-logo.png' %}" alt="Parallax" class="footer-logo-img">
+      <p class="footer-tagline">
+        Parallax is VIT Chennai's premier cross-discipline hackathon — 48 hours to shift your perspective, 
+        collide with brilliant minds, and build solutions that matter. Organised by SENSE.
+      </p>
+      <div class="footer-social-row">
+        <a href="#" class="footer-social-btn" title="Instagram">
+          <i class="fab fa-instagram"></i>
+        </a>
+        <a href="https://wa.me/" class="footer-social-btn" title="WhatsApp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+        <a href="#" class="footer-social-btn" title="LinkedIn">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+        <a href="#" class="footer-social-btn" title="Twitter / X">
+          <i class="fa-brands fa-x-twitter"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- COL 2: Event -->
+    <div class="footer-col">
+      <h4 class="footer-col-title">Event</h4>
+      <ul class="footer-links">
+        <li><a href="{% url 'about' %}"><i class="fa-solid fa-chevron-right footer-li-icon"></i>About</a></li>
+        <li><a href="{% url 'home' %}#tracks"><i class="fa-solid fa-chevron-right footer-li-icon"></i>Tracks</a></li>
+        <li><a href="#"><i class="fa-solid fa-chevron-right footer-li-icon"></i>Prizes</a></li>
+        <li><a href="#"><i class="fa-solid fa-chevron-right footer-li-icon"></i>Guidelines &amp; FAQ</a></li>
+        <li>
+          <a href="https://wa.me/" class="footer-wa-link">
+            <i class="fab fa-whatsapp footer-li-icon" style="color:#25D366"></i>Team Finding
+          </a>
+        </li>
+        <li><a href="#"><i class="fa-solid fa-chevron-right footer-li-icon"></i>Schedule</a></li>
+      </ul>
+    </div>
+
+    <!-- COL 3: Navigate (big, 2-column grid) -->
+    <div class="footer-col footer-nav-col">
+      <h4 class="footer-col-title footer-nav-title">Navigate</h4>
+      <ul class="footer-nav-grid">
+        <li><a href="{% url 'home' %}">Home</a></li>
+        <li><a href="{% url 'about' %}">About</a></li>
+        <li><a href="{% url 'home' %}#tracks">Tracks</a></li>
+        <li><a href="#">Prizes</a></li>
+        <li><a href="#">Schedule</a></li>
+        <li><a href="#">Guidelines</a></li>
+        <li><a href="#">FAQ</a></li>
+        <li><a href="#">Register</a></li>
+      </ul>
+    </div>
+
+    <!-- COL 4: Team -->
+    <div class="footer-col">
+      <h4 class="footer-col-title">Team</h4>
+      <ul class="footer-links">
+        <li><a href="#"><i class="fa-solid fa-chevron-right footer-li-icon"></i>Core Team</a></li>
+        <li><a href="#"><i class="fa-solid fa-chevron-right footer-li-icon"></i>Sponsors</a></li>
+        <li><a href="#"><i class="fa-solid fa-chevron-right footer-li-icon"></i>Judges</a></li>
+        <li><a href="#"><i class="fa-solid fa-chevron-right footer-li-icon"></i>FAQ</a></li>
+        <li><a href="#"><i class="fa-solid fa-chevron-right footer-li-icon"></i>Contact</a></li>
+        <li><a href="#" class="footer-pulse-link">
+          <i class="fa-solid fa-circle-dot footer-li-icon" style="color:#00D9FF"></i>Community Pulse
+        </a></li>
+      </ul>
+    </div>
+
+  </div><!-- /footer-grid -->
+
+  <!-- BOTTOM BAR -->
+  <div class="footer-bottom-bar">
+    <span class="footer-copy">&copy; 2026 Parallax &middot; VIT Chennai</span>
+    <div class="footer-legal">
+      <a href="#">Privacy Policy</a>
+      <span class="footer-legal-sep">|</span>
+      <a href="#">Terms of Service</a>
+      <span class="footer-legal-sep">|</span>
+      <a href="#">Cookie Policy</a>
+    </div>
+  </div>
+
+</footer>
+
+<script src="{% static 'js/main.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

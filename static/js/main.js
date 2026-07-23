@@ -46,3 +46,16 @@ if (geoWrap) {
     geoWrap.style.transform = 'translateY(' + (window.scrollY * 0.16) + 'px)';
   }, { passive: true });
 }
+
+// Reference hero countdown: counts down to the event date while retaining safe fallback values.
+(() => {
+  const ids = ['count-days','count-hours','count-mins','count-secs'];
+  if (!ids.every(id => document.getElementById(id))) return;
+  const target = new Date('2026-08-18T00:00:00+05:30').getTime();
+  const tick = () => {
+    const diff = Math.max(0, target - Date.now());
+    const vals = [Math.floor(diff/86400000), Math.floor(diff/3600000)%24, Math.floor(diff/60000)%60, Math.floor(diff/1000)%60];
+    ids.forEach((id,i) => document.getElementById(id).textContent = String(vals[i]).padStart(2,'0'));
+  };
+  tick(); setInterval(tick,1000);
+})();

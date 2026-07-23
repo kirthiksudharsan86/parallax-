@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ domain.name }} — PARALLAX 2026{% endblock %}
+
+{% block content %}
+
+<style>
+  /* ─── Domain detail hero ──────────────────────────── */
+  .domain-hero {
+    text-align: center;
+    padding: 70px 20px 40px;
+    background: linear-gradient(135deg, rgba(0,217,255,.05), rgba(49,89,255,.05));
+    border-bottom: 2px solid rgba(0,217,255,.3);
+  }
+  .domain-hero-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #00d9ff;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 22px;
+  }
+  .domain-hero-back:hover { text-decoration: underline; }
+  .domain-hero-icon { font-size: 48px; display: block; margin-bottom: 12px; }
+  .domain-hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 40px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #00d9ff, #0099cc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0 0 12px;
+    letter-spacing: 1px;
+  }
+  .domain-hero-budget {
+    display: inline-block;
+    background: rgba(0,217,255,.1);
+    border: 1px solid rgba(0,217,255,.3);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 13px;
+    color: #00d9ff;
+    font-weight: 600;
+  }
+
+  /* ─── PS list container ───────────────────────────── */
+  .ps-container {
+    max-width: 900px;
+    margin: 50px auto 90px;
+    padding: 0 20px;
+  }
+  .ps-matrix {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .ps-card {
+    background: linear-gradient(135deg, #1a1f3a 0%, #16213e 100%);
+    border: 1.5px solid rgba(0,217,255,.3);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color .25s ease;
+  }
+  .ps-card:hover { border-color: #00d9ff; }
+
+  .ps-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 22px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .ps-number {
+    min-width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: rgba(0,217,255,.12);
+    border: 1px solid rgba(0,217,255,.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #00d9ff;
+    flex-shrink: 0;
+  }
+  .ps-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: #e0e0e0;
+    flex: 1;
+  }
+  .ps-chevron {
+    color: #00d9ff;
+    font-size: 18px;
+    transition: transform .3s ease;
+    flex-shrink: 0;
+  }
+  .ps-card.open .ps-chevron { transform: rotate(180deg); }
+
+  .ps-body { display: none; padding: 0 22px 22px; border-top: 1px solid rgba(0,217,255,.15); }
+  .ps-card.open .ps-body { display: block; }
+
+  /* ─── 5×1 matrix: description / context / min-req / deps / rubric ── */
+  .ps-matrix-5x1 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+    margin-top: 18px;
+  }
+  .ps-section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #00d9ff;
+    margin-bottom: 8px;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .ps-section-content {
+    font-size: 14px;
+    color: #b0b0b0;
+    line-height: 1.65;
+  }
+  .ps-section-content ul { margin: 6px 0 0 0; padding-left: 18px; }
+  .ps-section-content ul li { margin-bottom: 5px; }
+
+  .rubric-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 8px;
+  }
+  .rubric-table th {
+    text-align: left;
+    color: #00d9ff;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border-bottom: 1px solid rgba(0,217,255,.2);
+  }
+  .rubric-table td {
+    padding: 7px 10px;
+    color: #b0b0b0;
+    border-bottom: 1px solid rgba(255,255,255,.05);
+    vertical-align: top;
+  }
+  .rubric-table tr:last-child td { border-bottom: none; }
+  .rubric-weight { color: #00d9ff; font-weight: 700; white-space: nowrap; }
+
+  @media (max-width: 768px) {
+    .domain-hero h1 { font-size: 28px; }
+    .ps-title { font-size: 14px; }
+  }
+</style>
+
+<!-- ═══════════════════════════════════════
+     HERO
+═══════════════════════════════════════ -->
+<section class="domain-hero">
+  <a href="{% url 'tracks' %}" class="domain-hero-back"><i class="fa-solid fa-arrow-left"></i> All Tracks</a>
+  <span class="domain-hero-icon">{{ domain.icon }}</span>
+  <h1>{{ domain.name }}</h1>
+  <span class="domain-hero-budget">💰 Budget: {{ domain.budget }}</span>
+</section>
+
+<!-- ═══════════════════════════════════════
+     PROBLEM STATEMENTS — 5×1 matrix accordion
+═══════════════════════════════════════ -->
+<section class="ps-container">
+  <div class="ps-matrix">
+    {% for ps in problem_statements %}
+      <div class="ps-card">
+        <div class="ps-header" onclick="togglePS(this)">
+          <div class="ps-number">PS {{ ps.number }}</div>
+          <div class="ps-title">{{ ps.title }}</div>
+          <span class="ps-chevron">▾</span>
+        </div>
+        <div class="ps-body">
+          <div class="ps-matrix-5x1">
+            <div class="ps-section">
+              <div class="ps-section-label">Description</div>
+              <div class="ps-section-content">{{ ps.description }}</div>
+            </div>
+            <div class="ps-section">
+              <div class="ps-section-label">Context</div>
+              <div class="ps-section-content">{{ ps.context }}</div>
+            </div>
+            <div class="ps-section">
+              <div class="ps-section-label">Minimum Requirements</div>
+              <div class="ps-section-content">
+                <ul>
+                  {% for req in ps.requirements_list %}<li>{{ req }}</li>{% endfor %}
+                </ul>
+              </div>
+            </div>
+            <div class="ps-section">
+              <div class="ps-section-label">Dependencies</div>
+              <div class="ps-section-content">
+                <ul>
+                  {% for dep in ps.dependencies_list %}<li>{{ dep }}</li>{% endfor %}
+                </ul>
+              </div>
+            </div>
+            <div class="ps-section">
+              <div class="ps-section-label">Rubric</div>
+              <div class="ps-section-content">
+                <table class="rubric-table">
+                  <tr><th>Criterion</th><th>Weight</th><th>Notes</th></tr>
+                  {% for row in ps.rubric_criteria.all %}
+                    <tr>
+                      <td>{{ row.criterion }}</td>
+                      <td class="rubric-weight">{{ row.weight }}</td>
+                      <td>{{ row.notes }}</td>
+                    </tr>
+                  {% endfor %}
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <p style="color:#b0b0b0;">No problem statements published yet for this domain.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<script>
+  function togglePS(header) {
+    const card = header.closest('.ps-card');
+    card.classList.toggle('open');
+  }
+</script>
+
+{% endblock %}
