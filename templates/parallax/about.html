@@ -5,18 +5,88 @@
   <p class="eyebrow">About Parallax 2026</p><h1>ABOUT <span>US</span></h1>
   <p class="about-copy">Parallax is the annual flagship hackathon of VIT Chennai, brought to you by the School of Electronics Engineering. We bring together curious minds, diverse skills, and bold ideas to solve real-world problems from new perspectives.</p>
   <section class="oc-panel">
-    <h2 class="oc-heading">FACULTY COORDINATORS</h2><div class="faculty-grid">
-      <article class="person-card"><img src="{% static 'assets/Dr. Richards Joe Stanislaus.png' %}"class="px-mark-icon"><i class="fa-regular fa-user"></i><h3>Faculty Coordinator</h3><p>Prof.Dr. Richards Joe Stanislaus<br>School of Electronics Engineering</p></article>
-      <article class="person-card"><img src="{% static 'assets/mam.png' %}"class="px-mark-icon"><i class="fa-regular fa-user"></i><h3>Faculty Coordinator</h3><p>School of Electronics Engineering</p></article>
+    <h2 class="oc-heading">FACULTY COORDINATORS</h2>
+    <div class="faculty-grid">
+      <article class="person-card">
+        <div class="person-photo"><img src="{% static 'assets/Dr. Richards Joe Stanislaus.png' %}" ></div>
+        <h3>Dr. Richards Joe Stanislaus</h3>
+        <p>Faculty Coordinator<br>School of Electronics Engineering</p>
+      </article>
+      <article class="person-card">
+        <div class="person-photo"><img src="{% static 'assets/mam.png' %}" alt="Faculty Coordinator"></div>
+        <h3>Dr.Priyanak Das</h3>
+        <p>Faculty Coordinator<br>School of Electronics Engineering</p>
+      </article>
     </div>
-    <h2 class="oc-heading">CORE COMMITTEE</h2><div class="core-grid">
-      {% for name, role in core_members %}<article class="core-box"><h3 class="person-card"></h3><div class="portrait-placeholder"><i class="fa-regular fa-user"></i></div><h3>{{ name }}</h3><p>{{ role }}</p></article>{% empty %}
-      <article class="core-box"><div class="portrait-placeholder"><i class="fa-regular fa-user"></i></div><h3>Core Member</h3></article><article class="core-box"><div class="portrait-placeholder"><i class="fa-regular fa-user"></i></div><h3>Core Member</h3></article><article class="core-box"><div class="portrait-placeholder"><i class="fa-regular fa-user"></i></div><h3>Core Member</h3></article><article class="core-box"><div class="portrait-placeholder"><i class="fa-regular fa-user"></i></div><h3>Core Member</h3></article></article>{% endfor %}
+    <h2 class="oc-heading">CORE COMMITTEE</h2>
+    <div class="core-grid">
+      <article class="person-card">
+        <div class="person-photo"><img src="{% static 'assets/Prasanna M.png' %}"></div>
+        <h3>Prasanna M</h3>
+        <p>Treasury</p>
+      </article>
+      <article class="person-card">
+        <div class="person-photo"><img src="{% static 'assets/Kaliash.png' %}"></div>
+        <h3>Kailash</h3>
+        <p>Student Coordinator</p>
+      </article>
+      <article class="person-card">
+        <div class="person-photo"><img src="{% static 'assets/Jaidev K.png' %}"></div>
+        <h3>Jaidev K</h3>
+        <p>Student Coordinator</p>
+      </article>
+      <article class="person-card">
+        <div class="person-photo"><img src="{% static 'assets/SAI VIGNESH B.png' %}"></div>
+        <h3>SAI VIGNESH B</h3>
+        <p>Student Coordinator</p>
+      </article>
+      <article class="person-card">
+        <div class="person-photo"><img src="{% static 'assets/divyasri.png' %}"></div>
+        <h3>Divya Sri</h3>
+        <p>Treasury</p>
+      </article>
     </div>
     <div class="lead-grid">
-      <article class="lead-box"><h3 class="lead-title">TECHNICAL COMMITTEE LEADS</h3><div class="lead-members"><div class="person-card"><div class="portrait-placeholder"><i class="fa-regular fa-user"></i></div><h3>Lead</h3><p>Technical Lead</p></div><div class="person-card"><div class="portrait-placeholder"><i class="fa-regular fa-user"></i></div><h3>Lead</h3><p>Technical Lead</p></div></div></article>
-      <article class="lead-box"><h3 class="lead-title">OPERATIONS COMMITTEE LEADS</h3><div class="lead-members"><div class="person-card"><div class="portrait-placeholder"><i class="fa-regular fa-user"></i></div><h3>Lead</h3><p>Operations Lead</p></div><div class="person-card"><div class="portrait-placeholder"><i class="fa-regular fa-user"></i></div><h3>Lead</h3><p>Operations Lead</p></div></div></article>
-      <article class="lead-box"><h3 class="lead-title">MEDIA & DESIGN TEAM LEADS</h3><div class="lead-members"><div class="person-card"><div class="portrait-placeholder"><i class="fa-regular fa-user"></i></div><h3>Lead</h3><p>Media Lead</p></div><div class="person-card"><div class="portrait-placeholder"><i class="fa-regular fa-user"></i></div><h3>Lead</h3><p>Design Lead</p></div></div></article>
+      <article class="lead-box">
+        <h3 class="lead-title">TECHNICAL COMMITTEE LEADS</h3>
+        <div class="lead-members">
+          <div class="person-card">
+            <div class="person-photo"><img src="{% static 'assets/Mohankrishnan S.png' %}" ></div>
+            <h3>Mohanakrishnan S</h3>
+          </div>
+          <div class="person-card">
+            <div class="person-photo"><img src="{% static 'assets/Jeswanth P M.png' %}" ></div>
+            <h3>Jeswanth</h3>
+          </div>
+        </div>
+      </article>
+      <article class="lead-box">
+        <h3 class="lead-title">OPERATIONS COMMITTEE LEADS</h3>
+        <div class="lead-members">
+          <div class="person-card">
+            <div class="person-photo"><img src="{% static 'assets/Prabhu Sivakumar.png' %}"></div>
+            <h3>Prabhu Sivakumar</h3>
+          </div>
+          <div class="person-card">
+            <div class="person-photo"><img src="{% static 'assets/vedashree.png' %}"></div>
+            <h3>Vedashree</h3>
+          </div>
+        </div>
+      </article>
+      <article class="lead-box">
+        <h3 class="lead-title">MEDIA & DESIGN TEAM LEADS</h3>
+        <div class="lead-members">
+          <div class="person-card">
+            <div class="person-photo"><img src="{% static 'assets/Sanjana B.png' %}" alt="Media Lead"></div>
+            <h3>Sanjana B</h3>
+          </div>
+          <div class="person-card">
+            <div class="person-photo"><img src="{% static 'assets/lead-media-2.png' %}" alt="Design Lead"></div>
+            <h3>Lead Name</h3>
+          </div>
+        </div>
+      </article>
     </div>
   </section>
-</main>{% endblock %}
+</main>
+{% endblock %}
