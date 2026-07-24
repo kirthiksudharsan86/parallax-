@@ -41,8 +41,22 @@ def information(request, page):
         'theme': ('Theme', 'Same problem. Different view. Better answer.'),
         'contact': ('Contact the OC', 'Have a question? The organising committee is here to help.'),
     }
-    return render(request, 'parallax/information.html', {'page': page, 'heading': pages[page][0], 'tagline': pages[page][1], 'reviews': Review.objects.all().order_by('scheduled_at'), 'tracks': public_tracks()})
 
+    if page not in pages:
+        from django.http import Http404
+        raise Http404("Page not found")
+
+    return render(
+        request,
+        'parallax/information.html',
+        {
+            'page': page,
+            'heading': pages[page][0],
+            'tagline': pages[page][1],
+            'reviews': Review.objects.all().order_by('scheduled_at'),
+            'tracks': public_tracks(),
+        }
+    )
 def team_login(request):
     if request.user.is_authenticated:
         try:
@@ -105,14 +119,6 @@ def registration_payment(request):
     context = {'registration_data': registration_data}
     return render(request, 'parallax/registration/payment.html', context)
 
-def registration_member(request):
-    return render(request, 'parallax/registration/member.html')
-
-def registration_proof(request):
-    return render(request, 'parallax/registration/proof_upload.html')
-
-def registration_review(request):
-    return render(request, 'parallax/registration/review.html')
 
 @login_required(login_url='team_login')
 def profile_complete(request):
@@ -176,8 +182,9 @@ def participant_dashboard(request):
     except Participant.DoesNotExist:
         return redirect('profile_complete')
     team = participant.team
-    marks = Marks.objects.filter(team=team) if team else []
-    context = {'participant': participant, 'team': team, 'marks': marks}
+    marks = Marks.objects.filter(team=team).select_related("review")if team else []
+    team_members = Participant.objects.filter(team=team) if team else []
+    context = {"participant": participant,"team": team,"marks": marks,"team_members": team_members,}
     return render(request, 'parallax/dashboard.html', context)
 
 @login_required(login_url='team_login')

@@ -10,13 +10,9 @@ urlpatterns = [
     path('dashboard/', views.participant_dashboard, name='participant_dashboard'),
     path('admin-panel/', views.admin_panel, name='admin_panel'),
     path('admin-panel/teams/', views.admin_teams, name='admin_teams'),
-    path('admin-panel/marks/', views.admin_marks, name='admin_marks'),
     path('admin-panel/tracks/', views.admin_tracks, name='admin_tracks'),
     path('registration/', views.registration_index, name='registration_index'),
     path('registration/team/', views.registration_leader, name='registration_leader'),
-    path('registration/member/', views.registration_member, name='registration_member'),
     path('registration/payment/', views.registration_payment, name='registration_payment'),
-    path('registration/proof-upload/', views.registration_proof, name='registration_proof'),
-    path('registration/review/', views.registration_review, name='registration_review'),
     path('<str:page>/', views.information, name='information'),
 ]

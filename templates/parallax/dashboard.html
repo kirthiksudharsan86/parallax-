@@ -1,237 +1,78 @@
 {% extends 'parallax/base.html' %}
-
-{% block title %}Dashboard | Parallax{% endblock %}
-
+{% block title %}Participant Dashboard | Parallax{% endblock %}
 {% block content %}
-
-<div class="registration-block" style="padding-top: 120px; padding-bottom: 80px;">
-
+<div class="registration-block" style="padding-top:120px;padding-bottom:80px;">
 <div class="registration-wrap">
-
 <main class="site-main">
 
-<section class="hero-grid" style="margin-bottom: 40px;">
-
+<section class="hero-grid" style="margin-bottom:32px;">
 <div class="hero-copy glass-panel">
 <p class="eyebrow">Participant Dashboard</p>
 <h1>Welcome, {{ participant.full_name }}</h1>
-<p class="hero-text">Your registration is active. Manage your team details, members, and track your approval status below.</p>
+<p class="hero-text">Manage your registration, payment and team from one place.</p>
 </div>
 
 <aside class="hero-aside glass-panel">
 <div class="stack-sm">
-<span class="aside-label">Account Status</span>
-<div class="info-banner">
-<strong>Registration Status</strong>
-{% if team %}
-<span>{{ team.get_status_display }}</span>
-{% else %}
-<span>No team created</span>
-{% endif %}
-</div>
+<div class="info-banner"><strong>Registration</strong><span>{% if team %}{{ team.get_status_display }}{% else %}Not Registered{% endif %}</span></div>
+<div class="info-banner"><strong>Payment</strong><span>Pending Verification</span></div>
 </div>
 </aside>
-
 </section>
 
 {% if team %}
 
-<!-- Team Information -->
-<section class="content-grid content-grid--two" style="margin-bottom: 40px;">
-
+<section class="content-grid content-grid--two" style="margin-bottom:32px;">
 <div class="glass-panel detail-card">
-<div class="panel-heading">
-<span class="section-kicker">Team</span>
-<h2>{{ team.team_name }}</h2>
-</div>
-
+<div class="panel-heading"><span class="section-kicker">Team</span><h2>{{ team.team_name }}</h2></div>
 <div class="summary-list">
-<div class="summary-row">
-<span>Team Code</span>
-<strong>{{ team.team_code }}</strong>
+<div class="summary-row"><span>Team Code</span><strong>{{ team.team_code }}</strong></div>
+<div class="summary-row"><span>Members</span><strong>{{ team.member_count }}/10</strong></div>
+<div class="summary-row"><span>Status</span><strong>{{ team.get_status_display }}</strong></div>
 </div>
-<div class="summary-row">
-<span>Track</span>
-<strong>{{ team.track.name }}</strong>
-</div>
-<div class="summary-row">
-<span>Team Size</span>
-<strong>{{ team.member_count }}/10</strong>
-</div>
-<div class="summary-row">
-<span>Status</span>
-<strong>
-{% if team.status == 'PENDING' %}
-<span style="color: #fbbf24;">Pending Approval</span>
-{% elif team.status == 'APPROVED' %}
-<span style="color: #34d399;">Approved</span>
-{% else %}
-<span style="color: #f87171;">{{ team.get_status_display }}</span>
-{% endif %}
-</strong>
-</div>
-</div>
-
-<div class="action-row" style="margin-top: 20px;">
 <a class="button button-compact" href="#">Edit Team</a>
 </div>
-</div>
 
-<!-- Leader Information -->
 <div class="glass-panel detail-card">
-<div class="panel-heading">
-<span class="section-kicker">Leader</span>
-<h2>{{ participant.full_name }}</h2>
-</div>
-
+<div class="panel-heading"><span class="section-kicker">Profile</span><h2>{{ participant.full_name }}</h2></div>
 <div class="summary-list">
-<div class="summary-row">
-<span>Email</span>
-<strong>{{ participant.email }}</strong>
+<div class="summary-row"><span>Email</span><strong>{{ participant.email }}</strong></div>
+<div class="summary-row"><span>Phone</span><strong>{{ participant.phone_number|default:"Not set" }}</strong></div>
+<div class="summary-row"><span>College</span><strong>{{ participant.college_name|default:"Not set" }}</strong></div>
 </div>
-<div class="summary-row">
-<span>Phone</span>
-<strong>{{ participant.phone_number|default:'Not set' }}</strong>
-</div>
-<div class="summary-row">
-<span>College</span>
-<strong>{{ participant.college_name|default:'Not set' }}</strong>
-</div>
-<div class="summary-row">
-<span>Department</span>
-<strong>{{ participant.department|default:'Not set' }}</strong>
-</div>
-</div>
-
-<div class="action-row" style="margin-top: 20px;">
 <a class="button button-compact" href="#">Edit Profile</a>
 </div>
-</div>
-
 </section>
 
-<!-- Domains -->
-<section class="content-grid content-grid--wide" style="margin-bottom: 40px;">
-
+<section class="content-grid content-grid--wide" style="margin-bottom:32px;">
 <div class="glass-panel detail-card">
-<div class="panel-heading">
-<span class="section-kicker">Preferences</span>
-<h2>Preferred Domains</h2>
-</div>
-
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;">
-<span class="info-pill" style="justify-content: center;">
-<strong>AI</strong>
-</span>
-<span class="info-pill" style="justify-content: center;">
-<strong>ML</strong>
-</span>
-<span class="info-pill" style="justify-content: center;">
-<strong>IoT</strong>
-</span>
-<span class="info-pill" style="justify-content: center;">
-<strong>Cybersecurity</strong>
-</span>
-</div>
-
-<div class="action-row" style="margin-top: 20px;">
-<a class="button button-compact" href="#">Edit Domains</a>
-</div>
-</div>
-
-</section>
-
-<!-- Team Members -->
-<section class="content-grid content-grid--wide" style="margin-bottom: 40px;">
-
-<div class="glass-panel detail-card">
-<div class="panel-heading">
-<span class="section-kicker">Team</span>
-<h2>Team Members ({{ team.member_count }}/10)</h2>
-</div>
-
-<div class="summary-list">
-<div class="summary-row">
-<span>{{ participant.full_name }}</span>
-<strong>Leader</strong>
-</div>
-</div>
-
-<div class="action-row" style="margin-top: 20px;">
+<div class="panel-heading"><span class="section-kicker">Members</span><h2>Team Members</h2></div>
+<div class="summary-row"><span>{{ participant.full_name }}</span><strong>Leader</strong></div>
 <a class="button button-compact" href="#">Manage Members</a>
 </div>
-</div>
-
 </section>
 
-<!-- Registration & Payment Status -->
-<section class="content-grid content-grid--two" style="margin-bottom: 40px;">
-
+<section class="content-grid content-grid--two">
 <div class="glass-panel detail-card">
-<div class="panel-heading">
-<span class="section-kicker">Status</span>
-<h2>Registration</h2>
-</div>
-
-<div class="stack-sm">
-<div class="info-banner">
-<strong>Status:</strong>
-<span>
-{% if team.status == 'PENDING' %}
-Waiting for organizer approval
-{% elif team.status == 'APPROVED' %}
-Registration Approved
-{% else %}
-{{ team.get_status_display }}
-{% endif %}
-</span>
-</div>
-<p class="field-help">You can edit your details until approval is complete.</p>
-</div>
+<div class="panel-heading"><span class="section-kicker">Track Selection</span><h2>Locked</h2></div>
+<p>Track selection will open when released by the Organising Committee.</p>
 </div>
 
 <div class="glass-panel detail-card">
-<div class="panel-heading">
-<span class="section-kicker">Status</span>
-<h2>Payment</h2>
+<div class="panel-heading"><span class="section-kicker">Problem Statement</span><h2>Unavailable</h2></div>
+<p>Choose a track after it opens.</p>
 </div>
-
-<div class="stack-sm">
-<div class="info-banner">
-<strong>Status:</strong>
-<span>Pending verification</span>
-</div>
-<p class="field-help">Our team will verify within 24 hours and grant full access.</p>
-</div>
-</div>
-
 </section>
 
 {% else %}
-
-<!-- No Team State -->
-<section class="content-grid content-grid--wide">
-
 <div class="glass-panel detail-card">
-<div class="panel-heading">
-<span class="section-kicker">Getting Started</span>
 <h2>Create Your Team</h2>
-<p>You haven't created a team yet. Start the registration process to join Parallax 2026.</p>
-</div>
-
-<div class="action-row">
+<p>You haven't registered yet.</p>
 <a class="button" href="{% url 'registration_index' %}">Start Registration</a>
 </div>
-</div>
-
-</section>
-
 {% endif %}
 
 </main>
-
 </div>
-
 </div>
-
 {% endblock %}
