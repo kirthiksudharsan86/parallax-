@@ -2,139 +2,82 @@
 
 {% block title %}Payment | Parallax{% endblock %}
 {% block page_name %}payment{% endblock %}
-
-{% block hero_title %}Complete Payment{% endblock %}
-
-{% block hero_text %}
-Your registration is complete. Complete the payment to finalize your participation.
-After payment, wait for organizer verification to access your dashboard.
-{% endblock %}
-
+{% block hero_title %}Choose Your Payment Option{% endblock %}
+{% block hero_text %}Your leader registration is saved. Pay now by continuing to the event hub where you can create your team, add your friends and complete the payment — or choose to pay later and finish it from the hub anytime.{% endblock %}
 {% block hero_actions %}
-<a class="button" href="#paymentSection">Pay Now</a>
-<a class="button button-secondary" href="{% url 'registration_index' %}">Back to Registration</a>
+<a class="button" href="#paymentChoice">Choose Option</a>
 {% endblock %}
-
 {% block hero_aside %}
 <div class="aside-header">
-    <span class="aside-label">Registration Status</span>
-    <span class="status-badge">Step 2 of 4</span>
+  <span class="aside-label">Current Step</span>
+  <span class="status-badge">02 · Payment</span>
 </div>
-
-<ul class="timeline-list">
-    <li class="timeline-item">
-        <span>01</span>
-        <div>
-            <strong>Team Registration</strong>
-            <p>Complete leader and team information.</p>
-        </div>
-    </li>
-
-    <li class="timeline-item is-active">
-        <span>02</span>
-        <div>
-            <strong>Payment</strong>
-            <p>Complete the registration fee.</p>
-        </div>
-    </li>
-
-    <li class="timeline-item">
-        <span>03</span>
-        <div>
-            <strong>Verification</strong>
-            <p>Organizer approval required.</p>
-        </div>
-    </li>
-
-    <li class="timeline-item">
-        <span>04</span>
-        <div>
-            <strong>Dashboard</strong>
-            <p>Edit your details after approval.</p>
-        </div>
-    </li>
-</ul>
+<div class="stack-sm">
+  <p class="muted-copy">Continue to the event hub to create your team and pay, or select pay later.</p>
+  <div class="info-pill">
+    <span>Payment status</span>
+    <strong>{{ registration.get_payment_status_display }}</strong>
+  </div>
+</div>
 {% endblock %}
 
 {% block registration_content %}
-
 <section class="content-grid content-grid--two">
+  <article class="glass-panel detail-card" id="paymentChoice" data-reveal>
+    <div class="panel-heading">
+      <span class="section-kicker">Next Action</span>
+      <h2>How would you like to pay?</h2>
+      <p>“Go to payment” redirects you to the event hub to log in, create your team, add your friends and pay. “Pay later” keeps your registration saved so you can complete payment from the hub anytime.</p>
+    </div>
 
-<div class="glass-panel detail-card" id="paymentSection">
+    <form method="post" action="{% url 'registration_payment' %}" class="stack-md">
+      {% csrf_token %}
+      <div class="action-row">
+        <button class="button button-large" type="submit" name="payment_choice" value="go_to_payment">Go to Payment</button>
+        <button class="button button-secondary" type="submit" name="payment_choice" value="pay_later">Pay Later</button>
+      </div>
+    </form>
 
-<div class="panel-heading">
-<span class="section-kicker">Payment</span>
-<h2>Registration Fee</h2>
-<p>Complete your payment to confirm your spot in Parallax 2026.</p>
-</div>
+    {% if registration.has_paid %}
+    <div class="info-banner">
+      <strong>Payment confirmed</strong>
+      <span>We have recorded your payment. A confirmation email will follow.</span>
+    </div>
+    {% elif registration.payment_status == 'PAY_LATER' %}
+    <div class="info-banner">
+      <strong>Marked as pay later</strong>
+      <span>You can finish the payment on the event hub whenever you are ready.</span>
+    </div>
+    {% endif %}
+  </article>
 
-<div class="stack-lg">
-
-<div class="info-pill">
-<span>Amount Due</span>
-<strong>₹999</strong>
-</div>
-
-<div>
-<h3>Payment Instructions</h3>
-<ul class="inline-list">
-<li>Click "Pay Now" to initiate payment</li>
-<li>Complete transaction securely</li>
-<li>Receive payment confirmation</li>
-<li>Wait for organizer verification</li>
-</ul>
-</div>
-
-<div class="action-row">
-<a class="button button-large" href="#" onclick="alert('Payment gateway placeholder - integrate Razorpay/PayU here')">Pay Now</a>
-</div>
-
-</div>
-
-</div>
-
-<aside class="glass-panel detail-card">
-
-<div class="panel-heading">
-<span class="section-kicker">What's Next</span>
-<h2>After Payment</h2>
-</div>
-
-<div class="stack-sm">
-<p class="muted-copy">Once you complete payment, your registration enters the verification stage.</p>
-
-<div class="info-banner">
-<strong>Waiting for Verification</strong>
-<span>Our team will verify your payment within 24 hours and grant dashboard access.</span>
-</div>
-
-<p class="field-help">You'll receive an email confirmation once your registration is approved.</p>
-</div>
-
-</aside>
-
+  <aside class="glass-panel detail-card" data-reveal>
+    <div class="panel-heading">
+      <span class="section-kicker">Saved Registration</span>
+      <h2>Your details</h2>
+    </div>
+    <div class="summary-list">
+      <div class="summary-row">
+        <span>Leader Name</span>
+        <strong>{{ registration.full_name }}</strong>
+      </div>
+      <div class="summary-row">
+        <span>Email</span>
+        <strong>{{ registration.email }}</strong>
+      </div>
+      <div class="summary-row">
+        <span>College</span>
+        <strong>{{ registration.college }}</strong>
+      </div>
+      <div class="summary-row">
+        <span>Department</span>
+        <strong>{{ registration.department }}</strong>
+      </div>
+      <div class="summary-row">
+        <span>Status</span>
+        <strong>{{ registration.get_payment_status_display }}</strong>
+      </div>
+    </div>
+  </aside>
 </section>
-
-<section class="stack-grid">
-
-<article class="mini-card glass-panel">
-<span class="section-kicker">Secure</span>
-<h3>Safe Payment</h3>
-<p>All transactions are encrypted and processed securely through trusted payment gateways.</p>
-</article>
-
-<article class="mini-card glass-panel">
-<span class="section-kicker">Confirmation</span>
-<h3>Email Receipt</h3>
-<p>You'll receive an instant payment confirmation email with your transaction details.</p>
-</article>
-
-<article class="mini-card glass-panel">
-<span class="section-kicker">Access</span>
-<h3>Dashboard Ready</h3>
-<p>Once approved, log in to your dashboard to manage your team and event details.</p>
-</article>
-
-</section>
-
 {% endblock %}

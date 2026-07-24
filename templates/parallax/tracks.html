@@ -1,23 +1,35 @@
-{% extends 'parallax/base.html' %}{% block title %}Tracks | Parallax 2026{% endblock %}{% block content %}
-<main class="page-shell">
-    <h1 class="page-title">Five arenas for <span>innovation.</span></h1>
-    <p class="lead">Challenge statements will be released in sets according to their difficulty levels along a week prior to  Parallax. Each track has 5 dedicated problem statement where 3 are software based and 2 are hardware based.</p>
-    <div class="info-grid">
-        {% for track in tracks %}
-        <article class="info-card">
-            <i class="fa-solid {% if track.icon %}{{ track.icon }}{% else %}fa-bolt{% endif %}"></i>
-            <h2>{{ track.name }}</h2>
-            <p>{{ track.description }}</p>
-            {% if track.is_problem_live %}
-                <details>
-                    <summary>View problem statements</summary>
-                    <p>{{ track.problem_statements|linebreaksbr }}</p>
-                </details>
-            {% else %}
-                <small class="status">Problem statement locked - will be released prior to the event.</small>
-            {% endif %}
-        </article>
-        {% endfor %}
-    </div>
-</main>
+{% extends 'parallax/base.html' %}
+{% load static %}
+
+{% block title %}Tracks | Parallax{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="dashboard-wrap">
+    <section class="dashboard-hero">
+      <span class="dashboard-kicker">Challenge Tracks</span>
+      <h1 class="dashboard-title">Published tracks for Parallax</h1>
+      <p class="dashboard-copy">Participants can register into the published tracks shown below.</p>
+    </section>
+
+    <section class="dashboard-cards">
+      {% for track in tracks %}
+      <article class="dashboard-card">
+        <span class="dashboard-kicker">Track {{ forloop.counter }}</span>
+        <h2 class="dashboard-section-title">{{ track.name }}</h2>
+        <p class="dashboard-copy">{{ track.description }}</p>
+      </article>
+      {% empty %}
+      <article class="dashboard-card">
+        <h2 class="dashboard-section-title">No tracks published yet</h2>
+        <p class="dashboard-copy">The OC team will publish the tracks here once they are ready.</p>
+      </article>
+      {% endfor %}
+    </section>
+  </div>
+</section>
 {% endblock %}

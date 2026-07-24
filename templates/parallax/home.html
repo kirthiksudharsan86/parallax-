@@ -19,7 +19,10 @@
     <div class="px-presented">Presented by</div>
     <div class="px-org">School of Electronics Engineering</div>
 
-    <a href="{% url 'registration_index' %}" class="btn-cta">Register Now &nbsp;<i class="fa-solid fa-arrow-right"></i></a>
+    <div class="hero-actions">
+      <a href="{% url 'registration_index' %}" class="btn-cta">Register Now &nbsp;<i class="fa-solid fa-arrow-right"></i></a>
+      <a href="{% url 'team_login' %}" class="btn-cta">Team Login &nbsp;<i class="fa-solid fa-arrow-right"></i></a>
+    </div>
 
     <div class="px-timer" id="heroTimer">
       <div class="timer-block">
@@ -61,8 +64,6 @@
       {% endfor %}
     </div>
   </div>
-</section>
-
 </section>
 <section id="sponsors" class="section">
   <div class="wrap">
