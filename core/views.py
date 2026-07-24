@@ -1,5 +1,4 @@
 from datetime import date
-
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -8,7 +7,6 @@ from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-
 from core.emailing import leader_payment_confirmation, leader_registration_received
 from core.models import (
     Announcement,
@@ -21,17 +19,6 @@ from core.models import (
     Team,
     Track,
 )
-
-
-VIT_CAMPUSES = (
-    'VIT Chennai',
-    'VIT Vellore',
-    'VIT Bhopal',
-    'VIT-AP',
-)
-
-# Team-leader registration form categories currently confirmed by the core team.
-# 6 further categories are pending; add them here and to LeaderRegistration.
 REGISTRATION_FIELD_LABELS = {
     'first_name': 'first name',
     'last_name': 'last name',
@@ -44,7 +31,6 @@ REGISTRATION_FIELD_LABELS = {
     'team_name': 'team name',
     'team_members': 'team members',
 }
-
 DEFAULT_TRACKS = [
     {
         'name': 'Aviation & Space Tech',
@@ -52,7 +38,7 @@ DEFAULT_TRACKS = [
         'icon': 'fa-rocket',
     },
     {
-        'name': 'Embedded Systems',
+        'name': 'Internet of Things"',
         'description': 'Create real-time hardware-software systems for devices, automation and edge computing.',
         'icon': 'fa-microchip',
     },
@@ -62,26 +48,23 @@ DEFAULT_TRACKS = [
         'icon': 'fa-heart-pulse',
     },
     {
-        'name': 'Sustainable Smart Infrastructure',
+        'name': 'Artificial Intelligence & Machine Learning',
         'description': 'Engineer resilient cities through smart energy, mobility and monitoring.',
-        'icon': 'fa-leaf',
+        'icon': 'fa-robot',
     },
     {
-        'name': 'Communication & Cyber Physical Systems',
+        'name': 'Communication & Networking',
         'description': 'Develop secure networks and intelligent connected infrastructure.',
         'icon': 'fa-satellite-dish',
     },
 ]
 
 TRACK_ICON_MAP = {
-    'artificial intelligence': 'fa-brain',
-    'machine learning': 'fa-robot',
+    'Artificial intelligence': 'fa-brain',
+    'Machine learning': 'fa-robot',
     'healthcare': 'fa-heart-pulse',
-    'fintech': 'fa-chart-line',
-    'cybersecurity': 'fa-shield-halved',
     'iot': 'fa-microchip',
     'web': 'fa-globe',
-    'sustainability': 'fa-leaf',
     'robotics': 'fa-gears',
 }
 
@@ -101,8 +84,6 @@ def home(request):
     reviews = Review.objects.all().order_by('scheduled_at')
 
     context = {
-        'announcements': Announcement.objects.filter(is_pinned=True).order_by('-created_at'),
-        'reviews': reviews,
         'stats': build_home_stats(reviews),
         'tracks': build_home_track_cards(published_tracks) if published_tracks else build_default_track_cards(),
     }

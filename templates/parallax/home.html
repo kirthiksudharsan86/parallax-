@@ -21,7 +21,6 @@
 
     <div class="hero-actions">
       <a href="{% url 'registration_index' %}" class="btn-cta">Register Now &nbsp;<i class="fa-solid fa-arrow-right"></i></a>
-      <a href="{% url 'team_login' %}" class="btn-cta">Team Login &nbsp;<i class="fa-solid fa-arrow-right"></i></a>
     </div>
 
     <div class="px-timer" id="heroTimer">
@@ -68,16 +67,37 @@
 <section id="sponsors" class="section">
   <div class="wrap">
     <div class="tracks-header reveal">
-      <h2 class="sec-title">Powered by our partners</h2>
+      <h2 class="sec-title">Powered by our Partners</h2>
     </div>
-    <div class="sponsor-grid">
-      {% for i in "1234" %}
-      <article class="sponsor-card">
-        <div class="sponsor-logo-placeholder"><i class="fa-solid fa-building"></i></div>
-        <h3>Sponsor Name</h3>
-        <p>Two-line description of the sponsor and what they bring to Parallax 2026.</p>
-      </article>
-      {% endfor %}
+    <div class="title-sponsor reveal">
+      <span class="sponsor-tag">TITLE SPONSOR</span>
+      <div class="sponsor-card featured">
+        <img src="{% static 'images/sponsors/title-sponsor.png' %}"
+             alt="Title Sponsor Logo"
+             class="sponsor-logo">
+        <h3>Title Sponsor Name</h3>
+        <p>
+          Empowering innovation and enabling the next generation of engineers.
+        </p>
+      </div>
+    </div>
+    <div class="technical-sponsors reveal">
+      <div class="sponsor-card">
+        <span class="sponsor-tag small">TECHNICAL SPONSOR</span>
+        <img src="{% static 'images/sponsors/tech1.png' %}"
+             alt="Technical Sponsor 1"
+             class="sponsor-logo">
+        <h3>Technical Sponsor 1</h3>
+        <p>Supporting participants with cutting-edge technology.</p>
+      </div>
+      <div class="sponsor-card">
+        <span class="sponsor-tag small">TECHNICAL SPONSOR</span>
+        <img src="{% static 'images/sponsors/tech2.png' %}"
+             alt="Technical Sponsor 2"
+             class="sponsor-logo">
+        <h3>Technical Sponsor 2</h3>
+        <p>Providing development tools and technical expertise.</p>
+      </div>
     </div>
   </div>
 </section>
