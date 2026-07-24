@@ -1,1 +1,126 @@
-{% extends 'parallax/base.html' %}{% block content %}<main class="page-shell"><p class="eyebrow">Organising committee</p><h1 class="page-title">Team <span>review.</span></h1><div class="table-card">{% for team in teams %}<article class="team-row"><div><b>{{ team.team_name }}</b><p>{{ team.leader.full_name }} · {{ team.leader.email }}<br>Code: {{ team.team_code }} · {{ team.get_status_display }}</p></div><form method="post">{% csrf_token %}<input type="hidden" name="team_id" value="{{ team.id }}"><button name="action" value="approve" class="btn-cta">Approve</button><button name="action" value="reject" class="btn-out">Reject</button></form></article>{% empty %}<p>No teams registered.</p>{% endfor %}</div></main>{% endblock %}
+{% extends 'parallax/base.html' %}
+{% load static %}
+
+{% block title %}Manage Teams | Parallax{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="dashboard-wrap">
+    <section class="dashboard-hero">
+      <span class="dashboard-kicker">OC Dashboard</span>
+      <h1 class="dashboard-title">Team management</h1>
+      <p class="dashboard-copy">
+        This view is reserved for OC members. It keeps the full participant contact and registration details out of the participant dashboard.
+      </p>
+      <div class="dashboard-actions">
+        <a class="dashboard-button-secondary" href="{% url 'admin_panel' %}">Back to OC Dashboard</a>
+        <a class="dashboard-button-secondary" href="{% url 'admin_marks' %}">Marks</a>
+        <a class="dashboard-button-secondary" href="{% url 'admin_announcements' %}">Announcements</a>
+      </div>
+    </section>
+
+    <section class="dashboard-table-card">
+      <table class="dashboard-table">
+        <thead>
+          <tr>
+            <th>Team</th>
+            <th>Track</th>
+            <th>Participants</th>
+            <th>Payment</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for team in teams %}
+          <tr>
+            <td>
+              <strong>{{ team.team_name }}</strong><br>
+              <span class="dashboard-small">Code: {{ team.team_code }}</span><br>
+              <span class="dashboard-small">Leader: {{ team.leader.full_name|default:"Not assigned" }}</span><br>
+              <span class="dashboard-small">
+                Reference:
+                {% if team.invoice_number %}{{ team.invoice_number }}{% else %}-{% endif %}
+              </span>
+            </td>
+            <td>{{ team.track.name|default:"Not selected" }}</td>
+            <td>
+              <div class="participant-detail-list">
+                {% for member in team.members.all %}
+                <article class="participant-detail-card">
+                  <div class="participant-detail-header">
+                    <strong>{{ member.full_name }}</strong>
+                    {% if member.is_team_leader %}
+                    <span class="dashboard-badge success">Leader</span>
+                    {% else %}
+                    <span class="dashboard-badge info">Member</span>
+                    {% endif %}
+                  </div>
+                  <div class="dashboard-small">{{ member.email }}</div>
+                  <div class="dashboard-small">{{ member.phone_number|default:"Phone not added" }}</div>
+                  <div class="dashboard-small">{{ member.college_name|default:"College not added" }}</div>
+                  <div class="dashboard-small">
+                    Reg No:
+                    {% if member.reg_number %}{{ member.reg_number }}{% else %}-{% endif %}
+                  </div>
+                </article>
+                {% empty %}
+                <p class="dashboard-empty">No participants attached yet.</p>
+                {% endfor %}
+              </div>
+            </td>
+            <td>
+              <span class="dashboard-badge {% if team.payment_confirmed %}success{% else %}pending{% endif %}">
+                {% if team.payment_confirmed %}Confirmed{% else %}Pending{% endif %}
+              </span>
+              <div class="dashboard-small">
+                {% if team.payment_confirmed_at %}
+                {{ team.payment_confirmed_at|date:"M d, Y H:i" }}
+                {% else %}
+                Waiting for OC confirmation
+                {% endif %}
+              </div>
+            </td>
+            <td>{{ team.get_status_display }}</td>
+            <td>
+              <div class="dashboard-table-actions">
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="team_id" value="{{ team.id }}">
+                  <input type="hidden" name="action" value="{% if team.payment_confirmed %}unconfirm_payment{% else %}confirm_payment{% endif %}">
+                  <button class="dashboard-button-secondary" type="submit">
+                    {% if team.payment_confirmed %}Unconfirm Payment{% else %}Confirm Payment{% endif %}
+                  </button>
+                </form>
+
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="team_id" value="{{ team.id }}">
+                  <input type="hidden" name="action" value="approve">
+                  <button class="dashboard-button" type="submit">Approve</button>
+                </form>
+
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="team_id" value="{{ team.id }}">
+                  <input type="hidden" name="action" value="reject">
+                  <button class="dashboard-button-ghost" type="submit">Reject</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6">No teams have registered yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  </div>
+</section>
+{% endblock %}
