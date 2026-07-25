@@ -76,11 +76,22 @@ AUTHENTICATION_BACKENDS = [
 LOGIN_REDIRECT_URL = '/dashboard/'
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_LOGOUT_ON_GET = True
+GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID', default='PLACEHOLDER_CLIENT_ID')
+GOOGLE_CLIENT_SECRET = config('GOOGLE_CLIENT_SECRET', default='PLACEHOLDER_CLIENT_SECRET')
+# True only when real Google OAuth credentials have been supplied (not the
+# built-in placeholders). Used to avoid sending users to Google's cryptic
+# "invalid_client" error page when the app has not been configured yet.
+GOOGLE_OAUTH_CONFIGURED = (
+    bool(GOOGLE_CLIENT_ID)
+    and bool(GOOGLE_CLIENT_SECRET)
+    and not GOOGLE_CLIENT_ID.startswith('PLACEHOLDER')
+    and not GOOGLE_CLIENT_SECRET.startswith('PLACEHOLDER')
+)
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
-            'client_id': config('GOOGLE_CLIENT_ID', default='PLACEHOLDER_CLIENT_ID'),
-            'secret': config('GOOGLE_CLIENT_SECRET', default='PLACEHOLDER_CLIENT_SECRET'),
+            'client_id': GOOGLE_CLIENT_ID,
+            'secret': GOOGLE_CLIENT_SECRET,
             'key': '',
         },
         'SCOPE': ['profile', 'email'],

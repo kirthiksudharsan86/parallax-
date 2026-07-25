@@ -165,7 +165,11 @@ def team_login(request):
             return redirect('profile_complete')
         return redirect('register_team')
 
-    return render(request, 'parallax/team_login.html')
+    return render(
+        request,
+        'parallax/team_login.html',
+        {'google_login_enabled': getattr(settings, 'GOOGLE_OAUTH_CONFIGURED', False)},
+    )
 
 
 def registration_index(request):
