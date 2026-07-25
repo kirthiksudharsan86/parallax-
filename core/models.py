@@ -279,11 +279,17 @@ class ProblemStatement(models.Model):
     track = models.ForeignKey(Track, on_delete=models.CASCADE, related_name='problem_statement_slots')
     code = models.CharField(max_length=20, blank=True)
     title = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
+    description = models.TextField(blank=True, max_length=500)
+    context = models.TextField(blank=True, max_length=500)
+    min_requirements = models.TextField('Minimum requirements', blank=True, max_length=500)
+    dependencies = models.TextField(blank=True, max_length=500)
     slot_capacity = models.PositiveIntegerField(
         default=0, help_text='Total teams allowed to book this problem statement.'
     )
     is_active = models.BooleanField(default=True)
+    is_published = models.BooleanField(
+        default=False, help_text='Show this problem statement on the public tracks page.'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -304,3 +310,37 @@ class ProblemStatement(models.Model):
     @property
     def is_full(self):
         return self.slot_capacity > 0 and self.slots_filled >= self.slot_capacity
+
+
+class Sponsor(models.Model):
+    """A sponsor shown in the home page sponsors section.
+
+    The OC manages these from the dashboard. Typically one Title Sponsor and up
+    to two Technical Sponsors are highlighted.
+    """
+
+    TITLE = 'TITLE'
+    TECHNICAL = 'TECHNICAL'
+    SPONSOR_TYPE_CHOICES = [
+        (TITLE, 'Title Sponsor'),
+        (TECHNICAL, 'Technical Sponsor'),
+    ]
+
+    name = models.CharField(max_length=150)
+    sponsor_type = models.CharField(max_length=10, choices=SPONSOR_TYPE_CHOICES, default=TECHNICAL)
+    tagline = models.CharField(max_length=200, blank=True)
+    logo = models.ImageField(upload_to='sponsors/', blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    display_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['sponsor_type', 'display_order', 'name']
+
+    def __str__(self):
+        return f"{self.name} ({self.get_sponsor_type_display()})"
+
+    @property
+    def is_title(self):
+        return self.sponsor_type == self.TITLE

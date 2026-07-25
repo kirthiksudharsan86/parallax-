@@ -9,6 +9,7 @@ from .models import (
     Prize,
     ProblemStatement,
     Review,
+    Sponsor,
     Team,
     Track,
 )
@@ -72,6 +73,13 @@ class LeaderRegistrationAdmin(admin.ModelAdmin):
 
 @admin.register(ProblemStatement)
 class ProblemStatementAdmin(admin.ModelAdmin):
-    list_display = ('title', 'track', 'code', 'slot_capacity', 'slots_filled', 'is_active')
-    list_filter = ('track', 'is_active')
+    list_display = ('title', 'track', 'code', 'slot_capacity', 'slots_filled', 'is_active', 'is_published')
+    list_filter = ('track', 'is_active', 'is_published')
     search_fields = ('title', 'code', 'description')
+
+
+@admin.register(Sponsor)
+class SponsorAdmin(admin.ModelAdmin):
+    list_display = ('name', 'sponsor_type', 'is_active', 'display_order', 'updated_at')
+    list_filter = ('sponsor_type', 'is_active')
+    search_fields = ('name', 'tagline')
