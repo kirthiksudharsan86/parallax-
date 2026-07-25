@@ -3,10 +3,12 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import Count
+from django.db.models import Count, Prefetch, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.http import urlencode
 from core.emailing import leader_payment_confirmation, leader_registration_received
 from core.models import (
     Announcement,
@@ -16,6 +18,7 @@ from core.models import (
     Participant,
     ProblemStatement,
     Review,
+    Sponsor,
     Team,
     Track,
 )
@@ -83,9 +86,12 @@ def home(request):
     )
     reviews = Review.objects.all().order_by('scheduled_at')
 
+    active_sponsors = list(Sponsor.objects.filter(is_active=True))
     context = {
         'stats': build_home_stats(reviews),
         'tracks': build_home_track_cards(published_tracks) if published_tracks else build_default_track_cards(),
+        'title_sponsor': next((s for s in active_sponsors if s.sponsor_type == Sponsor.TITLE), None),
+        'technical_sponsors': [s for s in active_sponsors if s.sponsor_type == Sponsor.TECHNICAL],
     }
     return render(request, 'parallax/home.html', context)
 
@@ -98,7 +104,17 @@ def about(request):
 
 
 def tracks(request):
-    published_tracks = list(Track.objects.filter(is_published=True).order_by('name'))
+    published_tracks = list(
+        Track.objects.filter(is_published=True)
+        .prefetch_related(
+            Prefetch(
+                'problem_statement_slots',
+                queryset=ProblemStatement.objects.filter(is_published=True, is_active=True).order_by('code', 'title'),
+                to_attr='public_problem_statements',
+            )
+        )
+        .order_by('name')
+    )
     context = {'tracks': published_tracks or build_default_track_cards()}
     return render(request, 'parallax/tracks.html', context)
 
@@ -654,11 +670,36 @@ def admin_tracks(request):
                     track=track,
                     code=request.POST.get('code', '').strip(),
                     title=title,
-                    description=request.POST.get('description', '').strip(),
+                    description=_limit_text(request.POST.get('description')),
+                    context=_limit_text(request.POST.get('context')),
+                    min_requirements=_limit_text(request.POST.get('min_requirements')),
+                    dependencies=_limit_text(request.POST.get('dependencies')),
                     slot_capacity=_parse_positive_int(request.POST.get('slot_capacity')),
+                    is_published=request.POST.get('is_published') == 'on',
                 )
                 messages.success(request, f'Problem statement "{title}" added.')
-            return redirect('admin_tracks')
+            return redirect(_admin_tracks_redirect(request))
+
+        if action == 'edit_problem_statement':
+            problem_statement = get_object_or_404(
+                ProblemStatement, id=request.POST.get('problem_statement_id')
+            )
+            title = request.POST.get('title', '').strip()
+            if not title:
+                messages.error(request, 'Problem statement title is required.')
+                return redirect(_admin_tracks_redirect(request))
+            problem_statement.code = request.POST.get('code', '').strip()
+            problem_statement.title = title
+            problem_statement.description = _limit_text(request.POST.get('description'))
+            problem_statement.context = _limit_text(request.POST.get('context'))
+            problem_statement.min_requirements = _limit_text(request.POST.get('min_requirements'))
+            problem_statement.dependencies = _limit_text(request.POST.get('dependencies'))
+            problem_statement.slot_capacity = _parse_positive_int(request.POST.get('slot_capacity'))
+            problem_statement.is_active = request.POST.get('is_active') == 'on'
+            problem_statement.is_published = request.POST.get('is_published') == 'on'
+            problem_statement.save()
+            messages.success(request, f'Problem statement "{title}" saved.')
+            return redirect(_admin_tracks_redirect(request))
 
         if action == 'update_slot_capacity':
             problem_statement = get_object_or_404(
@@ -668,7 +709,26 @@ def admin_tracks(request):
             problem_statement.is_active = request.POST.get('is_active') == 'on'
             problem_statement.save(update_fields=['slot_capacity', 'is_active', 'updated_at'])
             messages.success(request, f'Slots updated for "{problem_statement.title}".')
-            return redirect('admin_tracks')
+            return redirect(_admin_tracks_redirect(request))
+
+        if action == 'toggle_problem_published':
+            problem_statement = get_object_or_404(
+                ProblemStatement, id=request.POST.get('problem_statement_id')
+            )
+            problem_statement.is_published = not problem_statement.is_published
+            problem_statement.save(update_fields=['is_published', 'updated_at'])
+            state_label = 'published' if problem_statement.is_published else 'unpublished'
+            messages.success(request, f'"{problem_statement.title}" {state_label}.')
+            return redirect(_admin_tracks_redirect(request))
+
+        if action == 'delete_problem_statement':
+            problem_statement = get_object_or_404(
+                ProblemStatement, id=request.POST.get('problem_statement_id')
+            )
+            title = problem_statement.title
+            problem_statement.delete()
+            messages.success(request, f'Problem statement "{title}" deleted.')
+            return redirect(_admin_tracks_redirect(request))
 
         track = get_object_or_404(Track, id=request.POST.get('track_id'))
         field = request.POST.get('field')
@@ -676,17 +736,94 @@ def admin_tracks(request):
             setattr(track, field, not getattr(track, field))
             track.save(update_fields=[field, 'updated_at'])
 
-        return redirect('admin_tracks')
+        return redirect(_admin_tracks_redirect(request))
+
+    selected_track_id = request.GET.get('track', '').strip()
+    search_query = request.GET.get('q', '').strip()
+
+    problem_statements = (
+        ProblemStatement.objects.select_related('track')
+        .annotate(booked_total=Count('booked_teams'))
+        .order_by('track__name', 'code', 'title')
+    )
+    if selected_track_id:
+        problem_statements = problem_statements.filter(track_id=selected_track_id)
+    if search_query:
+        problem_statements = problem_statements.filter(
+            Q(title__icontains=search_query)
+            | Q(code__icontains=search_query)
+            | Q(description__icontains=search_query)
+        )
 
     context = {
         'tracks': Track.objects.annotate(team_total=Count('teams')).order_by('name'),
-        'problem_statements': (
-            ProblemStatement.objects.select_related('track')
-            .annotate(booked_total=Count('booked_teams'))
-            .order_by('track__name', 'code', 'title')
-        ),
+        'problem_statements': problem_statements,
+        'selected_track_id': selected_track_id,
+        'search_query': search_query,
     }
     return render(request, 'parallax/admin/tracks.html', context)
+
+
+@login_required(login_url='team_login')
+def admin_sponsors(request):
+    if not request.user.is_staff:
+        return redirect('home')
+
+    if request.method == 'POST':
+        action = request.POST.get('action', '').strip()
+
+        if action == 'delete_sponsor':
+            sponsor = get_object_or_404(Sponsor, id=request.POST.get('sponsor_id'))
+            name = sponsor.name
+            sponsor.delete()
+            messages.success(request, f'Sponsor "{name}" deleted.')
+            return redirect('admin_sponsors')
+
+        name = request.POST.get('name', '').strip()
+        sponsor_type = request.POST.get('sponsor_type', '').strip()
+        if not name or sponsor_type not in dict(Sponsor.SPONSOR_TYPE_CHOICES):
+            messages.error(request, 'Sponsor name and a valid sponsor type are required.')
+            return redirect('admin_sponsors')
+
+        if action == 'edit_sponsor':
+            sponsor = get_object_or_404(Sponsor, id=request.POST.get('sponsor_id'))
+        else:
+            sponsor = Sponsor()
+
+        sponsor.name = name
+        sponsor.sponsor_type = sponsor_type
+        sponsor.tagline = request.POST.get('tagline', '').strip()
+        sponsor.display_order = _parse_positive_int(request.POST.get('display_order'))
+        sponsor.is_active = request.POST.get('is_active') == 'on'
+        if request.FILES.get('logo'):
+            sponsor.logo = request.FILES['logo']
+        sponsor.save()
+        messages.success(request, f'Sponsor "{name}" saved.')
+        return redirect('admin_sponsors')
+
+    context = {
+        'sponsors': Sponsor.objects.all(),
+        'sponsor_type_choices': Sponsor.SPONSOR_TYPE_CHOICES,
+    }
+    return render(request, 'parallax/admin/sponsors.html', context)
+
+
+def _admin_tracks_redirect(request):
+    params = {}
+    selected_track_id = request.POST.get('return_track') or request.GET.get('track')
+    search_query = request.POST.get('return_q') or request.GET.get('q')
+    if selected_track_id:
+        params['track'] = selected_track_id
+    if search_query:
+        params['q'] = search_query
+    url = reverse('admin_tracks')
+    if params:
+        return f'{url}?{urlencode(params)}'
+    return url
+
+
+def _limit_text(raw_value, limit=500):
+    return (raw_value or '').strip()[:limit]
 
 
 def _parse_positive_int(raw_value):
