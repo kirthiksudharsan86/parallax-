@@ -7,11 +7,9 @@ from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from core.emailing import leader_payment_confirmation, leader_registration_received
 from core.models import (
     Announcement,
     EventConfiguration,
-    LeaderRegistration,
     Marks,
     Participant,
     ProblemStatement,
@@ -19,18 +17,6 @@ from core.models import (
     Team,
     Track,
 )
-REGISTRATION_FIELD_LABELS = {
-    'first_name': 'first name',
-    'last_name': 'last name',
-    'email': 'email ID',
-    'phone_number': 'phone number',
-    'college': 'college',
-    'department': 'department',
-    'reg_number': 'registration number',
-    'graduation_year': 'year',
-    'team_name': 'team name',
-    'team_members': 'team members',
-}
 DEFAULT_TRACKS = [
     {
         'name': 'Aviation & Space Tech',
@@ -108,18 +94,16 @@ def faq(request):
 
 
 def information(request, page):
-    if page not in INFORMATION_PAGES:
-        raise Http404('Information page not found.')
-
-    heading, tagline = INFORMATION_PAGES[page]
-    context = {
-        'page': page,
-        'heading': heading,
-        'tagline': tagline,
-        'reviews': Review.objects.all().order_by('scheduled_at'),
-        'tracks': build_default_track_cards(),
+    pages = {
+        'schedule': ('Review Schedule', 'Every checkpoint is designed to turn momentum into measurable progress.'),
+        'prizes': ('Prizes & Recognition', 'The prize pool and sponsor awards will be announced here.'),
+        'guidelines': ('Guidelines', 'Build boldly. Work fairly. Leave every space better than you found it.'),
+        'theme': ('Theme', 'Same problem. Different view. Better answer.'),
+        'contact': ('Contact the OC', 'Have a question? The organising committee is here to help.'),
     }
-    return render(request, 'parallax/information.html', context)
+    if page not in pages:
+        raise Http404("Page not found")
+    return render(request, 'parallax/information.html', {'page': page, 'heading': pages[page][0], 'tagline': pages[page][1], 'reviews': Review.objects.all().order_by('scheduled_at'), 'tracks': public_tracks()})
 
 
     if page not in pages:
@@ -151,151 +135,6 @@ def team_login(request):
 
     return render(request, 'parallax/team_login.html')
 
-
-def registration_index(request):
-    return render(request, 'parallax/registration/index.html')
-
-
-def registration_leader(request):
-    """Step 1 - the team leader fills the registration form."""
-    if request.method == 'POST':
-        form_values = {key: request.POST.get(key, '').strip() for key in REGISTRATION_FIELD_LABELS}
-
-        missing = [label for key, label in REGISTRATION_FIELD_LABELS.items() if not form_values[key]]
-        graduation_year = None
-        if form_values['graduation_year']:
-            try:
-                graduation_year = int(form_values['graduation_year'])
-            except ValueError:
-                missing.append('a valid graduation year')
-
-        if missing:
-            messages.error(request, 'Please complete all fields: ' + ', '.join(missing) + '.')
-            return render(request, 'parallax/registration/leader.html', {'form_values': form_values})
-
-        registration, _ = LeaderRegistration.objects.update_or_create(
-            email=form_values['email'],
-            defaults={
-                'user': request.user if request.user.is_authenticated else None,
-                'first_name': form_values['first_name'],
-                'last_name': form_values['last_name'],
-                'phone_number': form_values['phone_number'],
-                'college': form_values['college'],
-                'department': form_values['department'],
-                'reg_number': form_values['reg_number'],
-                'graduation_year': graduation_year,
-                'team_name': form_values['team_name'],
-                'team_members': form_values['team_members'],
-            },
-        )
-
-        if not registration.registration_email_sent:
-            leader_registration_received(registration)  # placeholder - Akash owns real email
-            registration.registration_email_sent = True
-            registration.save(update_fields=['registration_email_sent', 'updated_at'])
-
-        request.session['leader_registration_id'] = registration.id
-        messages.success(request, 'Registration saved. Choose how you would like to pay.')
-        return redirect('registration_payment')
-
-    return render(request, 'parallax/registration/leader.html', {'form_values': {}})
-
-
-def _current_leader_registration(request):
-    registration_id = request.session.get('leader_registration_id')
-    if not registration_id:
-        return None
-    return LeaderRegistration.objects.filter(id=registration_id).first()
-
-
-def registration_member(request):
-    return render(request, 'parallax/registration/member.html')
-
-
-def registration_payment(request):
-    """Step 2 - payment choice: pay later or continue to the event hub."""
-    registration = _current_leader_registration(request)
-    if registration is None:
-        messages.info(request, 'Please complete the team leader registration first.')
-        return redirect('registration_leader')
-
-    if request.method == 'POST':
-        choice = request.POST.get('payment_choice')
-        if choice == 'pay_later':
-            registration.payment_status = LeaderRegistration.PAYMENT_PAY_LATER
-            registration.save(update_fields=['payment_status', 'updated_at'])
-            messages.success(request, 'Saved. You can complete the payment later from the event hub.')
-            return redirect('registration_payment')
-        if choice == 'go_to_payment':
-            return redirect('registration_event_hub')
-        messages.error(request, 'Choose a payment option to continue.')
-
-    context = {
-        'registration': registration,
-        'event_hub_url': getattr(settings, 'EVENT_HUB_URL', '#'),
-    }
-    return render(request, 'parallax/registration/payment.html', context)
-
-
-def registration_event_hub(request):
-    """Steps 3 & 4 - hand off to the external event hub and handle the return."""
-    registration = _current_leader_registration(request)
-    if registration is None:
-        messages.info(request, 'Please complete the team leader registration first.')
-        return redirect('registration_leader')
-
-    # Step 4: the event hub redirects back with ?status=paid once payment is done.
-    if request.GET.get('status') == 'paid':
-        if registration.payment_status != LeaderRegistration.PAYMENT_PAID:
-            registration.payment_status = LeaderRegistration.PAYMENT_PAID
-            registration.save(update_fields=['payment_status', 'updated_at'])
-        if not registration.payment_email_sent:
-            leader_payment_confirmation(registration)  # placeholder - Akash owns real email
-            registration.payment_email_sent = True
-            registration.save(update_fields=['payment_email_sent', 'updated_at'])
-        messages.success(request, 'Payment confirmed. Welcome to Parallax 2026!')
-        return redirect('registration_payment')
-
-    context = {
-        'registration': registration,
-        'event_hub_url': getattr(settings, 'EVENT_HUB_URL', '#'),
-    }
-    return render(request, 'parallax/registration/event_hub.html', context)
-
-
-@login_required(login_url='team_login')
-def profile_complete(request):
-    if request.user.is_staff:
-        return redirect('admin_panel')
-
-    participant = ensure_participant_record(request.user)
-
-    if request.method == 'POST':
-        phone = request.POST.get('phone_number', '').strip()
-        college_choice = request.POST.get('college_name', '').strip()
-        other_college_name = request.POST.get('other_college_name', '').strip()
-        reg_num = request.POST.get('reg_number', '').strip()
-        college_name = resolve_college_name(college_choice, other_college_name)
-        requires_reg_number = college_requires_registration_number(college_choice, college_name)
-
-        if not phone or not college_name:
-            messages.error(request, 'Phone number and college name are required.')
-        elif requires_reg_number and not reg_num:
-            messages.error(request, 'Registration number is required for VIT campuses.')
-        else:
-            participant.phone_number = phone
-            participant.college_name = college_name
-            participant.reg_number = reg_num or None
-            participant.is_profile_complete = True
-            participant.save()
-            messages.success(request, 'Profile completed successfully. You can now create or join a team.')
-            return redirect('register_team')
-
-    context = {
-        'participant': participant,
-        'vit_campuses': VIT_CAMPUSES,
-    }
-    return render(request, 'parallax/profile_complete.html', context)
 
 
 @login_required(login_url='team_login')

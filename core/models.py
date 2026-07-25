@@ -209,67 +209,10 @@ class Announcement(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='announcements'
     )
     created_at = models.DateTimeField(auto_now_add=True)
-
     class Meta:
         ordering = ['-is_pinned', '-created_at']
-
     def __str__(self):
         return self.title
-
-
-class LeaderRegistration(models.Model):
-    """Standalone team-leader registration form and payment funnel.
-
-    Powers the OC dashboard counters (registered / paid / pay-later). The real
-    confirmation emails are owned by Akash; the send_* helpers are placeholders.
-    """
-
-    PAYMENT_PENDING = 'PENDING'
-    PAYMENT_PAY_LATER = 'PAY_LATER'
-    PAYMENT_PAID = 'PAID'
-    PAYMENT_STATUS_CHOICES = [
-        (PAYMENT_PENDING, 'Not started'),
-        (PAYMENT_PAY_LATER, 'Pay later'),
-        (PAYMENT_PAID, 'Paid'),
-    ]
-
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
-        related_name='leader_registration',
-    )
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
-    phone_number = models.CharField(max_length=20)
-    college = models.CharField(max_length=200)
-    department = models.CharField(max_length=150)
-    reg_number = models.CharField('Registration number', max_length=50)
-    graduation_year = models.PositiveIntegerField()
-    team_name = models.CharField(max_length=150)
-    team_members = models.TextField(
-        help_text='Names of the team members, one per line or comma-separated.',
-    )
-    payment_status = models.CharField(max_length=10, choices=PAYMENT_STATUS_CHOICES, default=PAYMENT_PENDING)
-    registration_email_sent = models.BooleanField(default=False)
-    payment_email_sent = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['-created_at']
-
-    def __str__(self):
-        return f"{self.first_name} {self.last_name} ({self.email})"
-
-    @property
-    def full_name(self):
-        return f"{self.first_name} {self.last_name}".strip()
-
-    @property
-    def has_paid(self):
-        return self.payment_status == self.PAYMENT_PAID
-
-
 class ProblemStatement(models.Model):
     """A bookable problem statement with a fixed first-come-first-served slot pool.
 
