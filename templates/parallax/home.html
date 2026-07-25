@@ -69,36 +69,35 @@
     <div class="tracks-header reveal">
       <h2 class="sec-title">Powered by our Partners</h2>
     </div>
+    {% if title_sponsor %}
     <div class="title-sponsor reveal">
       <span class="sponsor-tag">TITLE SPONSOR</span>
       <div class="sponsor-card featured">
-        <img src="{% static 'images/sponsors/title-sponsor.png' %}"
-             alt="Title Sponsor Logo"
-             class="sponsor-logo">
-        <h3>Title Sponsor Name</h3>
-        <p>
-          Empowering innovation and enabling the next generation of engineers.
-        </p>
+        {% if title_sponsor.logo %}
+        <img src="{{ title_sponsor.logo.url }}" alt="{{ title_sponsor.name }} logo" class="sponsor-logo">
+        {% endif %}
+        <h3>{{ title_sponsor.name }}</h3>
+        {% if title_sponsor.tagline %}<p>{{ title_sponsor.tagline }}</p>{% endif %}
       </div>
     </div>
+    {% endif %}
+    {% if technical_sponsors %}
     <div class="technical-sponsors reveal">
+      {% for sponsor in technical_sponsors %}
       <div class="sponsor-card">
         <span class="sponsor-tag small">TECHNICAL SPONSOR</span>
-        <img src="{% static 'images/sponsors/tech1.png' %}"
-             alt="Technical Sponsor 1"
-             class="sponsor-logo">
-        <h3>Technical Sponsor 1</h3>
-        <p>Supporting participants with cutting-edge technology.</p>
+        {% if sponsor.logo %}
+        <img src="{{ sponsor.logo.url }}" alt="{{ sponsor.name }}" class="sponsor-logo">
+        {% endif %}
+        <h3>{{ sponsor.name }}</h3>
+        {% if sponsor.tagline %}<p>{{ sponsor.tagline }}</p>{% endif %}
       </div>
-      <div class="sponsor-card">
-        <span class="sponsor-tag small">TECHNICAL SPONSOR</span>
-        <img src="{% static 'images/sponsors/tech2.png' %}"
-             alt="Technical Sponsor 2"
-             class="sponsor-logo">
-        <h3>Technical Sponsor 2</h3>
-        <p>Providing development tools and technical expertise.</p>
-      </div>
+      {% endfor %}
     </div>
+    {% endif %}
+    {% if not title_sponsor and not technical_sponsors %}
+    <p class="sec-sub reveal" style="text-align:center;">Sponsor announcements coming soon.</p>
+    {% endif %}
   </div>
 </section>
 

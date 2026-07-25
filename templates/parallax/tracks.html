@@ -22,6 +22,19 @@
         <span class="dashboard-kicker">Track {{ forloop.counter }}</span>
         <h2 class="dashboard-section-title">{{ track.name }}</h2>
         <p class="dashboard-copy">{{ track.description }}</p>
+        {% if track.public_problem_statements %}
+        <div class="track-ps-list">
+          {% for ps in track.public_problem_statements %}
+          <details class="track-ps">
+            <summary><strong>{% if ps.code %}{{ ps.code }} · {% endif %}{{ ps.title }}</strong></summary>
+            {% if ps.description %}<p><b>Description:</b> {{ ps.description }}</p>{% endif %}
+            {% if ps.context %}<p><b>Context:</b> {{ ps.context }}</p>{% endif %}
+            {% if ps.min_requirements %}<p><b>Minimum requirements:</b> {{ ps.min_requirements }}</p>{% endif %}
+            {% if ps.dependencies %}<p><b>Dependencies:</b> {{ ps.dependencies }}</p>{% endif %}
+          </details>
+          {% endfor %}
+        </div>
+        {% endif %}
       </article>
       {% empty %}
       <article class="dashboard-card">
@@ -32,4 +45,10 @@
     </section>
   </div>
 </section>
+<style>
+  .track-ps-list { margin-top: 1rem; display: grid; gap: .6rem; }
+  .track-ps { border: 1px solid rgba(255,255,255,.15); border-radius: .55rem; padding: .6rem .8rem; }
+  .track-ps > summary { cursor: pointer; }
+  .track-ps p { margin: .5rem 0 0; font-size: .9rem; line-height: 1.5; }
+</style>
 {% endblock %}
