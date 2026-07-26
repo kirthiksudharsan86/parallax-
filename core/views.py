@@ -145,6 +145,11 @@ def information(request, page):
         from django.http import Http404
         raise Http404("Page not found")
 
+
+    if page not in pages:
+        from django.http import Http404
+        raise Http404("Page not found")
+
     return render(
         request,
         'parallax/information.html',
@@ -168,11 +173,13 @@ def team_login(request):
             return redirect('profile_complete')
         return redirect('register_team')
 
+    return render(request, 'parallax/team_login.html')
     return render(
         request,
         'parallax/team_login.html',
         {'google_login_enabled': getattr(settings, 'GOOGLE_OAUTH_CONFIGURED', False)},
     )
+
 
 
 def registration_index(request):
@@ -539,10 +546,38 @@ def admin_panel(request):
             return redirect('admin_panel')
 
     track_summary = list(Track.objects.annotate(team_total=Count('teams')).order_by('-team_total', 'name'))
+    most_chosen_track = next((track for track in track_summary if track.team_total), None)
     recent_teams = Team.objects.select_related('leader', 'track').annotate(participant_total=Count('members')).order_by(
         '-created_at'
     )[:8]
 
+    total_leader_registrations = LeaderRegistration.objects.count()
+    total_leaders_paid = LeaderRegistration.objects.filter(
+        payment_status=LeaderRegistration.PAYMENT_PAID
+    ).count()
+    total_leaders_pay_later = LeaderRegistration.objects.filter(
+        payment_status=LeaderRegistration.PAYMENT_PAY_LATER
+    ).count()
+
+    problem_statement_summary = list(
+        ProblemStatement.objects.select_related('track')
+        .annotate(booked_total=Count('booked_teams'))
+        .order_by('track__name', 'code', 'title')
+    )
+
+    context = {
+        'configuration': configuration,
+        'pending_teams': Team.objects.filter(status='PENDING').count(),
+        'approved_teams': Team.objects.filter(status='APPROVED').count(),
+        'total_registered_participants': Participant.objects.filter(team__isnull=False).count(),
+        'total_payment_confirmed_participants': Participant.objects.filter(team__payment_confirmed=True).count(),
+        'total_registered_teams': Team.objects.count(),
+        'total_payment_confirmed_teams': Team.objects.filter(payment_confirmed=True).count(),
+        'total_leader_registrations': total_leader_registrations,
+        'total_leaders_paid': total_leaders_paid,
+        'total_leaders_pay_later': total_leaders_pay_later,
+        'problem_statement_summary': problem_statement_summary,
+        'most_chosen_track': most_chosen_track,
     context = {
         'configuration': configuration,
         'track_summary': track_summary,
@@ -586,6 +621,7 @@ def admin_teams(request):
         .annotate(participant_total=Count('members'))
         .order_by('-created_at')
     )
+    context = {'teams': teams}
 
     selected_track_id = request.GET.get('track', '').strip()
     if selected_track_id:
@@ -604,6 +640,11 @@ def admin_marks(request):
     if not request.user.is_staff:
         return redirect('home')
 
+    reviews = Review.objects.annotate(team_total=Count('marks')).order_by('scheduled_at')
+    marks = Marks.objects.select_related('team', 'review', 'graded_by').order_by('-updated_at')
+    context = {
+        'reviews': reviews,
+        'marks': marks,
     if request.method == 'POST':
         action = request.POST.get('action', '').strip()
 

@@ -73,7 +73,7 @@ body{background:radial-gradient(ellipse at 50% -10%, rgba(24,120,255,.28), trans
 .about-closer a{color:var(--px-cyan);font-family:var(--mono);font-size:.75rem;letter-spacing:.12em}
 .about-parallax-wrap{max-width:1120px;margin:0 auto;text-align:center}
 .about-parallax-wrap .oc-heading{text-align:center}
-.track-card,.sponsor-card,.oc-panel,.faculty-grid .person-card,.lead-box{ background:rgba(255,255,255,.04);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.10);}
+.track-card,.sponsor-card,.oc-panel,.faculty-grid .person-card,.lead-box,.prize-track-card,.faq-item{ background:rgba(255,255,255,.04);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.10);}
 .tracks-header{text-align:center;max-width:640px;margin:0 auto 50px}
 .tracks-header .sec-title{font-family:var(--hero);font-size:2.6rem;margin: 0 15px}
 .tracks-header .sec-sub{text-align:center;max-width:640px;margin:0 auto 50px}
