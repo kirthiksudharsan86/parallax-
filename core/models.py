@@ -176,8 +176,14 @@ class EventConfiguration(models.Model):
 class Review(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
-    scheduled_at = models.DateTimeField()
+    scheduled_at = models.DateTimeField(null=True, blank=True)
     max_marks = models.PositiveIntegerField(default=100)
+    weightage = models.PositiveIntegerField(
+        default=0, help_text='Percentage this round contributes to the total score.'
+    )
+
+    class Meta:
+        ordering = ['scheduled_at', 'name']
 
     def __str__(self):
         return self.name
@@ -281,6 +287,7 @@ class ProblemStatement(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True, max_length=500)
     context = models.TextField(blank=True, max_length=500)
+    impact = models.TextField('Impact', blank=True, max_length=500)
     min_requirements = models.TextField('Minimum requirements', blank=True, max_length=500)
     dependencies = models.TextField(blank=True, max_length=500)
     slot_capacity = models.PositiveIntegerField(

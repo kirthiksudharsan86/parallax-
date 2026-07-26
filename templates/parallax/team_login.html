@@ -19,9 +19,20 @@
         are redirected to the OC dashboard automatically.
       </p>
       <div class="dashboard-actions">
+        {% if google_login_enabled %}
         <a class="dashboard-button" href="{% provider_login_url 'google' process='login' %}">Continue with Google</a>
+        {% else %}
+        <span class="dashboard-button" aria-disabled="true" style="opacity:.55;cursor:not-allowed;pointer-events:none;">Continue with Google</span>
+        {% endif %}
         <a class="dashboard-button-secondary" href="{% url 'registration_index' %}">Open Registration</a>
       </div>
+      {% if not google_login_enabled %}
+      <p class="dashboard-copy" role="alert">
+        Google sign-in is not configured yet. An organiser needs to set
+        <code>GOOGLE_CLIENT_ID</code> and <code>GOOGLE_CLIENT_SECRET</code> in the
+        server environment before team login can be used.
+      </p>
+      {% endif %}
     </section>
 
     <section class="dashboard-cards">

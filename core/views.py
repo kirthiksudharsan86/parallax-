@@ -1,4 +1,6 @@
 from datetime import date
+from decimal import Decimal, InvalidOperation
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -92,6 +94,7 @@ def home(request):
         'tracks': build_home_track_cards(published_tracks) if published_tracks else build_default_track_cards(),
         'title_sponsor': next((s for s in active_sponsors if s.sponsor_type == Sponsor.TITLE), None),
         'technical_sponsors': [s for s in active_sponsors if s.sponsor_type == Sponsor.TECHNICAL],
+        'announcements': Announcement.objects.all().order_by('-is_pinned', '-created_at')[:6],
     }
     return render(request, 'parallax/home.html', context)
 
@@ -142,6 +145,11 @@ def information(request, page):
         from django.http import Http404
         raise Http404("Page not found")
 
+
+    if page not in pages:
+        from django.http import Http404
+        raise Http404("Page not found")
+
     return render(
         request,
         'parallax/information.html',
@@ -166,6 +174,12 @@ def team_login(request):
         return redirect('register_team')
 
     return render(request, 'parallax/team_login.html')
+    return render(
+        request,
+        'parallax/team_login.html',
+        {'google_login_enabled': getattr(settings, 'GOOGLE_OAUTH_CONFIGURED', False)},
+    )
+
 
 
 def registration_index(request):
@@ -564,6 +578,8 @@ def admin_panel(request):
         'total_leaders_pay_later': total_leaders_pay_later,
         'problem_statement_summary': problem_statement_summary,
         'most_chosen_track': most_chosen_track,
+    context = {
+        'configuration': configuration,
         'track_summary': track_summary,
         'recent_teams': recent_teams,
     }
@@ -606,6 +622,16 @@ def admin_teams(request):
         .order_by('-created_at')
     )
     context = {'teams': teams}
+
+    selected_track_id = request.GET.get('track', '').strip()
+    if selected_track_id:
+        teams = teams.filter(track_id=selected_track_id)
+
+    context = {
+        'teams': teams,
+        'tracks': Track.objects.order_by('name'),
+        'selected_track_id': selected_track_id,
+    }
     return render(request, 'parallax/admin/teams.html', context)
 
 
@@ -619,6 +645,63 @@ def admin_marks(request):
     context = {
         'reviews': reviews,
         'marks': marks,
+    if request.method == 'POST':
+        action = request.POST.get('action', '').strip()
+
+        if action == 'create_round':
+            name = request.POST.get('name', '').strip()
+            if not name:
+                messages.error(request, 'Round name is required.')
+            else:
+                Review.objects.create(
+                    name=name,
+                    weightage=_parse_positive_int(request.POST.get('weightage')),
+                    max_marks=_parse_positive_int(request.POST.get('max_marks')) or 100,
+                )
+                messages.success(request, f'Round "{name}" created.')
+            return redirect('admin_marks')
+
+        if action == 'delete_round':
+            review = get_object_or_404(Review, id=request.POST.get('review_id'))
+            name = review.name
+            review.delete()
+            messages.success(request, f'Round "{name}" deleted.')
+            return redirect('admin_marks')
+
+        if action == 'award_marks':
+            review = get_object_or_404(Review, id=request.POST.get('review_id'))
+            team = get_object_or_404(Team, id=request.POST.get('team_id'))
+            raw_score = request.POST.get('score', '').strip()
+            if not raw_score:
+                messages.error(request, 'Enter a score to award marks.')
+                return redirect('admin_marks')
+            try:
+                score = Decimal(raw_score)
+            except (InvalidOperation, ValueError):
+                messages.error(request, 'Enter a valid numeric score.')
+                return redirect('admin_marks')
+
+            Marks.objects.update_or_create(
+                team=team,
+                review=review,
+                defaults={
+                    'score': score,
+                    'remarks': request.POST.get('remarks', '').strip(),
+                    'graded_by': request.user,
+                },
+            )
+            messages.success(request, f'Marks saved for {team.team_name} - {review.name}.')
+            return redirect('admin_marks')
+
+    reviews = Review.objects.annotate(team_total=Count('marks')).order_by('scheduled_at', 'name')
+    teams = Team.objects.select_related('track').order_by('team_name')
+    marks = Marks.objects.select_related('team', 'review', 'graded_by').order_by('-updated_at')
+    total_weightage = sum(review.weightage for review in reviews)
+    context = {
+        'reviews': reviews,
+        'teams': teams,
+        'marks': marks,
+        'total_weightage': total_weightage,
     }
     return render(request, 'parallax/admin/marks.html', context)
 
@@ -672,6 +755,7 @@ def admin_tracks(request):
                     title=title,
                     description=_limit_text(request.POST.get('description')),
                     context=_limit_text(request.POST.get('context')),
+                    impact=_limit_text(request.POST.get('impact')),
                     min_requirements=_limit_text(request.POST.get('min_requirements')),
                     dependencies=_limit_text(request.POST.get('dependencies')),
                     slot_capacity=_parse_positive_int(request.POST.get('slot_capacity')),
@@ -692,6 +776,7 @@ def admin_tracks(request):
             problem_statement.title = title
             problem_statement.description = _limit_text(request.POST.get('description'))
             problem_statement.context = _limit_text(request.POST.get('context'))
+            problem_statement.impact = _limit_text(request.POST.get('impact'))
             problem_statement.min_requirements = _limit_text(request.POST.get('min_requirements'))
             problem_statement.dependencies = _limit_text(request.POST.get('dependencies'))
             problem_statement.slot_capacity = _parse_positive_int(request.POST.get('slot_capacity'))
