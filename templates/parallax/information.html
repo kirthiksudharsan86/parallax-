@@ -1,1 +1,293 @@
-{% extends 'parallax/base.html' %}{% block title %}{{ heading }} | Parallax 2026{% endblock %}{% block content %}<main class="page-shell narrow"><p class="eyebrow">Parallax 2026</p><h1 class="page-title">{{ heading }}</h1><p class="lead">{{ tagline }}</p>{% if page == 'schedule' %}<div class="timeline">{% for review in reviews %}<article><b>{{ review.name }}</b><span>{{ review.scheduled_at|date:'D, d M Y - H:i' }}</span><p>{{ review.description }} · {{ review.max_marks }} marks</p></article>{% empty %}<article><b>Schedule coming soon</b><p>Review 1, Review 2, and Final Evaluation will appear here once approved by OC.</p></article>{% endfor %}</div>{% elif page == 'prizes' %}<div class="placeholder-card"><i class="fa-solid fa-trophy"></i><h2>Prize details coming soon</h2><p>Track prizes, sponsor awards and special recognition will be announced once sponsorships are finalised.</p></div>{% elif page == 'guidelines' %}<div class="prose"><h2>Participation principles</h2><ul><li>Respect people, ideas and the event space.</li><li>Build original work during the challenge window.</li><li>Follow all submission and review deadlines.</li><li>Final eligibility, payment and team rules will be published by OC.</li></ul></div>{% elif page == 'theme' %}<div class="placeholder-card"><h2>Same problem.<br><span>Different view.</span><br>Better answer.</h2><p>Parallax brings together perspectives that reveal more useful, responsible solutions.</p></div>{% else %}<div class="placeholder-card"><i class="fa-solid fa-envelope"></i><h2>Contact details coming soon</h2><p>Official OC email, social handles and helpdesk hours will be published here.</p></div>{% endif %}</main>{% endblock %}
+{% extends 'parallax/base.html' %}{% block title %}{{ heading }} | Parallax 2026{% endblock %}
+{% block extra_css %}
+{% if page == 'prizes' %}
+<style>
+.prize-summary{display:flex;justify-content:center;margin-bottom:36px}
+.prize-pool-card{text-align:center;padding:34px 52px;border-radius:var(--rl);border:1px solid rgba(0,217,255,.4);background:linear-gradient(155deg,rgba(0,82,204,.14),rgba(0,217,255,.05));box-shadow:0 0 40px rgba(0,217,255,.22),inset 0 0 30px rgba(0,217,255,.05);animation:prizeGlowPulse 3.5s ease-in-out infinite}
+.prize-pool-label{display:block;font-family:var(--mono);font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--cyan);margin-bottom:10px}
+.prize-pool-value{display:block;font-family:var(--hero);font-size:clamp(2.4rem,6vw,3.6rem);background:linear-gradient(135deg,#0052CC,#00D9FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
+.prize-pool-card p{margin-top:12px;color:var(--muted);font-size:.85rem}
+@keyframes prizeGlowPulse{0%,100%{box-shadow:0 0 40px rgba(0,217,255,.22),inset 0 0 30px rgba(0,217,255,.05)}50%{box-shadow:0 0 62px rgba(0,217,255,.42),inset 0 0 40px rgba(0,217,255,.1)}}
+.prize-tracks-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:32px;margin-bottom:36px}
+.prize-track-card{background:rgba(255,255,255,.04);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.10);border-radius:var(--rl);padding:34px;transition:border-color .3s,box-shadow .3s,transform .3s}
+.prize-track-card:hover{border-color:rgba(0,217,255,.5);box-shadow:0 0 32px rgba(0,217,255,.2);transform:translateY(-3px)}
+.prize-track-header{display:flex;align-items:center;gap:14px;margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid var(--border)}
+.prize-track-header i{font-size:1.25rem;color:var(--cyan);width:44px;height:44px;border-radius:50%;border:1.5px solid rgba(0,217,255,.4);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.prize-track-header h2{font-family:var(--hero);font-size:1.3rem;letter-spacing:.03em;flex:1;margin:0}
+.prize-track-total{font-family:var(--mono);font-size:.85rem;color:var(--cyan);font-weight:700}
+.prize-rank-list{display:grid;gap:12px;list-style:none;margin:0;padding:0}
+.prize-rank-list li{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:12px;background:rgba(255,255,255,.02);border:1px solid var(--border)}
+.rank-medal{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.rank-1 .rank-medal{background:rgba(255,208,84,.12);color:#ffd054;box-shadow:0 0 16px rgba(255,208,84,.35)}
+.rank-2 .rank-medal{background:rgba(203,213,225,.12);color:#cbd5e1;box-shadow:0 0 14px rgba(203,213,225,.25)}
+.rank-3 .rank-medal{background:rgba(205,127,50,.14);color:#cd7f32;box-shadow:0 0 14px rgba(205,127,50,.3)}
+.rank-runner .rank-medal{background:rgba(0,217,255,.1);color:var(--cyan)}
+.rank-name{flex:1;font-size:.88rem;font-weight:600;color:var(--text)}
+.rank-amount{font-family:var(--mono);font-size:.9rem;color:var(--cyan);font-weight:700}
+.prize-extra-note{display:flex;align-items:flex-start;gap:14px;padding:22px 26px;border-radius:var(--rl);border:1px dashed rgba(0,217,255,.3);background:rgba(0,217,255,.04)}
+.prize-extra-note i{color:var(--cyan);margin-top:3px}
+.prize-extra-note p{color:var(--muted);font-size:.85rem;line-height:1.6;margin:0}
+@media(max-width:860px){.prize-tracks-grid{grid-template-columns:1fr}.prize-pool-card{padding:26px 30px}}
+</style>
+{% elif page == 'guidelines' %}
+<style>
+.guide-intro{margin-bottom:38px}
+.guide-block{margin-bottom:32px}
+.guide-block h3{font-family:var(--mono);font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;color:var(--cyan);margin:0 0 14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.guide-block ul{margin:0;padding-left:20px;display:grid;gap:8px;color:#C9D3DE;line-height:1.7}
+.guide-block p{margin:0 0 10px;color:#C9D3DE;line-height:1.8}
+.guide-block p:last-child{margin-bottom:0}
+.guide-block a{color:var(--cyan);text-decoration:underline;text-underline-offset:3px;transition:color .2s}
+.guide-block a:hover{color:#fff}
+.guide-intro p,.prose p{color:#C9D3DE}
+.faq-heading{margin-top:56px}
+.faq-list{display:grid;gap:12px;margin-top:24px}
+.faq-item{background:rgba(255,255,255,.04);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:0 22px;transition:border-color .25s}
+.faq-item:hover{border-color:rgba(0,217,255,.35)}
+.faq-item summary{list-style:none;cursor:pointer;padding:18px 0;display:flex;justify-content:space-between;align-items:center;gap:14px;color:var(--text);font-weight:600;font-size:.92rem}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::after{content:'^';color:var(--cyan);font-size:1.1rem;font-weight:700;flex-shrink:0;transition:transform .25s;line-height:1;transform:rotate(180deg)}
+.faq-item[open] summary::after{transform:rotate(0deg)}
+.faq-item .faq-answer{color:#C9D3DE;line-height:1.75;padding:0 0 20px;margin:0}
+.faq-answer ul{margin:8px 0 0;padding-left:20px;display:grid;gap:6px;color:#C9D3DE}
+</style>
+{% endif %}
+{% endblock %}
+{% block content %}<main class="page-shell{% if page != 'prizes' %} narrow{% endif %}"><p class="eyebrow">Parallax 2026</p><h1 class="page-title">{{ heading }}</h1><p class="lead">{{ tagline }}</p>{% if page == 'schedule' %}<div class="timeline">{% for review in reviews %}<article><b>{{ review.name }}</b><span>{{ review.scheduled_at|date:'D, d M Y - H:i' }}</span><p>{{ review.description }} · {{ review.max_marks }} marks</p></article>{% empty %}<article><b>Schedule coming soon</b><p>Review 1, Review 2, and Final Evaluation will appear here once approved by OC.</p></article>{% endfor %}</div>{% elif page == 'prizes' %}
+<div class="prize-summary">
+  <div class="prize-pool-card">
+    <span class="prize-pool-label">Total Prize Pool</span>
+    <span class="prize-pool-value">₹60,000+</span>
+    <p>Across Software &amp; Hardware tracks, plus sponsor-exclusive awards.</p>
+  </div>
+</div>
+
+<div class="prize-tracks-grid">
+  <article class="prize-track-card">
+    <div class="prize-track-header">
+      <i class="fa-solid fa-laptop-code"></i>
+      <h2>Software Track</h2>
+      <span class="prize-track-total">₹30,000</span>
+    </div>
+    <ul class="prize-rank-list">
+      <li class="rank-1"><span class="rank-medal"><i class="fa-solid fa-trophy"></i></span><span class="rank-name">1st Place</span><span class="rank-amount">₹12,000</span></li>
+      <li class="rank-2"><span class="rank-medal"><i class="fa-solid fa-medal"></i></span><span class="rank-name">2nd Place</span><span class="rank-amount">₹8,000</span></li>
+      <li class="rank-3"><span class="rank-medal"><i class="fa-solid fa-medal"></i></span><span class="rank-name">3rd Place</span><span class="rank-amount">₹5,000</span></li>
+      <li class="rank-runner"><span class="rank-medal"><i class="fa-solid fa-star"></i></span><span class="rank-name">Top Runner-ups (x2)</span><span class="rank-amount">₹2,500 each</span></li>
+    </ul>
+  </article>
+
+  <article class="prize-track-card">
+    <div class="prize-track-header">
+      <i class="fa-solid fa-microchip"></i>
+      <h2>Hardware Track</h2>
+      <span class="prize-track-total">₹30,000</span>
+    </div>
+    <ul class="prize-rank-list">
+      <li class="rank-1"><span class="rank-medal"><i class="fa-solid fa-trophy"></i></span><span class="rank-name">1st Place</span><span class="rank-amount">₹12,000</span></li>
+      <li class="rank-2"><span class="rank-medal"><i class="fa-solid fa-medal"></i></span><span class="rank-name">2nd Place</span><span class="rank-amount">₹8,000</span></li>
+      <li class="rank-3"><span class="rank-medal"><i class="fa-solid fa-medal"></i></span><span class="rank-name">3rd Place</span><span class="rank-amount">₹5,000</span></li>
+      <li class="rank-runner"><span class="rank-medal"><i class="fa-solid fa-star"></i></span><span class="rank-name">Top Runner-ups (x2)</span><span class="rank-amount">₹2,500 each</span></li>
+    </ul>
+  </article>
+</div>
+
+<div class="prize-extra-note">
+  <i class="fa-solid fa-award"></i>
+  <p>Beyond the podium, look out for <strong>Special Mention awards</strong> and additional sponsor-backed prizes — details to be announced closer to the event.</p>
+</div>{% elif page == 'guidelines' %}
+<div class="prose guide-intro">
+  <p>Welcome to PARALLAX 2026! We are delighted to have you join us for 24 hours of innovation, collaboration, and problem-solving. To ensure a smooth, fair, and enjoyable experience for all participants, kindly read and adhere to the following guidelines.</p>
+</div>
+
+<div class="guide-block">
+  <h3>Eligibility</h3>
+  <ul>
+    <li>PARALLAX 2026 is open to students from all branches and all years of Engineering.</li>
+    <li>Teams may comprise both VIT and Non-VIT participants.</li>
+    <li>Cross-college teams are permitted and encouraged.</li>
+  </ul>
+</div>
+
+<div class="guide-block">
+  <h3>Team Formation</h3>
+  <ul>
+    <li>Each team must consist of 3 to 5 members.</li>
+    <li>During registration, every team must select one official hackathon problem statement of the desired domain through the website.</li>
+    <li>The submitted project must align with the selected domain.</li>
+  </ul>
+</div>
+
+<div class="guide-block">
+  <h3>Problem Statement Release</h3>
+  <ul>
+    <li>Hardware problem statements will be released 108 hours prior to the commencement of the hackathon.</li>
+    <li>Software problem statements will be released 36 hours prior to the commencement of the hackathon.</li>
+  </ul>
+</div>
+
+<div class="guide-block">
+  <h3>Reporting &amp; Verification</h3>
+  <ul>
+    <li>All participants are requested to report to the venue by 12:30 PM for registration and verification.</li>
+    <li>Every participant must carry a valid College ID Card.</li>
+    <li>Participants from institutions other than VIT must additionally carry a valid Bonafide Certificate issued by their respective institution.</li>
+    <li>Entry into the hackathon will be permitted only after successful verification.</li>
+  </ul>
+</div>
+
+<div class="guide-block">
+  <h3>Attendance Requirement</h3>
+  <ul>
+    <li>All team members are required to be present during registration and verification.</li>
+    <li>Teams are expected to remain available throughout the duration of the hackathon, including mentoring sessions, interim evaluations (if any), and the final project presentation.</li>
+    <li>Every team member is expected to actively contribute to the project. In the event of an emergency or unavoidable absence, the Organizing Committee must be informed immediately.</li>
+    <li>Failure to comply with the attendance requirements may affect the team's eligibility for evaluation or awards, at the discretion of the Organizing Committee.</li>
+  </ul>
+</div>
+
+<div class="guide-block">
+  <h3>Participant Requirements</h3>
+  <p>Participants are requested to bring the following:</p>
+  <ul>
+    <li>Personal laptop(s)</li>
+    <li>Laptop charger(s)</li>
+    <li>Hardware components and accessories required for their project</li>
+  </ul>
+  <p style="margin-top:16px">The Organizing Committee will provide:</p>
+  <ul>
+    <li>Internet connectivity</li>
+    <li>Continuous power supply</li>
+    <li>One extension box per team</li>
+  </ul>
+  <p style="margin-top:16px">Teams requiring additional power outlets are advised to bring their own mini extension boxes.</p>
+</div>
+
+<div class="guide-block">
+  <h3>Meals</h3>
+  <p>Complimentary dinner and breakfast will be provided to all registered participants during the hackathon.</p>
+</div>
+
+<div class="guide-block">
+  <h3>Overnight Policy</h3>
+  <ul>
+    <li>Participants are free to move within the VIT Chennai campus until 7:30 PM.</li>
+    <li>From 7:30 PM onwards, participants are expected to remain within the designated hackathon venue. Exiting the venue or the campus will not be permitted for security reasons.</li>
+    <li>In exceptional circumstances where a participant is unable to stay overnight, prior approval must be obtained from the Organizing Committee.</li>
+    <li>Approved participants must exit the campus before 6:30 PM and immediately inform the Organizing Committee regarding the situation.</li>
+  </ul>
+</div>
+
+<div class="guide-block">
+  <h3>Originality &amp; Ethical Conduct</h3>
+  <ul>
+    <li>Every project submitted must be the original work of the participating team.</li>
+    <li>Previously developed projects, plagiarism, or any form of academic dishonesty will result in immediate disqualification.</li>
+    <li>Participants are expected to uphold the highest standards of professionalism, integrity, and ethical conduct throughout the event.</li>
+    <li>The use of AI-assisted development tools (such as ChatGPT, GitHub Copilot, Gemini, Claude, etc.) is permitted. However, participants must possess a clear understanding of their implementation and should be able to explain any part of their solution during the evaluation.</li>
+  </ul>
+</div>
+
+<div class="guide-block">
+  <h3>Code of Conduct</h3>
+  <ul>
+    <li>Both VIT and Non-VIT participants are required to strictly adhere to the VIT Code of Conduct throughout the event.</li>
+    <li>Any violation of the Code of Conduct or the event guidelines may result in disciplinary action, including immediate disqualification.</li>
+    <li>The detailed <a href="https://vit.ac.in/wp-content/uploads/2023/11/Student-Code-of-Conduct.pdf" target="_blank" rel="noopener">VIT Code of Conduct</a> can be accessed here.</li>
+  </ul>
+</div>
+
+<div class="guide-block">
+  <h3>Photography &amp; Media Consent</h3>
+  <p>By participating in PARALLAX 2026, participants consent to being photographed, filmed, or recorded during the event. The organizers reserve the right to use such photographs, videos, and recordings for documentation, publicity, promotional activities, and social media, without requiring further consent.</p>
+</div>
+
+<div class="guide-block">
+  <h3>Liability</h3>
+  <p>Participants are solely responsible for the safety and security of their personal belongings, laptops, hardware components, and any other equipment brought to the venue. While reasonable precautions will be taken to ensure a secure environment, the Organizing Committee shall not be held responsible for any loss, theft, or damage to personal property.</p>
+</div>
+
+<div class="guide-block">
+  <h3>Organizer's Decision</h3>
+  <p>The Organizing Committee reserves the right to amend the event schedule, rules, or guidelines whenever deemed necessary in the interest of the event. The decisions of the Organizing Committee and the judging panel shall be final and binding in all matters relating to PARALLAX 2026.</p>
+</div>
+
+<div class="prose">
+  <p><em>We look forward to your participation and wish you an exciting and rewarding hackathon experience.<br>Think Beyond. Build Beyond. Welcome to PARALLAX 2026!</em></p>
+</div>
+
+<h2 class="section-heading faq-heading">Frequently Asked Questions</h2>
+<div class="faq-list">
+  <details class="faq-item">
+    <summary>Who is eligible to participate?</summary>
+    <p class="faq-answer">Students from any recognized college or university are eligible to participate.</p>
+  </details>
+  <details class="faq-item">
+    <summary>Is there a registration fee?</summary>
+    <p class="faq-answer">Yes. The registration fee is ₹299 per participant.</p>
+  </details>
+  <details class="faq-item">
+    <summary>What is the team size?</summary>
+    <p class="faq-answer">Each team must consist of 3 to 5 members.</p>
+  </details>
+  <details class="faq-item">
+    <summary>Can team members be from different colleges, branches, or years?</summary>
+    <p class="faq-answer">Yes. Multi-college teams are allowed, and team members can be from different branches and academic years.</p>
+  </details>
+  <details class="faq-item">
+    <summary>What are the hackathon tracks or domains?</summary>
+    <div class="faq-answer">
+      <ul>
+        <li>Aerospace and Space Tech</li>
+        <li>Internet of Things (IoT)</li>
+        <li>Healthcare and Assistive Technologies</li>
+        <li>Artificial Intelligence and Machine Learning (AIML)</li>
+        <li>Communication and Networks</li>
+      </ul>
+    </div>
+  </details>
+  <details class="faq-item">
+    <summary>When will the problem statements be released?</summary>
+    <p class="faq-answer">Software track problem statements will be released 36 hours before the hackathon, while Hardware track problem statements will be released 108 hours before the hackathon.</p>
+  </details>
+  <details class="faq-item">
+    <summary>What should participants bring to the hackathon?</summary>
+    <p class="faq-answer">Participants must bring their laptops, chargers, student ID cards, an extension box, and any additional hardware or components required for their project.</p>
+  </details>
+  <details class="faq-item">
+    <summary>Will food, accommodation, internet facilities, and extension cords be provided?</summary>
+    <p class="faq-answer">Yes. Dinner, breakfast, internet facilities, and extension cords will be provided. Bring a mini extension box, as only a limited number of sockets will be provided. Travel and stay facilities (before and after the event) will not be provided for external participants.</p>
+  </details>
+  <details class="faq-item">
+    <summary>How will the projects be evaluated?</summary>
+    <div class="faq-answer">
+      <ul>
+        <li>15% – Student Review</li>
+        <li>35% – Faculty Review</li>
+        <li>50% – Industry Review</li>
+      </ul>
+    </div>
+  </details>
+  <details class="faq-item">
+    <summary>What is the prize pool?</summary>
+    <p class="faq-answer">Total Prize Pool: ₹60,000+</p>
+  </details>
+  <details class="faq-item">
+    <summary>Will all participants receive certificates?</summary>
+    <p class="faq-answer">Yes. All eligible participants will receive an E-Certificate of Participation, while winners will receive additional certificates and prizes.</p>
+  </details>
+  <details class="faq-item">
+    <summary>How can I contact the organizing team if I have any queries?</summary>
+    <div class="faq-answer">
+      <p>You can reach out to any of the following organizers:</p>
+      <ul>
+        <li>Kailash A – +91 94450 50953</li>
+        <li>Prasanna M – +91 97909 70726</li>
+        <li>Jaidev K – +91 96770 02037</li>
+        <li>Sai Vignesh – +91 97907 22565</li>
+      </ul>
+    </div>
+  </details>
+</div>
+
+{% elif page == 'theme' %}<div class="placeholder-card"><h2>Same problem.<br><span>Different view.</span><br>Better answer.</h2><p>Parallax brings together perspectives that reveal more useful, responsible solutions.</p></div>{% else %}<div class="placeholder-card"><i class="fa-solid fa-envelope"></i><h2>Contact details coming soon</h2><p>Official OC email, social handles and helpdesk hours will be published here.</p></div>{% endif %}</main>{% endblock %}

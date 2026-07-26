@@ -48,6 +48,7 @@ class EventConfigurationAdmin(admin.ModelAdmin):
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
+    list_display = ('name', 'scheduled_at', 'max_marks')
     list_display = ('name', 'scheduled_at', 'max_marks', 'weightage')
 
 
