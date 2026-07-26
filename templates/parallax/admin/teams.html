@@ -18,20 +18,22 @@
       </p>
       <div class="dashboard-actions">
         <a class="dashboard-button-secondary" href="{% url 'admin_panel' %}">Back to OC Dashboard</a>
-        <a class="dashboard-button-secondary" href="{% url 'admin_marks' %}">Marks</a>
-        <a class="dashboard-button-secondary" href="{% url 'admin_announcements' %}">Announcements</a>
       </div>
     </section>
 
     <section class="dashboard-table-card">
+      <form method="get" class="dashboard-actions" style="margin-bottom:1.25rem;flex-wrap:wrap;gap:.6rem;">
+        <a class="dashboard-button-secondary {% if not selected_track_id %}dashboard-button{% endif %}" href="{% url 'admin_teams' %}">All tracks</a>
+        {% for track in tracks %}
+        <a class="dashboard-button-secondary {% if selected_track_id == track.id|stringformat:'s' %}dashboard-button{% endif %}" href="{% url 'admin_teams' %}?track={{ track.id }}">{{ track.name }}</a>
+        {% endfor %}
+      </form>
       <table class="dashboard-table">
         <thead>
           <tr>
             <th>Team</th>
             <th>Track</th>
             <th>Participants</th>
-            <th>Payment</th>
-            <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -74,19 +76,6 @@
               </div>
             </td>
             <td>
-              <span class="dashboard-badge {% if team.payment_confirmed %}success{% else %}pending{% endif %}">
-                {% if team.payment_confirmed %}Confirmed{% else %}Pending{% endif %}
-              </span>
-              <div class="dashboard-small">
-                {% if team.payment_confirmed_at %}
-                {{ team.payment_confirmed_at|date:"M d, Y H:i" }}
-                {% else %}
-                Waiting for OC confirmation
-                {% endif %}
-              </div>
-            </td>
-            <td>{{ team.get_status_display }}</td>
-            <td>
               <div class="dashboard-table-actions">
                 <form method="post">
                   {% csrf_token %}
@@ -115,7 +104,7 @@
           </tr>
           {% empty %}
           <tr>
-            <td colspan="6">No teams have registered yet.</td>
+            <td colspan="4">No teams have registered yet.</td>
           </tr>
           {% endfor %}
         </tbody>

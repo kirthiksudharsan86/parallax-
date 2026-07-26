@@ -47,6 +47,27 @@
   </div>
 </section>
 
+{% if announcements %}
+<section id="announcements" class="section">
+  <div class="wrap">
+    <div class="tracks-header reveal">
+      <h2 class="sec-title">Latest Announcements</h2>
+      <p class="sec-sub">Fresh updates from the organising committee.</p>
+    </div>
+    <div class="announcement-home-grid">
+      {% for announcement in announcements %}
+      <article class="announcement-home-card reveal">
+        {% if announcement.is_pinned %}<span class="announcement-home-pin">Pinned</span>{% endif %}
+        <h3>{{ announcement.title }}</h3>
+        <p>{{ announcement.body|linebreaksbr }}</p>
+        <span class="announcement-home-meta">{{ announcement.created_at|date:"M d, Y" }}</span>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
 <section id="tracks" class="section">
   <div class="wrap">
     <div class="tracks-header reveal">
