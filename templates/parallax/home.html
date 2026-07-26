@@ -69,38 +69,56 @@
     <div class="tracks-header reveal">
       <h2 class="sec-title">Powered by our Partners</h2>
     </div>
-    {% if title_sponsor %}
     <div class="title-sponsor reveal">
-      <span class="sponsor-tag">TITLE SPONSOR</span>
       <div class="sponsor-card featured">
+        <span class="sponsor-tag">TITLE SPONSOR</span>
+        <img src="{% static 'assets/econ.png' %}" class="sponsor-logo">
+        <h3>E-CON</h3>
+        <p>Tagline</p>
+      </div>
+      {% if title_sponsor %}
+      <div class="sponsor-card featured">
+        <span class="sponsor-tag">TITLE SPONSOR</span>
         {% if title_sponsor.logo %}
-        <img src="{{ title_sponsor.logo.url }}" alt="{{ title_sponsor.name }} logo" class="sponsor-logo">
+        <img src="{{ title_sponsor.logo.url }}" class="sponsor-logo" alt="{{ title_sponsor.name }}">
         {% endif %}
         <h3>{{ title_sponsor.name }}</h3>
-        {% if title_sponsor.tagline %}<p>{{ title_sponsor.tagline }}</p>{% endif %}
+        {% if title_sponsor.tagline %}
+        <p>{{ title_sponsor.tagline }}</p>
+        {% endif %}
       </div>
+      {% endif %}
     </div>
-    {% endif %}
-    {% if technical_sponsors %}
     <div class="technical-sponsors reveal">
-      {% for sponsor in technical_sponsors %}
       <div class="sponsor-card">
         <span class="sponsor-tag small">TECHNICAL SPONSOR</span>
+        <img src="{% static 'images/sponsors/tech1.png' %}" class="sponsor-logo" alt="">
+        <h3>Company Name</h3>
+        <p>Tagline</p>
+      </div>
+      <div class="sponsor-card">
+        <span class="sponsor-tag small">TECHNICAL SPONSOR</span>
+        <img src="{% static 'images/sponsors/tech2.png' %}" class="sponsor-logo" alt="">
+        <h3>Company Name</h3>
+        <p>Tagline</p>
+      </div>
+      {% for sponsor in technical_sponsors %}
+      <div class="sponsor-card">
+        <span class="sponsor-tag small">
+          TECHNICAL SPONSOR
+        </span>
         {% if sponsor.logo %}
-        <img src="{{ sponsor.logo.url }}" alt="{{ sponsor.name }}" class="sponsor-logo">
+        <img src="{{ sponsor.logo.url }}" class="sponsor-logo" alt="{{ sponsor.name }}">
         {% endif %}
         <h3>{{ sponsor.name }}</h3>
-        {% if sponsor.tagline %}<p>{{ sponsor.tagline }}</p>{% endif %}
+        {% if sponsor.tagline %}
+        <p>{{ sponsor.tagline }}</p>
+        {% endif %}
       </div>
       {% endfor %}
     </div>
-    {% endif %}
-    {% if not title_sponsor and not technical_sponsors %}
-    <p class="sec-sub reveal" style="text-align:center;">Sponsor announcements coming soon.</p>
-    {% endif %}
   </div>
 </section>
-
 <section id="about-parallax" class="section">
   <div class="wrap about-parallax-wrap">
     <div class="about-summary">

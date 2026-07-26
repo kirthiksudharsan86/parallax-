@@ -12,62 +12,149 @@
   <div class="dashboard-wrap">
     <section class="dashboard-hero">
       <span class="dashboard-kicker">OC Dashboard</span>
-      <h1 class="dashboard-title">Review and marks overview</h1>
-      <p class="dashboard-copy">Use this page to monitor review windows and the marks already entered for teams.</p>
+      <h1 class="dashboard-title">Rounds and marks</h1>
+      <p class="dashboard-copy">Configure evaluation rounds with their weightage and maximum marks, then award scores to each team. The technical team enters the marks for every round here.</p>
       <div class="dashboard-actions">
         <a class="dashboard-button-secondary" href="{% url 'admin_panel' %}">Back to OC Dashboard</a>
       </div>
     </section>
 
-    <section class="dashboard-cards">
-      <article class="dashboard-card">
-        <span class="dashboard-kicker">Review Schedule</span>
-        <h2 class="dashboard-section-title">Configured review rounds</h2>
+    <section class="dashboard-grid">
+      <article class="dashboard-form">
+        <div class="dashboard-section-header">
+          <div>
+            <span class="dashboard-kicker">Round Setup</span>
+            <h2 class="dashboard-section-title">Configure a round</h2>
+          </div>
+        </div>
+
+        <form method="post" class="dashboard-form-grid" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="action" value="create_round">
+          <div class="dashboard-field full">
+            <label for="round-name">Round name</label>
+            <input class="dashboard-input" id="round-name" name="name" type="text" placeholder="e.g. Round 1 - Ideation" required>
+          </div>
+          <div class="dashboard-field">
+            <label for="round-weightage">Weightage (% of total)</label>
+            <input class="dashboard-input" id="round-weightage" name="weightage" type="number" min="0" max="100" value="0">
+          </div>
+          <div class="dashboard-field">
+            <label for="round-max">Marks allotted</label>
+            <input class="dashboard-input" id="round-max" name="max_marks" type="number" min="0" value="100">
+          </div>
+          <div class="dashboard-field full">
+            <button class="dashboard-button" type="submit">Add Round</button>
+          </div>
+        </form>
+
+        <div class="dashboard-section-header" style="margin-top:1.5rem;">
+          <div>
+            <span class="dashboard-kicker">Configured Rounds</span>
+            <h2 class="dashboard-section-title">Total weightage: {{ total_weightage }}%</h2>
+          </div>
+        </div>
         <ul class="dashboard-mini-list">
           {% for review in reviews %}
           <li>
             <div>
               <strong>{{ review.name }}</strong>
-              <div class="dashboard-small">{{ review.scheduled_at|date:"M d, Y H:i" }}</div>
+              <div class="dashboard-small">Weightage {{ review.weightage }}% · Out of {{ review.max_marks }} marks · {{ review.team_total }} scored</div>
             </div>
-            <span class="dashboard-badge info">{{ review.team_total }} marks</span>
+            <form method="post" onsubmit="return confirm('Delete this round and its marks?');">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete_round">
+              <input type="hidden" name="review_id" value="{{ review.id }}">
+              <button class="dashboard-button-ghost" type="submit">Delete</button>
+            </form>
           </li>
           {% empty %}
-          <li>No review rounds configured yet.</li>
+          <li>No rounds configured yet.</li>
           {% endfor %}
         </ul>
       </article>
 
-      <article class="dashboard-table-card">
-        <span class="dashboard-kicker">Latest Marks</span>
-        <h2 class="dashboard-section-title">Recorded scores</h2>
-        <table class="dashboard-table">
-          <thead>
-            <tr>
-              <th>Team</th>
-              <th>Review</th>
-              <th>Score</th>
-              <th>Remarks</th>
-              <th>Updated</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for mark in marks %}
-            <tr>
-              <td>{{ mark.team.team_name }}</td>
-              <td>{{ mark.review.name }}</td>
-              <td>{{ mark.score }}</td>
-              <td>{{ mark.remarks|default:"-" }}</td>
-              <td>{{ mark.updated_at|date:"M d, Y H:i" }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-              <td colspan="5">No marks have been entered yet.</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </article>
+      <aside class="dashboard-sidebar">
+        <div class="dashboard-section-header">
+          <div>
+            <span class="dashboard-kicker">Award Marks</span>
+            <h2 class="dashboard-section-title">Score a team</h2>
+          </div>
+        </div>
+
+        {% if reviews and teams %}
+        <form method="post" class="dashboard-form-grid" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="action" value="award_marks">
+          <div class="dashboard-field full">
+            <label for="award-round">Round</label>
+            <select class="dashboard-input" id="award-round" name="review_id" required>
+              {% for review in reviews %}
+              <option value="{{ review.id }}">{{ review.name }} (out of {{ review.max_marks }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="dashboard-field full">
+            <label for="award-team">Team</label>
+            <select class="dashboard-input" id="award-team" name="team_id" required>
+              {% for team in teams %}
+              <option value="{{ team.id }}">{{ team.team_name }}{% if team.track %} · {{ team.track.name }}{% endif %}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="dashboard-field full">
+            <label for="award-score">Score</label>
+            <input class="dashboard-input" id="award-score" name="score" type="number" step="0.01" min="0" placeholder="e.g. 85" required>
+          </div>
+          <div class="dashboard-field full">
+            <label for="award-remarks">Remarks</label>
+            <textarea class="dashboard-textarea" id="award-remarks" name="remarks" placeholder="Optional feedback"></textarea>
+          </div>
+          <div class="dashboard-field full">
+            <button class="dashboard-button" type="submit">Save Marks</button>
+          </div>
+        </form>
+        {% else %}
+        <p class="dashboard-empty">Add at least one round and register a team to start awarding marks.</p>
+        {% endif %}
+      </aside>
+    </section>
+
+    <section class="dashboard-table-card">
+      <div class="dashboard-section-header">
+        <div>
+          <span class="dashboard-kicker">Latest Marks</span>
+          <h2 class="dashboard-section-title">Recorded scores</h2>
+        </div>
+      </div>
+      <table class="dashboard-table">
+        <thead>
+          <tr>
+            <th>Team</th>
+            <th>Round</th>
+            <th>Score</th>
+            <th>Remarks</th>
+            <th>Graded By</th>
+            <th>Updated</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for mark in marks %}
+          <tr>
+            <td>{{ mark.team.team_name }}</td>
+            <td>{{ mark.review.name }}</td>
+            <td>{{ mark.score }} / {{ mark.review.max_marks }}</td>
+            <td>{{ mark.remarks|default:"-" }}</td>
+            <td>{{ mark.graded_by.get_username|default:"-" }}</td>
+            <td>{{ mark.updated_at|date:"M d, Y H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6">No marks have been entered yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </section>
   </div>
 </section>
