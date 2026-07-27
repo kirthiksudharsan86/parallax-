@@ -35,7 +35,7 @@ body{background:radial-gradient(ellipse at 50% -10%, rgba(24,120,255,.28), trans
 .px-timer .timer-sep{color:rgba(255,255,255,.3);font-size:18px;margin-bottom:14px}
 .sponsor-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
 .sponsor-card{border:1px solid rgba(21,133,255,.35);border-radius:14px;padding:100px 22px;text-align:center;background:rgba(1,12,33,.55)}
-.sponsor-logo-placeholder{width:64px;height:64px;margin:0 auto 16px;border-radius:50%;display:grid;place-items:center;border:2px solid #1687ff;color:#7ddaff;font-size:1.4rem;background:radial-gradient(circle at 50% 30%,#174d85,#07142e 60%)}
+.sponsor-logo{width:180px;height:90px;object-fit:contain;border-radius:0;display:block;margin:20px auto;}
 .sponsor-card h3{font-size:1rem;margin:0 0 8px}
 .sponsor-card p{color:#aebbd0;font-size:.85rem;line-height:1.6}
 .about-short-inner{text-align:center;max-width:640px;margin:0 auto}
@@ -173,3 +173,33 @@ footer {
 .core-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:18px;margin-bottom:38px}
 .core-grid .person-card{flex:0 1 170px}
 .core-grid .person-card{padding:18px;border:1px solid rgba(21,133,255,.45);border-radius:12px;background:rgba(1,12,33,.6)}
+.sponsor-card h3{font-size:1.5rem;margin-top:15px;}
+.sponsor-card p{font-size:1rem;opacity:.8;}
+.sponsor-actions{
+    display:flex;
+    gap:12px;
+    margin-top:16px;
+    align-items:center;
+}
+
+.btn-danger{
+    padding:.8rem 1.2rem;
+    border:none;
+    border-radius:.6rem;
+    background:#d32f2f;
+    color:#fff;
+    cursor:pointer;
+    font-weight:600;
+}
+
+.btn-danger:hover{
+    background:#b71c1c;
+}
+.title-sponsor,
+.technical-sponsors{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:30px;
+    margin-bottom:50px;
+}

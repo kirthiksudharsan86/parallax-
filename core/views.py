@@ -92,7 +92,7 @@ def home(request):
     context = {
         'stats': build_home_stats(reviews),
         'tracks': build_home_track_cards(published_tracks) if published_tracks else build_default_track_cards(),
-        'title_sponsor': next((s for s in active_sponsors if s.sponsor_type == Sponsor.TITLE), None),
+        'title_sponsors': [s for s in active_sponsors if s.sponsor_type == Sponsor.TITLE],
         'technical_sponsors': [s for s in active_sponsors if s.sponsor_type == Sponsor.TECHNICAL],
         'announcements': Announcement.objects.all().order_by('-is_pinned', '-created_at')[:6],
     }
@@ -578,7 +578,6 @@ def admin_panel(request):
         'total_leaders_pay_later': total_leaders_pay_later,
         'problem_statement_summary': problem_statement_summary,
         'most_chosen_track': most_chosen_track,
-    context = {
         'configuration': configuration,
         'track_summary': track_summary,
         'recent_teams': recent_teams,
@@ -642,9 +641,6 @@ def admin_marks(request):
 
     reviews = Review.objects.annotate(team_total=Count('marks')).order_by('scheduled_at')
     marks = Marks.objects.select_related('team', 'review', 'graded_by').order_by('-updated_at')
-    context = {
-        'reviews': reviews,
-        'marks': marks,
     if request.method == 'POST':
         action = request.POST.get('action', '').strip()
 

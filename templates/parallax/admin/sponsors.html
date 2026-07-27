@@ -83,13 +83,20 @@
         <label class="ps-check">
           <input type="checkbox" name="is_active" {% if sponsor.is_active %}checked{% endif %}> Active (show on home page)
         </label>
-        <button class="btn-cta" type="submit">Save changes</button>
-      </form>
-      <form method="post" onsubmit="return confirm('Delete this sponsor?');">{% csrf_token %}
-        <input type="hidden" name="action" value="delete_sponsor">
-        <input type="hidden" name="sponsor_id" value="{{ sponsor.id }}">
-        <button class="btn-out ps-delete" type="submit">Delete sponsor</button>
-      </form>
+        <div class="sponsor-actions">
+    <button class="btn-cta" type="submit">Save Changes</button>
+</form>
+
+<form method="post"
+      onsubmit="return confirm('Are you sure you want to delete this sponsor?');">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="delete_sponsor">
+    <input type="hidden" name="sponsor_id" value="{{ sponsor.id }}">
+    <button class="btn-danger" type="submit">
+        Delete Sponsor
+    </button>
+</form>
+</div>
     </details>
     {% empty %}
     <p>No sponsors added yet. Use the button above to add the first one.</p>
