@@ -1,408 +1,203 @@
 {% extends 'parallax/base.html' %}
-{% block title %}Track & Slot Desk | Parallax{% endblock %}
+{% block title %}Track Management | Parallax Admin{% endblock %}
 {% block content %}
-<main class="page-shell">
-  <p class="eyebrow">Organising committee</p>
-  <h1 class="page-title">Track &amp; problem statement <span>desk.</span></h1>
-  <p class="lead">Publish a track independently of its challenge statements, manage the 25 problem statements with full details, and set first-come-first-served slot capacity. Problem statements should be switched on four days before the event.</p>
-
-  <div class="dashboard-actions" style="margin-bottom:1.5rem;">
-    <a class="dashboard-button-secondary" href="{% url 'admin_panel' %}">Back to Dashboard</a>
-    <a class="dashboard-button-secondary" href="{% url 'admin_sponsors' %}">Sponsors</a>
-  </div>
-{% load static %}
-{% block title %}Track Release | Parallax{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-{% endblock %}
-
-{% block content %}
-<section class="dashboard-shell">
+<div class="dashboard-page">
   <div class="dashboard-wrap">
     <section class="dashboard-hero">
-      <span class="dashboard-kicker">OC Dashboard</span>
-      <h1 class="dashboard-title">Problem statement management</h1>
-      <p class="dashboard-copy">
-        Publish a track independently of its challenge statements, manage the problem statements with full details,
-        and set first-come-first-served slot capacity. Problem statements should be switched on four days before the event.
-      </p>
-      <div class="dashboard-actions">
-        <a class="dashboard-button" href="{% url 'admin_panel' %}">Back to Dashboard</a>
-        <a class="dashboard-button-secondary" href="{% url 'admin_sponsors' %}">Sponsors</a>
+      <div class="dashboard-header">
+        <a href="{% url 'admin_panel' %}" class="dashboard-back">← Back to OC Dashboard</a>
+        <h1 class="dashboard-title">Track Management</h1>
       </div>
-      <div class="toggle-actions">
-        <form method="post">{% csrf_token %}
-          <input type="hidden" name="track_id" value="{{ track.id }}">
-          <input type="hidden" name="field" value="is_published">
-          <button class="btn-out">{% if track.is_published %}Unpublish track{% else %}Publish track{% endif %}</button>
-        </form>
-        <form method="post">{% csrf_token %}
-          <input type="hidden" name="track_id" value="{{ track.id }}">
-          <input type="hidden" name="field" value="is_problem_live">
-          <button class="btn-cta">{% if track.is_problem_live %}Lock problems{% else %}Release problems{% endif %}</button>
-        </form>
     </section>
-
-    <section class="dashboard-table-card">
-      <div class="dashboard-section-header">
-        <div>
-          <span class="dashboard-kicker">Tracks</span>
-          <h2 class="dashboard-section-title">Track &amp; problem release</h2>
-        </div>
-      </div>
-      {% for track in tracks %}
-      <article class="team-row">
-        <div>
-          <b>{{ track.name }}</b>
-          <p class="dashboard-small">Track page: {% if track.is_published %}Live{% else %}Hidden{% endif %} · Problem statement: {% if track.is_problem_live %}Live{% else %}Locked{% endif %}</p>
-        </div>
-        <div class="toggle-actions">
-          <form method="post">{% csrf_token %}
-            <input type="hidden" name="track_id" value="{{ track.id }}">
-            <input type="hidden" name="field" value="is_published">
-            <button class="dashboard-button-secondary" type="submit">{% if track.is_published %}Unpublish track{% else %}Publish track{% endif %}</button>
-          </form>
-          <form method="post">{% csrf_token %}
-            <input type="hidden" name="track_id" value="{{ track.id }}">
-            <input type="hidden" name="field" value="is_problem_live">
-            <button class="dashboard-button" type="submit">{% if track.is_problem_live %}Lock problems{% else %}Release problems{% endif %}</button>
-          </form>
-        </div>
+    <section class="dashboard-grid">
+      <article class="dashboard-card">
+        <small class="dashboard-kicker">Tracks</small>
+        <h3 class="dashboard-stat">{{ tracks|length }}</h3>
+        <p class="dashboard-copy">Total tracks</p>
       </article>
-      {% empty %}
-      <p class="dashboard-empty">No tracks available yet.</p>
-      {% endfor %}
+      <article class="dashboard-card">
+        <small class="dashboard-kicker">Published</small>
+        <h3 class="dashboard-stat">{% widthratio tracks|length 1 1 %}</h3>
+        <p class="dashboard-copy">Published tracks</p>
+      </article>
+      <article class="dashboard-card">
+        <small class="dashboard-kicker">Problems</small>
+        <h3 class="dashboard-stat">{{ problem_statements|length }}</h3>
+        <p class="dashboard-copy">Problem statements</p>
+      </article>
     </section>
-
-  <h2 class="page-title" style="margin-top:2rem;">Problem statement <span>management.</span></h2>
-  <p class="lead">Each problem statement supports a title, description, context, minimum requirements and dependencies (max 500 characters each), plus a slot count. Publish a statement to show it on the public tracks page.</p>
-
-  <form method="get" class="dashboard-form-grid" style="margin-bottom:1.25rem;">
-    <select name="track">
-      <option value="">All tracks</option>
-      {% for track in tracks %}
-      <option value="{{ track.id }}" {% if selected_track_id == track.id|stringformat:'s' %}selected{% endif %}>{{ track.name }}</option>
-      {% endfor %}
-    </select>
-    <input type="text" name="q" value="{{ search_query }}" placeholder="Search title, code or description">
-    <button class="btn-out" type="submit">Search &amp; filter</button>
-    {% if selected_track_id or search_query %}
-    <a class="btn-out" href="{% url 'admin_tracks' %}">Clear</a>
-    {% endif %}
-  </form>
-
-  <div class="table-card">
-    <details class="ps-editor">
-      <summary class="btn-cta">+ Add problem statement</summary>
-      <form method="post" class="ps-form">{% csrf_token %}
-        <input type="hidden" name="action" value="add_problem_statement">
-        <input type="hidden" name="return_track" value="{{ selected_track_id }}">
-        <input type="hidden" name="return_q" value="{{ search_query }}">
-        <label>Track
-          <select name="track_id" required>
-            <option value="">Select track</option>
-            {% for track in tracks %}<option value="{{ track.id }}">{{ track.name }}</option>{% endfor %}
-          </select>
-        </label>
-        <label>Code
-          <input type="text" name="code" placeholder="e.g. AIML-01">
-        </label>
-        <label>Problem statement title
-          <input type="text" name="title" maxlength="200" placeholder="Title" required>
-        </label>
-        <label>Description
-          <textarea name="description" maxlength="500" rows="3" data-counter placeholder="Paste the description here"></textarea>
-          <span class="char-counter">0 / 500</span>
-        </label>
-        <label>Context
-          <textarea name="context" maxlength="500" rows="3" data-counter placeholder="Context"></textarea>
-          <span class="char-counter">0 / 500</span>
-        </label>
-        <label>Minimum requirements
-          <textarea name="min_requirements" maxlength="500" rows="3" data-counter placeholder="Minimum requirements"></textarea>
-          <span class="char-counter">0 / 500</span>
-        </label>
-        <label>Dependencies
-          <textarea name="dependencies" maxlength="500" rows="3" data-counter placeholder="Dependencies"></textarea>
-          <span class="char-counter">0 / 500</span>
-        </label>
-        <label>Slots
-          <input type="number" name="slot_capacity" min="0" value="0" placeholder="Slots">
-        </label>
-        <label class="ps-check">
-          <input type="checkbox" name="is_published"> Publish to public tracks page
-        </label>
-        <button class="btn-cta" type="submit">Save problem statement</button>
-      </form>
-    </details>
-
-    {% for ps in problem_statements %}
-    <article class="team-row ps-row">
-      <div>
-        <b>{{ ps.title }}</b>
-        <p>
-          {{ ps.track.name }}{% if ps.code %} · {{ ps.code }}{% endif %} ·
-          Booked {{ ps.booked_total }}/{{ ps.slot_capacity }} ·
-          {% if ps.is_active %}Active{% else %}Inactive{% endif %} ·
-          {% if ps.is_published %}<span class="dashboard-badge success">Published</span>{% else %}<span class="dashboard-badge pending">Draft</span>{% endif %}
-        </p>
-      </div>
-      <div class="toggle-actions">
-        <form method="post">{% csrf_token %}
-          <input type="hidden" name="action" value="toggle_problem_published">
-          <input type="hidden" name="problem_statement_id" value="{{ ps.id }}">
-          <input type="hidden" name="return_track" value="{{ selected_track_id }}">
-          <input type="hidden" name="return_q" value="{{ search_query }}">
-          <button class="btn-out" type="submit">{% if ps.is_published %}Unpublish{% else %}Publish{% endif %}</button>
-        </form>
-      </div>
-    </article>
-    <details class="ps-editor">
-      <summary class="btn-out">Edit details &amp; slots</summary>
-      <form method="post" class="ps-form">{% csrf_token %}
-        <input type="hidden" name="action" value="edit_problem_statement">
-        <input type="hidden" name="problem_statement_id" value="{{ ps.id }}">
-        <input type="hidden" name="return_track" value="{{ selected_track_id }}">
-        <input type="hidden" name="return_q" value="{{ search_query }}">
-        <label>Code
-          <input type="text" name="code" value="{{ ps.code }}">
-        </label>
-        <label>Title
-          <input type="text" name="title" maxlength="200" value="{{ ps.title }}" required>
-        </label>
-        <label>Description
-          <textarea name="description" maxlength="500" rows="3" data-counter>{{ ps.description }}</textarea>
-          <span class="char-counter">0 / 500</span>
-        </label>
-        <label>Context
-          <textarea name="context" maxlength="500" rows="3" data-counter>{{ ps.context }}</textarea>
-          <span class="char-counter">0 / 500</span>
-        </label>
-        <label>Minimum requirements
-          <textarea name="min_requirements" maxlength="500" rows="3" data-counter>{{ ps.min_requirements }}</textarea>
-          <span class="char-counter">0 / 500</span>
-        </label>
-        <label>Dependencies
-          <textarea name="dependencies" maxlength="500" rows="3" data-counter>{{ ps.dependencies }}</textarea>
-          <span class="char-counter">0 / 500</span>
-        </label>
-        <label>Slots
-          <input type="number" name="slot_capacity" min="0" value="{{ ps.slot_capacity }}">
-        </label>
-        <label class="ps-check">
-          <input type="checkbox" name="is_active" {% if ps.is_active %}checked{% endif %}> Active (bookable)
-        </label>
-        <label class="ps-check">
-          <input type="checkbox" name="is_published" {% if ps.is_published %}checked{% endif %}> Published on public tracks page
-        </label>
-        <div class="ps-form-actions">
-          <button class="btn-cta" type="submit">Save changes</button>
-        </div>
-      </form>
-      <form method="post" onsubmit="return confirm('Delete this problem statement?');">{% csrf_token %}
-        <input type="hidden" name="action" value="delete_problem_statement">
-        <input type="hidden" name="problem_statement_id" value="{{ ps.id }}">
-        <input type="hidden" name="return_track" value="{{ selected_track_id }}">
-        <input type="hidden" name="return_q" value="{{ search_query }}">
-        <button class="btn-out ps-delete" type="submit">Delete problem statement</button>
-      </form>
-    </details>
-    {% empty %}
-    <p>No problem statements match your filter. Add one above to open first-come-first-served booking.</p>
-    {% endfor %}
-  </div>
-</main>
-
-<style>
-    <section class="dashboard-table-card">
-      <div class="dashboard-section-header">
-        <div>
-          <span class="dashboard-kicker">Problem Statements</span>
-          <h2 class="dashboard-section-title">Add &amp; manage problem statements</h2>
-        </div>
-      </div>
-      <p class="dashboard-copy">Each problem statement supports a question, context, real-life explanation, impact, minimum requirements and dependencies (max 500 characters each), plus a slot count. Publish a statement to show it on the public tracks page.</p>
-
-      <form method="get" class="dashboard-actions" style="margin-bottom:1.25rem;flex-wrap:wrap;gap:.6rem;">
-        <select class="dashboard-input" name="track" style="max-width:260px;">
-          <option value="">All tracks</option>
-          {% for track in tracks %}
-          <option value="{{ track.id }}" {% if selected_track_id == track.id|stringformat:'s' %}selected{% endif %}>{{ track.name }}</option>
-          {% endfor %}
-        </select>
-        <input class="dashboard-input" type="text" name="q" value="{{ search_query }}" placeholder="Search title, code or description" style="max-width:280px;">
-        <button class="dashboard-button-secondary" type="submit">Search &amp; filter</button>
-        {% if selected_track_id or search_query %}
-        <a class="dashboard-button-ghost" href="{% url 'admin_tracks' %}">Clear</a>
-        {% endif %}
-      </form>
-
-      <details class="ps-editor">
-        <summary class="dashboard-button">+ Add problem statement</summary>
-        <form method="post" class="ps-form">{% csrf_token %}
-          <input type="hidden" name="action" value="add_problem_statement">
-          <input type="hidden" name="return_track" value="{{ selected_track_id }}">
-          <input type="hidden" name="return_q" value="{{ search_query }}">
-          <label>Track
-            <select name="track_id" required>
-              <option value="">Select track</option>
-              {% for track in tracks %}<option value="{{ track.id }}">{{ track.name }}</option>{% endfor %}
-            </select>
-          </label>
-          <label>Code
-            <input type="text" name="code" placeholder="e.g. AIML-01">
-          </label>
-          <label>Problem statement question
-            <input type="text" name="title" maxlength="200" placeholder="The problem statement question" required>
-          </label>
-          <label>Context
-            <textarea name="context" maxlength="500" rows="3" data-counter placeholder="Context of the problem"></textarea>
-            <span class="char-counter">0 / 500</span>
-          </label>
-          <label>Real-life context (explain the problem)
-            <textarea name="description" maxlength="500" rows="3" data-counter placeholder="Explain what the problem really is"></textarea>
-            <span class="char-counter">0 / 500</span>
-          </label>
-          <label>How it will impact
-            <textarea name="impact" maxlength="500" rows="3" data-counter placeholder="The impact this solution will create"></textarea>
-            <span class="char-counter">0 / 500</span>
-          </label>
-          <label>Minimum requirements
-            <textarea name="min_requirements" maxlength="500" rows="3" data-counter placeholder="Minimum requirements"></textarea>
-            <span class="char-counter">0 / 500</span>
-          </label>
-          <label>Dependencies
-            <textarea name="dependencies" maxlength="500" rows="3" data-counter placeholder="Dependencies"></textarea>
-            <span class="char-counter">0 / 500</span>
-          </label>
-          <label>Slots
-            <input type="number" name="slot_capacity" min="0" value="0" placeholder="Slots">
-          </label>
-          <label class="ps-check">
-            <input type="checkbox" name="is_published"> Publish to public tracks page
-          </label>
-          <button class="dashboard-button" type="submit">Save problem statement</button>
-        </form>
-      </details>
-
-      {% for ps in problem_statements %}
-      <article class="team-row ps-row">
-        <div>
-          <b>{{ ps.title }}</b>
-          <p class="dashboard-small">
-            {{ ps.track.name }}{% if ps.code %} · {{ ps.code }}{% endif %} ·
-            Booked {{ ps.booked_total }}/{{ ps.slot_capacity }} ·
-            {% if ps.is_active %}Active{% else %}Inactive{% endif %} ·
-            {% if ps.is_published %}<span class="dashboard-badge success">Published</span>{% else %}<span class="dashboard-badge pending">Draft</span>{% endif %}
-          </p>
-        </div>
-        <div class="toggle-actions">
-          <form method="post">{% csrf_token %}
-            <input type="hidden" name="action" value="toggle_problem_published">
-            <input type="hidden" name="problem_statement_id" value="{{ ps.id }}">
-            <input type="hidden" name="return_track" value="{{ selected_track_id }}">
-            <input type="hidden" name="return_q" value="{{ search_query }}">
-            <button class="dashboard-button-secondary" type="submit">{% if ps.is_published %}Unpublish{% else %}Publish{% endif %}</button>
-          </form>
-        </div>
-      </article>
-      <details class="ps-editor">
-        <summary class="dashboard-button-secondary">Edit details &amp; slots</summary>
-        <form method="post" class="ps-form">{% csrf_token %}
-          <input type="hidden" name="action" value="edit_problem_statement">
-          <input type="hidden" name="problem_statement_id" value="{{ ps.id }}">
-          <input type="hidden" name="return_track" value="{{ selected_track_id }}">
-          <input type="hidden" name="return_q" value="{{ search_query }}">
-          <label>Code
-            <input type="text" name="code" value="{{ ps.code }}">
-          </label>
-          <label>Problem statement question
-            <input type="text" name="title" maxlength="200" value="{{ ps.title }}" required>
-          </label>
-          <label>Context
-            <textarea name="context" maxlength="500" rows="3" data-counter>{{ ps.context }}</textarea>
-            <span class="char-counter">0 / 500</span>
-          </label>
-          <label>Real-life context (explain the problem)
-            <textarea name="description" maxlength="500" rows="3" data-counter>{{ ps.description }}</textarea>
-            <span class="char-counter">0 / 500</span>
-          </label>
-          <label>How it will impact
-            <textarea name="impact" maxlength="500" rows="3" data-counter>{{ ps.impact }}</textarea>
-            <span class="char-counter">0 / 500</span>
-          </label>
-          <label>Minimum requirements
-            <textarea name="min_requirements" maxlength="500" rows="3" data-counter>{{ ps.min_requirements }}</textarea>
-            <span class="char-counter">0 / 500</span>
-          </label>
-          <label>Dependencies
-            <textarea name="dependencies" maxlength="500" rows="3" data-counter>{{ ps.dependencies }}</textarea>
-            <span class="char-counter">0 / 500</span>
-          </label>
-          <label>Slots
-            <input type="number" name="slot_capacity" min="0" value="{{ ps.slot_capacity }}">
-          </label>
-          <label class="ps-check">
-            <input type="checkbox" name="is_active" {% if ps.is_active %}checked{% endif %}> Active (bookable)
-          </label>
-          <label class="ps-check">
-            <input type="checkbox" name="is_published" {% if ps.is_published %}checked{% endif %}> Published on public tracks page
-          </label>
-          <div class="ps-form-actions">
-            <button class="dashboard-button" type="submit">Save changes</button>
+    <section class="dashboard-section">
+      <h2 class="dashboard-section-title">Tracks</h2>
+      <div class="dashboard-grid">
+        {% for track in tracks %}
+        <article class="track-card">
+          <div class="track-header">
+            <h3 class="track-name">{{ track.name }}</h3>
+            <form method="POST" class="track-actions">
+              {% csrf_token %}
+              <input type="hidden" name="track_id" value="{{ track.id }}">
+              <input type="hidden" name="field" value="is_published">
+              <button type="submit" class="dashboard-button-icon">
+                {% if track.is_published %}<i class="fa-solid fa-eye"></i>{% else %}<i class="fa-solid fa-eye-slash"></i>{% endif %}
+              </button>
+            </form>
           </div>
-        </form>
-        <form method="post" onsubmit="return confirm('Delete this problem statement?');">{% csrf_token %}
-          <input type="hidden" name="action" value="delete_problem_statement">
-          <input type="hidden" name="problem_statement_id" value="{{ ps.id }}">
-          <input type="hidden" name="return_track" value="{{ selected_track_id }}">
-          <input type="hidden" name="return_q" value="{{ search_query }}">
-          <button class="dashboard-button-ghost ps-delete" type="submit">Delete problem statement</button>
-        </form>
-      </details>
-      {% empty %}
-      <p class="dashboard-empty">No problem statements match your filter. Add one above to open first-come-first-served booking.</p>
-      {% endfor %}
+          <p class="track-description">{{ track.description }}</p>
+          <div class="track-meta">
+            <span class="track-status {% if track.is_published %}published{% else %}draft{% endif %}">
+              {% if track.is_published %}Published{% else %}Draft{% endif %}
+            </span>
+          </div>
+        </article>
+        {% empty %}
+        <p class="dashboard-copy">No tracks available.</p>
+        {% endfor %}
+      </div>
     </section>
+    <section class="dashboard-section">
+      <h2 class="dashboard-section-title">Problem Statements</h2>
+      <div class="problem-management-grid">
+        
+        <div class="problem-list">
+          <h3 class="dashboard-subsection-title">Existing Statements</h3>
+          {% for problem in problem_statements %}
+          <article class="problem-card">
+            <details class="problem-details">
+              <summary class="problem-summary">
+                <div class="problem-header">
+                  <div class="problem-title-section">
+                    <h4 class="problem-title">{{ problem.title }}</h4>
+                    <span class="problem-code">{{ problem.code }}</span>
+                  </div>
+                  <span class="problem-status {% if problem.is_published %}published{% else %}draft{% endif %}">
+                    {% if problem.is_published %}Published{% else %}Draft{% endif %}
+                  </span>
+                </div>
+              </summary>
+              <form method="POST" class="problem-edit-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="edit_problem_statement">
+                <input type="hidden" name="problem_id" value="{{ problem.id }}">
+                
+                <div class="form-group">
+                  <label class="dashboard-label">Track</label>
+                  <select name="track_id" class="dashboard-select" required>
+                    {% for track in tracks %}
+                    <option value="{{ track.id }}" {% if track.id == problem.track.id %}selected{% endif %}>{{ track.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+          
+                <div class="form-group">
+                  <label class="dashboard-label">Problem Statement</label>
+                  <input type="text" name="title" class="dashboard-input" value="{{ problem.title }}" required>
+                </div>
+                
+                <div class="form-group">
+                  <label class="dashboard-label">Description</label>
+                  <textarea name="description" class="dashboard-textarea" required>{{ problem.description }}</textarea>
+                </div>
+                
+                <div class="form-group">
+                  <label class="dashboard-label">Context</label>
+                  <textarea name="context" class="dashboard-textarea">{{ problem.context }}</textarea>
+                </div>
+                
+                <div class="form-group">
+                  <label class="dashboard-label">Minimum Requirements</label>
+                  <textarea name="min_requirements" class="dashboard-textarea">{{ problem.min_requirements }}</textarea>
+                </div>
+                
+                <div class="form-group">
+                  <label class="dashboard-label">Dependencies</label>
+                  <textarea name="dependencies" class="dashboard-textarea">{{ problem.dependencies }}</textarea>
+                </div>
+                
+                <div class="form-group">
+                  <label class="dashboard-label">Slot Capacity</label>
+                  <input type="number" name="slot_capacity" class="dashboard-input" value="{{ problem.slot_capacity }}" min="1" required>
+                </div>
+                
+                <div class="form-group checkbox">
+                  <label class="dashboard-label">
+                    <input type="checkbox" name="is_published" value="on" {% if problem.is_published %}checked{% endif %}>
+                    Published
+                  </label>
+                </div>
+                
+                <div class="problem-actions">
+                  <button type="submit" class="dashboard-button">Save Changes</button>
+                  <button type="button" class="dashboard-button-secondary" onclick="deleteConfirm({{ problem.id }})">Delete</button>
+                </div>
+              </form>
+            </details>
+          </article>
+          {% empty %}
+          <p class="dashboard-copy">No problem statements yet.</p>
+          {% endfor %}
+        </div>
+        
+        <div class="problem-form">
+          <h3 class="dashboard-subsection-title">Add Problem Statement</h3>
+          <form method="POST" class="dashboard-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_problem_statement">
+            
+            <div class="form-group">
+              <label class="dashboard-label">Track</label>
+              <select name="track_id" class="dashboard-select" required>
+                <option value="">Select a track</option>
+                {% for track in tracks %}
+                <option value="{{ track.id }}">{{ track.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            
+          
+            <div class="form-group">
+              <label class="dashboard-label">Problem Title</label>
+              <input type="text" name="title" class="dashboard-input" placeholder="Problem title" required>
+            </div>
+            
+            <div class="form-group">
+              <label class="dashboard-label">Description</label>
+              <textarea name="description" class="dashboard-textarea" placeholder="Problem description" required></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label class="dashboard-label">Context</label>
+              <textarea name="context" class="dashboard-textarea" placeholder="Background and context"></textarea>
+            </div>
+              
+            <div class="form-group">
+              <label class="dashboard-label">Minimum Requirements</label>
+              <textarea name="min_requirements" class="dashboard-textarea" placeholder="Technical requirements"></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label class="dashboard-label">Dependencies</label>
+              <textarea name="dependencies" class="dashboard-textarea" placeholder="Required tools/libraries"></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label class="dashboard-label">Slot Capacity</label>
+              <input type="number" name="slot_capacity" class="dashboard-input" value="5" min="1" required>
+            </div>
+            
+            <div class="form-group checkbox">
+              <label class="dashboard-label">
+                <input type="checkbox" name="is_published" value="on">
+                Publish immediately
+              </label>
+            </div>
+            
+            <button type="submit" class="dashboard-button">Add Problem Statement</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
   </div>
-</section>
+</div>
 
-<style>
-  .team-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: .9rem 0; border-bottom: 1px solid var(--dash-border, rgba(255,255,255,.12)); flex-wrap: wrap; }
-  .toggle-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
-  .ps-editor { margin: .5rem 0 1.25rem; }
-  .ps-editor > summary { display: inline-block; cursor: pointer; list-style: none; }
-  .ps-editor > summary::-webkit-details-marker { display: none; }
-  .ps-form { display: grid; gap: .85rem; margin-top: 1rem; max-width: 720px; }
-  .ps-form label { display: grid; gap: .35rem; font-size: .85rem; font-weight: 600; }
-  .ps-form input[type="text"], .ps-form input[type="number"], .ps-form textarea, .ps-form select {
-    width: 100%; padding: .55rem .7rem; border-radius: .5rem; border: 1px solid rgba(255,255,255,.18);
-    background: rgba(255,255,255,.04); color: inherit; font: inherit;
-  }
-  .ps-form textarea { resize: vertical; }
-  .ps-form .ps-check { display: flex; flex-direction: row; align-items: center; gap: .5rem; }
-  .char-counter { font-size: .72rem; opacity: .7; justify-self: end; }
-  .char-counter.over { color: #ff6b6b; opacity: 1; }
-  .ps-delete { color: #ff6b6b; border-color: #ff6b6b; margin-top: .5rem; }
-  .ps-delete { margin-top: .5rem; }
-</style>
-
-<script>
-(function () {
-  function bindCounter(area) {
-    var counter = area.parentElement.querySelector('.char-counter');
-    if (!counter) return;
-    var max = parseInt(area.getAttribute('maxlength'), 10) || 500;
-    function update() {
-      var len = area.value.length;
-      counter.textContent = len + ' / ' + max;
-      counter.classList.toggle('over', len >= max);
-    }
-    area.addEventListener('input', update);
-    update();
-  }
-  document.querySelectorAll('textarea[data-counter]').forEach(bindCounter);
-})();
-</script>
 {% endblock %}

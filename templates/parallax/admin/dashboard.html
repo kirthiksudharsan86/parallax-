@@ -1,12 +1,9 @@
 {% extends 'parallax/base.html' %}
 {% load static %}
-
 {% block title %}OC Dashboard | Parallax{% endblock %}
-
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 {% endblock %}
-
 {% block content %}
 <section class="dashboard-shell">
   <div class="dashboard-wrap">
@@ -14,7 +11,7 @@
       <span class="dashboard-kicker">OC Dashboard</span>
       <h1 class="dashboard-title">Operations and event control</h1>
       <p class="dashboard-copy">
-        Manage teams, marks, track releases, sponsors, and announcements from one control centre.
+        Manage teams, marks, track releases, sponsors, and announcements all at one place.
       </p>
       <div class="dashboard-actions">
         <a class="dashboard-button-secondary" href="{% url 'admin_teams' %}">Manage Teams</a>
@@ -23,53 +20,6 @@
         <a class="dashboard-button-secondary" href="{% url 'admin_sponsors' %}">Sponsors</a>
         <a class="dashboard-button-secondary" href="{% url 'admin_announcements' %}">Announcements</a>
       </div>
-    </section>
-
-    <section class="dashboard-grid">
-      <div class="dashboard-split">
-        <article class="dashboard-form">
-          <div class="dashboard-section-header">
-            <div>
-              <span class="dashboard-kicker">Event Date</span>
-              <h2 class="dashboard-section-title">Release schedule anchor</h2>
-            </div>
-          </div>
-
-          <form method="post" class="dashboard-form-grid" novalidate>
-            {% csrf_token %}
-            <input type="hidden" name="action" value="update_event_date">
-            <div class="dashboard-field full">
-              <label for="event-start-date">Event Start Date</label>
-              <input class="dashboard-input" id="event-start-date" name="event_start_date" type="date" value="{{ configuration.event_start_date|date:'Y-m-d' }}" required>
-            </div>
-            <div class="dashboard-field full">
-              <button class="dashboard-button" type="submit">Update Event Date</button>
-            </div>
-          </form>
-        </article>
-      </div>
-
-      <aside class="dashboard-sidebar">
-        <div class="dashboard-section-header">
-          <div>
-            <span class="dashboard-kicker">Recent Teams</span>
-            <h2 class="dashboard-section-title">Latest registrations</h2>
-          </div>
-        </div>
-        <ul class="dashboard-mini-list">
-          {% for team in recent_teams %}
-          <li>
-            <div>
-              <strong>{{ team.team_name }}</strong>
-              <div class="dashboard-small">{{ team.track.name|default:"Track pending" }} · {{ team.participant_total }} participants</div>
-              <div class="dashboard-small">{{ team.team_code }}</div>
-            </div>
-          </li>
-          {% empty %}
-          <li>No teams have registered yet.</li>
-          {% endfor %}
-        </ul>
-      </aside>
     </section>
   </div>
 </section>
