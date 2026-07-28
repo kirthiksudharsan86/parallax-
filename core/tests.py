@@ -50,8 +50,8 @@ class DashboardFlowTests(TestCase):
             is_published=True,
         )
 
-    def create_user_with_participant(self, username, is_staff=False, is_profile_complete=True):
-        user = User.objects.create_user(
+    def create_user_with_participant(self, username, is_staff=False):
+        user = User.objects.create_user
             username=username,
             email=f'{username}@example.com',
             password='test-pass-123',
@@ -63,8 +63,7 @@ class DashboardFlowTests(TestCase):
             email=user.email,
             phone_number='9876543210',
             college_name='VIT Chennai',
-            reg_number='23BCE1234' if is_profile_complete else None,
-            is_profile_complete=is_profile_complete,
+            reg_number='23BCE1234' 
         )
         return user, participant
 

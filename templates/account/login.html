@@ -1,0 +1,18 @@
+{% extends "parallax/base.html" %}
+
+{% load socialaccount %}
+
+{% block title %}Sign In{% endblock %}
+
+{% block content %}
+<section class="hero" style="min-height:70vh;display:flex;align-items:center;justify-content:center;">
+    <div class="glass-card" style="max-width:450px;width:100%;padding:40px;text-align:center;">
+        <h1>Sign in</h1>
+        <p>Continue using your Google account.</p>
+
+        <a href="{% provider_login_url 'google' %}" class="btn btn-primary">
+            Continue with Google
+        </a>
+    </div>
+</section>
+{% endblock %}

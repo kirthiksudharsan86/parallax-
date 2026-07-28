@@ -1,4 +1,5 @@
 from django.urls import path
+from .auth_router import auth_router
 from . import views
 urlpatterns = [
     path('', views.home, name='home'),
@@ -6,8 +7,6 @@ urlpatterns = [
     path('tracks/', views.tracks, name='tracks'),
     path('accounts/login/', views.team_login, name='team_login'),
     path('team-dashboard/', views.team_dashboard_static, name='team_dashboard_static'),
-    path('profile/complete/', views.profile_complete, name='profile_complete'),
-    path('register/', views.register_team, name='register_team'),
     path('dashboard/', views.participant_dashboard, name='participant_dashboard'),
     path('admin-panel/', views.admin_panel, name='admin_panel'),
     path('admin-panel/teams/', views.admin_teams, name='admin_teams'),
@@ -16,8 +15,8 @@ urlpatterns = [
     path('admin-panel/tracks/', views.admin_tracks, name='admin_tracks'),
     path('admin-panel/sponsors/', views.admin_sponsors, name='admin_sponsors'),
     path('registration/', views.registration_index, name='registration_index'),
-    path('registration/team/', views.registration_leader, name='registration_leader'),
-    path('registration/payment/', views.registration_payment, name='registration_payment'),
     path('registration/event-hub/', views.registration_event_hub, name='registration_event_hub'),
+    path("auth/router/", auth_router, name="auth_router"),
+    path("access-denied/", views.access_denied, name="access_denied"),
     path('<str:page>/', views.information, name='information'),
 ]

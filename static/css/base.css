@@ -418,3 +418,20 @@ footer {background: #0a0e1a;color: #8fa3c4;padding: 60px 60px 24px;font-family: 
 .announce-view{color:#3fb0ff;font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;white-space:nowrap}
 .announce-close{background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:.9rem;transition:color .2s}
 .announce-close:hover{color:#fff}
+.glass-card{
+    background: rgba(18,25,45,.72);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:24px;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow:0 20px 50px rgba(0,0,0,.35);
+}
+
+.glass-card .card{
+    background:rgba(255,255,255,.04);
+    border-radius:16px;
+}
+
+.glass-card .btn{
+    min-width:180px;
+}

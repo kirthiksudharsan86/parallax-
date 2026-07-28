@@ -1,6 +1,7 @@
 from datetime import date
 from decimal import Decimal, InvalidOperation
-
+from django.shortcuts import render
+from .google_sheet import get_role
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -173,9 +174,6 @@ def team_login(request):
         participant = ensure_participant_record(request.user)
         if participant.team:
             return redirect('participant_dashboard')
-        if not participant.is_profile_complete:
-            return redirect('profile_complete')
-        return redirect('register_team')
 
     return render(request, 'parallax/team_login.html')
     return render(
@@ -188,88 +186,6 @@ def team_login(request):
 
 def registration_index(request):
     return render(request, 'parallax/registration/index.html')
-
-
-def registration_leader(request):
-    """Step 1 - the team leader fills the registration form."""
-    if request.method == 'POST':
-        form_values = {key: request.POST.get(key, '').strip() for key in REGISTRATION_FIELD_LABELS}
-
-        missing = [label for key, label in REGISTRATION_FIELD_LABELS.items() if not form_values[key]]
-        graduation_year = None
-        if form_values['graduation_year']:
-            try:
-                graduation_year = int(form_values['graduation_year'])
-            except ValueError:
-                missing.append('a valid graduation year')
-
-        if missing:
-            messages.error(request, 'Please complete all fields: ' + ', '.join(missing) + '.')
-            return render(request, 'parallax/registration/leader.html', {'form_values': form_values})
-
-        registration, _ = LeaderRegistration.objects.update_or_create(
-            email=form_values['email'],
-            defaults={
-                'user': request.user if request.user.is_authenticated else None,
-                'first_name': form_values['first_name'],
-                'last_name': form_values['last_name'],
-                'phone_number': form_values['phone_number'],
-                'college': form_values['college'],
-                'department': form_values['department'],
-                'reg_number': form_values['reg_number'],
-                'graduation_year': graduation_year,
-                'team_name': form_values['team_name'],
-                'team_members': form_values['team_members'],
-            },
-        )
-
-        if not registration.registration_email_sent:
-            leader_registration_received(registration)  # placeholder - Akash owns real email
-            registration.registration_email_sent = True
-            registration.save(update_fields=['registration_email_sent', 'updated_at'])
-
-        request.session['leader_registration_id'] = registration.id
-        messages.success(request, 'Registration saved. Choose how you would like to pay.')
-        return redirect('registration_payment')
-
-    return render(request, 'parallax/registration/leader.html', {'form_values': {}})
-
-
-def _current_leader_registration(request):
-    registration_id = request.session.get('leader_registration_id')
-    if not registration_id:
-        return None
-    return LeaderRegistration.objects.filter(id=registration_id).first()
-
-
-def registration_member(request):
-    return render(request, 'parallax/registration/member.html')
-
-
-def registration_payment(request):
-    """Step 2 - payment choice: pay later or continue to the event hub."""
-    registration = _current_leader_registration(request)
-    if registration is None:
-        messages.info(request, 'Please complete the team leader registration first.')
-        return redirect('registration_leader')
-
-    if request.method == 'POST':
-        choice = request.POST.get('payment_choice')
-        if choice == 'pay_later':
-            registration.payment_status = LeaderRegistration.PAYMENT_PAY_LATER
-            registration.save(update_fields=['payment_status', 'updated_at'])
-            messages.success(request, 'Saved. You can complete the payment later from the event hub.')
-            return redirect('registration_payment')
-        if choice == 'go_to_payment':
-            return redirect('registration_event_hub')
-        messages.error(request, 'Choose a payment option to continue.')
-
-    context = {
-        'registration': registration,
-        'event_hub_url': getattr(settings, 'EVENT_HUB_URL', '#'),
-    }
-    return render(request, 'parallax/registration/payment.html', context)
-
 
 def registration_event_hub(request):
     """Steps 3 & 4 - hand off to the external event hub and handle the return."""
@@ -296,222 +212,24 @@ def registration_event_hub(request):
     }
     return render(request, 'parallax/registration/event_hub.html', context)
 
-
 @login_required(login_url='team_login')
-def profile_complete(request):
-    if request.user.is_staff:
-        return redirect('admin_panel')
-
-    participant = ensure_participant_record(request.user)
-
-    if request.method == 'POST':
-        phone = request.POST.get('phone_number', '').strip()
-        college_choice = request.POST.get('college_name', '').strip()
-        other_college_name = request.POST.get('other_college_name', '').strip()
-        reg_num = request.POST.get('reg_number', '').strip()
-        college_name = resolve_college_name(college_choice, other_college_name)
-        requires_reg_number = college_requires_registration_number(college_choice, college_name)
-
-        if not phone or not college_name:
-            messages.error(request, 'Phone number and college name are required.')
-        elif requires_reg_number and not reg_num:
-            messages.error(request, 'Registration number is required for VIT campuses.')
-        else:
-            participant.phone_number = phone
-            participant.college_name = college_name
-            participant.reg_number = reg_num or None
-            participant.is_profile_complete = True
-            participant.save()
-            messages.success(request, 'Profile completed successfully. You can now create or join a team.')
-            return redirect('register_team')
-
-    context = {
-        'participant': participant,
-        'vit_campuses': VIT_CAMPUSES,
-    }
-    return render(request, 'parallax/profile_complete.html', context)
-
-
-@login_required(login_url='team_login')
-def register_team(request):
-    if request.user.is_staff:
-        return redirect('admin_panel')
-
-    participant = ensure_participant_record(request.user)
-
-    if not participant.is_profile_complete:
-        return redirect('profile_complete')
-
-    if participant.team:
-        return redirect('participant_dashboard')
-
-    published_tracks = Track.objects.filter(is_published=True).order_by('name')
-
-    if request.method == 'POST':
-        action = request.POST.get('action')
-
-        if action == 'create_team':
-            team_name = request.POST.get('team_name', '').strip()
-            track_id = request.POST.get('track', '').strip()
-            invoice_number = request.POST.get('invoice_number', '').strip()
-
-            if not team_name or not track_id:
-                messages.error(request, 'Team name and track are required to create a team.')
-            elif Team.objects.filter(team_name__iexact=team_name).exists():
-                messages.error(request, 'A team with this name already exists. Please choose another name.')
-            else:
-                track = get_object_or_404(Track, id=track_id, is_published=True)
-                team = Team.objects.create(
-                    team_name=team_name,
-                    leader=participant,
-                    track=track,
-                    invoice_number=invoice_number or None,
-                    status='PENDING',
-                )
-                participant.team = team
-                participant.is_team_leader = True
-                participant.save(update_fields=['team', 'is_team_leader'])
-                messages.success(
-                    request,
-                    f'Team created successfully. Share team code {team.team_code} with your teammates.',
-                )
-                return redirect('participant_dashboard')
-
-        elif action == 'join_team':
-            team_code = request.POST.get('team_code', '').strip().upper()
-            team = Team.objects.filter(team_code=team_code).first()
-
-            if not team:
-                messages.error(request, 'We could not find a team with that team code.')
-            else:
-                participant.team = team
-                participant.is_team_leader = False
-                participant.save(update_fields=['team', 'is_team_leader'])
-                messages.success(request, f'You joined {team.team_name} successfully.')
-                return redirect('participant_dashboard')
-
-        else:
-            messages.error(request, 'Choose a valid onboarding action to continue.')
-
-    context = {
-        'participant': participant,
-        'tracks': published_tracks,
-    }
-    return render(request, 'parallax/register_team.html', context)
-
-
-@login_required(login_url='team_login')
+@login_required
 def participant_dashboard(request):
     if request.user.is_staff:
-        return redirect('admin_panel')
+        return redirect("admin_panel")
 
-    participant = ensure_participant_record(request.user)
+    role = get_role(request.user.email.lower())
 
-    if not participant.is_profile_complete:
-        return redirect('profile_complete')
-
-    if not participant.team:
-        return redirect('register_team')
-
-    team = participant.team
-    marks = Marks.objects.filter(team=team).select_related("review")if team else []
-    team_members = Participant.objects.filter(team=team) if team else []
-    context = {"participant": participant,"team": team,"marks": marks,"team_members": team_members,}
-
-    if request.method == 'POST':
-        if not participant.is_team_leader:
-            messages.error(request, 'Only the team leader can update team controls.')
-            return redirect('participant_dashboard')
-
-        action = request.POST.get('action', '').strip()
-
-        if action == 'book_problem_statement':
-            problem_statement_id = request.POST.get('problem_statement', '').strip()
-            if not problem_statement_id:
-                messages.error(request, 'Select a problem statement to book.')
-                return redirect('participant_dashboard')
-
-            with transaction.atomic():
-                problem_statement = (
-                    ProblemStatement.objects.select_for_update()
-                    .filter(id=problem_statement_id, is_active=True, track__is_problem_live=True)
-                    .first()
-                )
-                if problem_statement is None:
-                    messages.error(request, 'That problem statement is not available for booking.')
-                    return redirect('participant_dashboard')
-
-                already_booked = problem_statement.booked_teams.exclude(pk=team.pk).count()
-                if problem_statement.slot_capacity and already_booked >= problem_statement.slot_capacity:
-                    messages.error(
-                        request,
-                        'All slots for this problem statement are filled. Please choose another one.',
-                    )
-                    return redirect('participant_dashboard')
-
-                team.problem_statement = problem_statement
-                team.track = problem_statement.track
-                team.save(update_fields=['problem_statement', 'track', 'updated_at'])
-
-            messages.success(request, f'Slot booked for "{problem_statement.title}".')
-            return redirect('participant_dashboard')
-
-        team_name = request.POST.get('team_name', '').strip()
-        track_id = request.POST.get('track', '').strip()
-        invoice_number = request.POST.get('invoice_number', '').strip()
-
-        if not team_name or not track_id:
-            messages.error(request, 'Team name and track are required.')
-            return redirect('participant_dashboard')
-
-        if Team.objects.filter(team_name__iexact=team_name).exclude(pk=team.pk).exists():
-            messages.error(request, 'Another team already uses that team name.')
-            return redirect('participant_dashboard')
-
-        next_track = get_object_or_404(Track, id=track_id, is_published=True)
-        if team.payment_confirmed and team.track_id != next_track.id:
-            messages.error(request, 'Track cannot be changed after payment has been confirmed.')
-            return redirect('participant_dashboard')
-
-        team.team_name = team_name
-        team.track = next_track
-        team.invoice_number = invoice_number or None
-        team.save()
-        messages.success(request, 'Team details updated successfully.')
-        return redirect('participant_dashboard')
-
-    team_members = team.members.select_related('user').order_by('-is_team_leader', 'full_name')
-    marks = Marks.objects.filter(team=team).select_related('review', 'graded_by').order_by('review__scheduled_at')
-    announcements = Announcement.objects.all().order_by('-is_pinned', '-created_at')
-    event_config = EventConfiguration.get_solo()
-    problem_statement_sets = get_released_problem_statement_sets(team.track, event_config)
-    review_score_count = marks.count()
-
-    bookable_problem_statements = list(
-        ProblemStatement.objects.filter(is_active=True, track__is_problem_live=True)
-        .select_related('track')
-        .annotate(booked_total=Count('booked_teams'))
-        .order_by('track__name', 'code', 'title')
-    )
+    if role != "team":
+        return redirect("access_denied")
 
     context = {
-        'participant': participant,
-        'team': team,
-        'team_members': team_members,
-        'marks': marks,
-        'review_score_count': review_score_count,
-        'announcements': announcements,
-        'tracks': Track.objects.filter(is_published=True).order_by('name'),
-        'event_config': event_config,
-        'problem_statement_sets': problem_statement_sets,
-        'released_problem_set_count': len(problem_statement_sets),
-        'bookable_problem_statements': bookable_problem_statements,
-        'booked_problem_statement': team.problem_statement,
-        'progress_items': build_participant_progress(team, participant, problem_statement_sets, review_score_count),
+        "user": request.user,
+        "email": request.user.email,
+        "name": request.user.get_full_name() or request.user.username,
     }
-    return render(request, 'parallax/dashboard.html', context)
 
-
+    return render(request, "parallax/dashboard.html", context)
 @login_required(login_url='team_login')
 def admin_panel(request):
     if not request.user.is_staff:
@@ -917,30 +635,6 @@ def _parse_positive_int(raw_value):
     except (TypeError, ValueError):
         return 0
 
-
-def ensure_participant_record(user):
-    default_email = user.email or f'{user.username}@parallax.local'
-    participant, _ = Participant.objects.get_or_create(
-        user=user,
-        defaults={
-            'full_name': user.get_full_name() or user.username,
-            'email': default_email,
-            'is_profile_complete': False,
-        },
-    )
-    return participant
-
-
-def resolve_college_name(college_choice, other_college_name):
-    if college_choice == 'OTHER':
-        return other_college_name
-    return college_choice
-
-
-def college_requires_registration_number(college_choice, college_name):
-    return college_choice in VIT_CAMPUSES or college_name in VIT_CAMPUSES
-
-
 def build_home_stats(reviews):
     total_teams = Team.objects.count()
     total_participants = Participant.objects.filter(team__isnull=False).count()
@@ -1029,7 +723,6 @@ def parse_problem_statement_text(raw_text):
 def build_participant_progress(team, participant, problem_statement_sets, review_score_count):
     progress_items = [
         {
-            'label': 'Profile',
             'state': 'Complete',
             'tone': 'success',
             'description': 'Your participant profile is complete and linked to the team space.',
@@ -1089,3 +782,5 @@ def build_participant_progress(team, participant, problem_statement_sets, review
         )
 
     return progress_items
+def access_denied(request):
+    return render(request, "parallax/access_denied.html")

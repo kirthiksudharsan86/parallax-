@@ -121,7 +121,6 @@ class Migration(migrations.Migration):
                 ('phone_number', models.CharField(blank=True, max_length=15)),
                 ('college_name', models.CharField(blank=True, max_length=200)),
                 ('reg_number', models.CharField(blank=True, max_length=30, null=True)),
-                ('is_profile_complete', models.BooleanField(default=False)),
                 ('is_team_leader', models.BooleanField(default=False)),
                 ('payment_proof', models.FileField(blank=True, null=True, upload_to='payment-proofs/')),
                 ('approval_status', models.CharField(choices=[('PENDING', 'Pending'), ('APPROVED', 'Approved'), ('REJECTED', 'Rejected')], default='PENDING', max_length=10)),

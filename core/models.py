@@ -19,7 +19,6 @@ class Participant(models.Model):
     phone_number = models.CharField(max_length=15, blank=True)
     college_name = models.CharField(max_length=200, blank=True)
     reg_number = models.CharField(max_length=30, blank=True, null=True)
-    is_profile_complete = models.BooleanField(default=False)
     team = models.ForeignKey('Team', on_delete=models.SET_NULL, null=True, blank=True, related_name='members')
     is_team_leader = models.BooleanField(default=False)
     payment_proof = models.FileField(upload_to='payment-proofs/', blank=True, null=True)

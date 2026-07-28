@@ -17,9 +17,9 @@ from .models import (
 
 @admin.register(Participant)
 class ParticipantAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'email', 'college_name', 'team', 'is_team_leader', 'is_profile_complete')
+    list_display = ('full_name', 'email', 'college_name', 'team', 'is_team_leader')
     search_fields = ('full_name', 'email', 'college_name', 'reg_number')
-    list_filter = ('is_team_leader', 'is_profile_complete', 'college_name')
+    list_filter = ('is_team_leader', 'college_name')
 
 
 @admin.register(Track)
