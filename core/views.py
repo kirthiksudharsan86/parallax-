@@ -75,7 +75,7 @@ TRACK_ICON_MAP = {
 
 INFORMATION_PAGES = {
     'schedule': ('Review Schedule', 'Every checkpoint is designed to turn momentum into measurable progress.'),
-    'prizes': ('Prizes & Recognition', 'The prize pool and sponsor awards will be announced here.'),
+    'prizes': ('Prizes & Recognition','  '),
     'guidelines': ('Guidelines', 'Build boldly. Work fairly. Leave every space better than you found it.'),
     'theme': ('Theme', 'Same problem. Different view. Better answer.'),
     'contact': ('Contact the OC', 'Have a question? The organising committee is here to help.'),

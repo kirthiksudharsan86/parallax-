@@ -13,10 +13,9 @@
   <div class="dashboard-wrap">
     <section class="dashboard-hero">
       <span class="dashboard-kicker">Team Access</span>
-      <h1 class="dashboard-title">Log in to the participant and OC dashboards</h1>
+      <h1 class="dashboard-title">Log in to access the Dashboard</h1>
       <p class="dashboard-copy">
-        Participants enter the team space through Google login. OC members using staff-enabled accounts
-        are redirected to the OC dashboard automatically.
+        Participants enter the team space through Google login.
       </p>
       <div class="dashboard-actions">
         {% if google_login_enabled %}
@@ -24,37 +23,8 @@
         {% else %}
         <span class="dashboard-button" aria-disabled="true" style="opacity:.55;cursor:not-allowed;pointer-events:none;">Continue with Google</span>
         {% endif %}
-        <a class="dashboard-button-secondary" href="{% url 'registration_index' %}">Open Registration</a>
       </div>
-      {% if not google_login_enabled %}
-      <p class="dashboard-copy" role="alert">
-        Google sign-in is not configured yet. An organiser needs to set
-        <code>GOOGLE_CLIENT_ID</code> and <code>GOOGLE_CLIENT_SECRET</code> in the
-        server environment before team login can be used.
-      </p>
-      {% endif %}
     </section>
-
-    <section class="dashboard-cards">
-      <article class="dashboard-card">
-        <span class="dashboard-kicker">Participants</span>
-        <h2 class="dashboard-section-title">One shared progress dashboard</h2>
-        <ul class="dashboard-list">
-          <li>Create a team or join an existing team using the leader's team code.</li>
-          <li>See only your own team progress, review scores, announcements, and released problem statements.</li>
-          <li>Team leaders retain limited controls for their own team details and event hub reference.</li>
-        </ul>
-      </article>
-
-      <article class="dashboard-card">
-        <span class="dashboard-kicker">OC Members</span>
-        <h2 class="dashboard-section-title">Live analytics and release controls</h2>
-        <ul class="dashboard-list">
-          <li>Track registered participants, confirmed payments, and track-wise team counts.</li>
-          <li>Release problem statement Set 1 and Set 2 on the OC dashboard with date-aware safeguards.</li>
-          <li>Confirm event hub payments and review team status from the operations side.</li>
-        </ul>
-      </article>
     </section>
   </div>
 </section>

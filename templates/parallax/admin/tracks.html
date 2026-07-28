@@ -1,0 +1,203 @@
+{% extends 'parallax/base.html' %}
+{% block title %}Track Management | Parallax Admin{% endblock %}
+{% block content %}
+<div class="dashboard-page">
+  <div class="dashboard-wrap">
+    <section class="dashboard-hero">
+      <div class="dashboard-header">
+        <a href="{% url 'admin_panel' %}" class="dashboard-back">← Back to OC Dashboard</a>
+        <h1 class="dashboard-title">Track Management</h1>
+      </div>
+    </section>
+    <section class="dashboard-grid">
+      <article class="dashboard-card">
+        <small class="dashboard-kicker">Tracks</small>
+        <h3 class="dashboard-stat">{{ tracks|length }}</h3>
+        <p class="dashboard-copy">Total tracks</p>
+      </article>
+      <article class="dashboard-card">
+        <small class="dashboard-kicker">Published</small>
+        <h3 class="dashboard-stat">{% widthratio tracks|length 1 1 %}</h3>
+        <p class="dashboard-copy">Published tracks</p>
+      </article>
+      <article class="dashboard-card">
+        <small class="dashboard-kicker">Problems</small>
+        <h3 class="dashboard-stat">{{ problem_statements|length }}</h3>
+        <p class="dashboard-copy">Problem statements</p>
+      </article>
+    </section>
+    <section class="dashboard-section">
+      <h2 class="dashboard-section-title">Tracks</h2>
+      <div class="dashboard-grid">
+        {% for track in tracks %}
+        <article class="track-card">
+          <div class="track-header">
+            <h3 class="track-name">{{ track.name }}</h3>
+            <form method="POST" class="track-actions">
+              {% csrf_token %}
+              <input type="hidden" name="track_id" value="{{ track.id }}">
+              <input type="hidden" name="field" value="is_published">
+              <button type="submit" class="dashboard-button-icon">
+                {% if track.is_published %}<i class="fa-solid fa-eye"></i>{% else %}<i class="fa-solid fa-eye-slash"></i>{% endif %}
+              </button>
+            </form>
+          </div>
+          <p class="track-description">{{ track.description }}</p>
+          <div class="track-meta">
+            <span class="track-status {% if track.is_published %}published{% else %}draft{% endif %}">
+              {% if track.is_published %}Published{% else %}Draft{% endif %}
+            </span>
+          </div>
+        </article>
+        {% empty %}
+        <p class="dashboard-copy">No tracks available.</p>
+        {% endfor %}
+      </div>
+    </section>
+    <section class="dashboard-section">
+      <h2 class="dashboard-section-title">Problem Statements</h2>
+      <div class="problem-management-grid">
+        
+        <div class="problem-list">
+          <h3 class="dashboard-subsection-title">Existing Statements</h3>
+          {% for problem in problem_statements %}
+          <article class="problem-card">
+            <details class="problem-details">
+              <summary class="problem-summary">
+                <div class="problem-header">
+                  <div class="problem-title-section">
+                    <h4 class="problem-title">{{ problem.title }}</h4>
+                    <span class="problem-code">{{ problem.code }}</span>
+                  </div>
+                  <span class="problem-status {% if problem.is_published %}published{% else %}draft{% endif %}">
+                    {% if problem.is_published %}Published{% else %}Draft{% endif %}
+                  </span>
+                </div>
+              </summary>
+              <form method="POST" class="problem-edit-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="edit_problem_statement">
+                <input type="hidden" name="problem_id" value="{{ problem.id }}">
+                
+                <div class="form-group">
+                  <label class="dashboard-label">Track</label>
+                  <select name="track_id" class="dashboard-select" required>
+                    {% for track in tracks %}
+                    <option value="{{ track.id }}" {% if track.id == problem.track.id %}selected{% endif %}>{{ track.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+          
+                <div class="form-group">
+                  <label class="dashboard-label">Problem Statement</label>
+                  <input type="text" name="title" class="dashboard-input" value="{{ problem.title }}" required>
+                </div>
+                
+                <div class="form-group">
+                  <label class="dashboard-label">Description</label>
+                  <textarea name="description" class="dashboard-textarea" required>{{ problem.description }}</textarea>
+                </div>
+                
+                <div class="form-group">
+                  <label class="dashboard-label">Context</label>
+                  <textarea name="context" class="dashboard-textarea">{{ problem.context }}</textarea>
+                </div>
+                
+                <div class="form-group">
+                  <label class="dashboard-label">Minimum Requirements</label>
+                  <textarea name="min_requirements" class="dashboard-textarea">{{ problem.min_requirements }}</textarea>
+                </div>
+                
+                <div class="form-group">
+                  <label class="dashboard-label">Dependencies</label>
+                  <textarea name="dependencies" class="dashboard-textarea">{{ problem.dependencies }}</textarea>
+                </div>
+                
+                <div class="form-group">
+                  <label class="dashboard-label">Slot Capacity</label>
+                  <input type="number" name="slot_capacity" class="dashboard-input" value="{{ problem.slot_capacity }}" min="1" required>
+                </div>
+                
+                <div class="form-group checkbox">
+                  <label class="dashboard-label">
+                    <input type="checkbox" name="is_published" value="on" {% if problem.is_published %}checked{% endif %}>
+                    Published
+                  </label>
+                </div>
+                
+                <div class="problem-actions">
+                  <button type="submit" class="dashboard-button">Save Changes</button>
+                  <button type="button" class="dashboard-button-secondary" onclick="deleteConfirm({{ problem.id }})">Delete</button>
+                </div>
+              </form>
+            </details>
+          </article>
+          {% empty %}
+          <p class="dashboard-copy">No problem statements yet.</p>
+          {% endfor %}
+        </div>
+        
+        <div class="problem-form">
+          <h3 class="dashboard-subsection-title">Add Problem Statement</h3>
+          <form method="POST" class="dashboard-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_problem_statement">
+            
+            <div class="form-group">
+              <label class="dashboard-label">Track</label>
+              <select name="track_id" class="dashboard-select" required>
+                <option value="">Select a track</option>
+                {% for track in tracks %}
+                <option value="{{ track.id }}">{{ track.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            
+          
+            <div class="form-group">
+              <label class="dashboard-label">Problem Title</label>
+              <input type="text" name="title" class="dashboard-input" placeholder="Problem title" required>
+            </div>
+            
+            <div class="form-group">
+              <label class="dashboard-label">Description</label>
+              <textarea name="description" class="dashboard-textarea" placeholder="Problem description" required></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label class="dashboard-label">Context</label>
+              <textarea name="context" class="dashboard-textarea" placeholder="Background and context"></textarea>
+            </div>
+              
+            <div class="form-group">
+              <label class="dashboard-label">Minimum Requirements</label>
+              <textarea name="min_requirements" class="dashboard-textarea" placeholder="Technical requirements"></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label class="dashboard-label">Dependencies</label>
+              <textarea name="dependencies" class="dashboard-textarea" placeholder="Required tools/libraries"></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label class="dashboard-label">Slot Capacity</label>
+              <input type="number" name="slot_capacity" class="dashboard-input" value="5" min="1" required>
+            </div>
+            
+            <div class="form-group checkbox">
+              <label class="dashboard-label">
+                <input type="checkbox" name="is_published" value="on">
+                Publish immediately
+              </label>
+            </div>
+            
+            <button type="submit" class="dashboard-button">Add Problem Statement</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+{% endblock %}

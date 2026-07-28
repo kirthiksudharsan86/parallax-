@@ -277,11 +277,6 @@ class LeaderRegistration(models.Model):
 
 
 class ProblemStatement(models.Model):
-    """A bookable problem statement with a fixed first-come-first-served slot pool.
-
-    Slot capacity is entered manually by the OC in the admin dashboard.
-    """
-
     track = models.ForeignKey(Track, on_delete=models.CASCADE, related_name='problem_statement_slots')
     code = models.CharField(max_length=20, blank=True)
     title = models.CharField(max_length=200)

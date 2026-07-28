@@ -1,10 +1,21 @@
 {% extends "parallax/base.html" %}
 {% load static %}
-
 {% block title %}Home — PARALLAX 2026 · VIT Chennai{% endblock %}
-
 {% block content %}
-
+{% if announcements %}
+<div class="announce-bar" id="announceBar">
+  <div class="announce-left">
+    <i class="fa-solid fa-bullhorn announce-icon"></i>
+    <span class="announce-label">ANNOUNCEMENT</span>
+    <span class="announce-sep">•</span>
+    <span class="announce-text"><strong>{{ announcements.0.title }}</strong> {{ announcements.0.body }}</span>
+  </div>
+  <a href="{% url 'participant_dashboard' %}" class="announce-view">View all &nbsp;<i class="fa-solid fa-arrow-right"></i></a>
+  <button class="announce-close" onclick="document.getElementById('announceBar').style.display='none'">
+    <i class="fa-solid fa-xmark"></i>
+  </button>
+</div>
+{% endif %}
 <section id="home-hero" class="px-hero">
   <div class="hero-bg"></div>
   <div class="hero-grid"></div>
@@ -18,11 +29,9 @@
     </p>
     <div class="px-presented">Presented by</div>
     <div class="px-org">School of Electronics Engineering</div>
-
     <div class="hero-actions">
       <a href="{% url 'registration_index' %}" class="btn-cta">Register Now &nbsp;<i class="fa-solid fa-arrow-right"></i></a>
     </div>
-
     <div class="px-timer" id="heroTimer">
       <div class="timer-block">
         <div class="timer-num" id="td-days">00</div>
@@ -46,7 +55,6 @@
     </div>
   </div>
 </section>
-
 <section id="tracks" class="section">
   <div class="wrap">
     <div class="tracks-header reveal">
@@ -130,7 +138,6 @@
         <p>Parallax is a hybrid week long innovation challenge where students, developers, designers, and thinkers come together to build meaningful solutions across diverse domains. It is a platform to learn, collaborate, and create impact that goes beyond the hackathon.</p>
       </div>
     </div>
-
     <h2 class="oc-heading">WHAT TO EXPECT</h2>
     <div class="expect-grid">
       <article class="expect-card"><i class="fa-solid fa-rocket"></i><h3>Innovation</h3><p>Push boundaries and build something new.</p></article>
@@ -138,7 +145,6 @@
       <article class="expect-card"><i class="fa-solid fa-graduation-cap"></i><h3>Learning</h3><p>Gain skills and real-world exposure.</p></article>
       <article class="expect-card"><i class="fa-solid fa-wand-magic-sparkles"></i><h3>Fun & Experience</h3><p>Make unforgettable memories.</p></article>
     </div>
-
     <div class="about-closer">
       <strong>SAME PROBLEM.<br><span>DIFFERENT VIEW.</span><br>BETTER ANSWER.</strong>
       <p>Parallax is where ideas shift perspectives and perspectives create impact.<br><a href="{% url 'registration_index' %}">SEE YOU AT PARALLAX 2026!</a></p>
@@ -146,7 +152,6 @@
   </div>
 </section>
 {% endblock %}
-
 {% block extra_js %}
 <script>
 (function(){
