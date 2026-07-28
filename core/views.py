@@ -161,6 +161,10 @@ def information(request, page):
             'tracks': public_tracks(),
         }
     )
+def team_dashboard_static(request):
+    return render(request, 'parallax/team_dashboard_static.html')
+
+
 def team_login(request):
     if request.user.is_authenticated:
         if request.user.is_staff:

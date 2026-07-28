@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#080E22;
+    --bg-mid:#0D1B3D;
+    --surface:rgba(19,32,64,0.62);
+    --surface-solid:#101E3F;
+    --surface-2:rgba(255,255,255,0.045);
+    --border:rgba(255,255,255,0.14);
+    --border-soft:rgba(255,255,255,0.85);
+    --text-primary:#EAF2FF;
+    --text-secondary:#93A8D1;
+    --text-muted:#5E7299;
+    --accent:#22D3EE;
+    --accent-2:#3B82F6;
+    --accent-dark:#0E9AB8;
+    --accent-soft:rgba(34,211,238,0.14);
+    --accent-gradient:linear-gradient(135deg,#22D3EE,#3B82F6);
+    --success:#34D399;
+    --success-soft:rgba(52,211,153,0.14);
+    --warning:#FBBF24;
+    --warning-soft:rgba(251,191,36,0.14);
+    --danger:#8FA3CC;
+    --danger-soft:rgba(143,163,204,0.14);
+    --radius:12px;
+    --radius-sm:8px;
+    --font-body:'Inter',system-ui,-apple-system,sans-serif;
+    --font-display:'Space Grotesk','Inter',system-ui,sans-serif;
+    --font-mono:'JetBrains Mono','SFMono-Regular',Consolas,monospace;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+
+  body{
+    background:linear-gradient(160deg,var(--bg-deep) 0%,var(--bg-mid) 45%,var(--bg-deep) 100%);
+    font-family:var(--font-body);
+    color:var(--text-primary);
+    min-height:100vh;
+    line-height:1.5;
+    position:relative;
+  }
+
+  body::before{
+    content:'';
+    position:fixed;
+    top:-260px; left:50%;
+    transform:translateX(-50%);
+    width:1000px; height:1000px;
+    background:radial-gradient(circle, rgba(34,211,238,0.16), transparent 62%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  a{color:inherit;}
+  button{font-family:inherit;cursor:pointer;}
+
+  /* ---------- Focus visibility ---------- */
+  button:focus-visible, input:focus-visible, [tabindex]:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+  }
+
+  /* ================= LOGIN MODAL ================= */
+  #loginOverlay{
+    position:fixed; inset:0;
+    background:rgba(4,9,22,0.72);
+    display:flex; align-items:center; justify-content:center;
+    z-index:100;
+    padding:16px;
+  }
+
+  .login-card{
+    background:var(--surface-solid);
+    border-radius:var(--radius);
+    border:1px solid var(--border);
+    width:100%; max-width:400px;
+    padding:32px 28px 28px;
+    box-shadow:0 24px 70px rgba(0,0,0,0.55), 0 0 50px rgba(34,211,238,0.10);
+  }
+
+  .login-card .eyebrow{
+    font-family:var(--font-display);
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+    font-weight:600;
+    margin-bottom:6px;
+  }
+
+  .login-card h1{
+    font-family:var(--font-display);
+    font-size:23px;
+    font-weight:700;
+    margin-bottom:4px;
+    color:var(--text-primary);
+  }
+
+  .login-card p.sub{
+    color:var(--text-secondary);
+    font-size:14px;
+    margin-bottom:24px;
+  }
+
+  .field{margin-bottom:16px;}
+
+  .field label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    color:var(--text-secondary);
+    margin-bottom:6px;
+  }
+
+  .field input{
+    width:100%;
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    font-size:14px;
+    font-family:inherit;
+    background:rgba(255,255,255,0.04);
+    color:var(--text-primary);
+  }
+
+  .field input::placeholder{color:var(--text-muted);}
+
+  .field input:focus{
+    border-color:var(--accent);
+    background:rgba(255,255,255,0.06);
+    box-shadow:0 0 0 3px rgba(34,211,238,0.15);
+  }
+
+  .field .error-msg{
+    display:none;
+    color:#F7A6A0;
+    font-size:12px;
+    margin-top:5px;
+  }
+
+  .field.has-error input{border-color:#F7A6A0;}
+  .field.has-error .error-msg{display:block;}
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center;
+    gap:8px;
+    padding:11px 18px;
+    border-radius:var(--radius-sm);
+    font-size:14px;
+    font-weight:600;
+    border:1px solid transparent;
+    text-decoration:none;
+  }
+
+  .btn-primary{
+    background:var(--accent-gradient);
+    color:#04121C;
+    width:100%;
+    box-shadow:0 6px 22px rgba(34,211,238,0.28);
+  }
+  .btn-primary:hover{box-shadow:0 8px 26px rgba(34,211,238,0.42);}
+  .btn-primary:disabled{background:rgba(255,255,255,0.08); color:var(--text-muted); box-shadow:none; cursor:not-allowed;}
+
+  /* --- ENHANCED VISIBILITY FOR "View" BUTTONS (Secondary) --- */
+  .btn-secondary{
+    background:rgba(255,255,255,0.30);
+    border:1px solid rgba(255,255,255,2);
+    color:var(--text-primary);
+  }
+  .btn-secondary:hover{background:rgba(255,255,255,2);}
+  .btn-secondary:disabled{
+    opacity:0.7;
+    cursor:not-allowed;
+    background:rgba(255,255,255,0.15);
+    border:1px solid rgba(255,255,255,0.3);
+    color:#C0D0F0;
+  }
+
+  .btn-outline-danger{
+    background:transparent;
+    border-color:var(--border);
+    color:var(--danger);
+  }
+  .btn-outline-danger:hover{background:var(--danger-soft);}
+
+  .login-note{
+    margin-top:16px;
+    font-size:12px;
+    color:var(--text-muted);
+    text-align:center;
+  }
+
+  /* ================= APP SHELL ================= */
+  #app{display:none; position:relative; z-index:1;}
+  #app.visible{display:block;}
+
+  header.topbar{
+    background:rgba(9,16,36,0.78);
+    backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--border-soft);
+    padding:14px 28px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:12px;
+    position:sticky;
+    top:0;
+    z-index:10;
+  }
+
+  .topbar-left{display:flex; align-items:center; gap:14px;}
+
+  .brand-mark{
+    width:38px;height:38px;
+    border-radius:8px;
+    background:var(--accent-gradient);
+    color:#04121C;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:15px;
+    flex-shrink:0;
+    box-shadow:0 4px 16px rgba(34,211,238,0.35);
+  }
+
+  .brand-text .event-name{font-size:12px;color:var(--text-secondary);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;}
+  .brand-text .team-name{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--text-primary);}
+
+  .topbar-right{display:flex;align-items:center;gap:18px;}
+
+  .sync-pill{
+    display:flex;align-items:center;gap:6px;
+    font-size:12px;color:var(--text-secondary);
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--border-soft);
+    padding:6px 10px;
+    border-radius:20px;
+  }
+
+  .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--success);flex-shrink:0;box-shadow:0 0 6px var(--success);}
+
+  main.layout{
+    max-width:1180px;
+    margin:0 auto;
+    padding:24px 28px 60px;
+    display:grid;
+    grid-template-columns:1fr 320px;
+    gap:20px;
+    align-items:stretch;
+    position:relative;
+    z-index:1;
+  }
+
+  @media (max-width:900px){
+    main.layout{grid-template-columns:1fr;}
+  }
+
+  .col-main{display:flex;flex-direction:column;gap:20px;}
+  .col-side{display:flex;flex-direction:column;gap:20px;}
+
+  .card{
+    background:var(--surface);
+    backdrop-filter:blur(18px);
+    border:1.5px solid var(--border-soft);
+    border-radius:var(--radius);
+    padding:23px 22px 20px;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 18px 40px rgba(0,0,0,0.28);
+  }
+
+  .card::before{
+    content:'';
+    position:absolute;
+    top:0; left:0; right:0;
+    height:3px;
+    background:var(--accent-gradient);
+  }
+
+  .card-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:14px;
+  }
+
+  .card-header h2{font-family:var(--font-display); font-size:15px; font-weight:700; letter-spacing:0.01em; color:var(--text-primary);}
+
+  .card-header .count-badge{
+    font-size:12px;
+    font-weight:600;
+    color:var(--accent);
+    background:var(--accent-soft);
+    padding:2px 9px;
+    border-radius:20px;
+  }
+
+  /* ---------- Announcements ---------- */
+  #announcementList{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    height:440px;
+    overflow-y:auto;
+    padding-right:6px;
+    scroll-behavior:auto;
+  }
+
+  .announcement-item{
+    border:1.5px solid var(--border-soft);
+    border-radius:var(--radius-sm);
+    padding:12px 14px;
+    background:rgba(255,255,255,0.03);
+  }
+
+  .announcement-item .meta{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:6px;
+    flex-wrap:wrap;
+  }
+
+  .tag{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    padding:2px 8px;
+    border-radius:20px;
+  }
+
+  .tag.general{background:var(--accent-soft);color:var(--accent);}
+  .tag.urgent{background:var(--danger-soft);color:var(--danger);border:1px solid rgba(143,163,204,0.3);}
+  .tag.domain{background:var(--warning-soft);color:var(--warning);}
+
+  .announcement-item .timestamp{font-size:12px;color:var(--text-muted);}
+  .announcement-item .body-text{font-size:13.5px;color:var(--text-primary);}
+
+  .empty-state{
+    text-align:center;
+    color:var(--text-muted);
+    font-size:13px;
+    padding:24px 10px;
+  }
+
+  /* ---------- Domain & Problem Statement / Scorecard: even, expanding cards ---------- */
+  .status-cards-row{
+    display:flex;
+    gap:20px;
+    flex-wrap:wrap;
+    flex:1;
+    max-height:270px;
+  }
+
+  .card-square{
+    flex:1 1 0;
+    min-width:220px;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .card-square .card-header{margin-bottom:10px;}
+  .card-square .card-header h2{font-size:15px;}
+
+  .square-desc{
+    font-size:13px;
+    color:var(--text-secondary);
+    flex:1;
+  }
+
+  .square-footer{
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    margin-top:14px;
+  }
+
+  .square-footer.footer-split{justify-content:space-between;}
+
+  /* --- ENHANCED VISIBILITY FOR "YET TO BE RELEASED" BADGE --- */
+  .status-badge{
+    display:inline-flex;
+    align-items:center;
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    padding:6px 13px;
+    border-radius:20px;
+    white-space:nowrap;
+  }
+
+  .status-badge.pending{
+    background:rgba(255,255,255,0.85);
+    color:#0D1B3D;
+    border:1px solid rgba(255,255,255,2);
+  }
+  .status-badge.live{background:var(--accent-soft);color:var(--accent);}
+  .status-badge.selected{background:var(--warning-soft);color:var(--warning);}
+  .status-badge.locked{background:var(--success-soft);color:var(--success);}
+
+  .btn-small{padding:7px 14px;font-size:12.5px;width:auto;}
+
+  @media (max-width:520px){
+    .status-cards-row{flex-direction:column; max-height:none;}
+    .card-square{min-width:0; min-height:220px;}
+  }
+
+  /* ---------- Generic modal (Domain/PS picker + Scorecard viewer) ---------- */
+  .modal-overlay{
+    position:fixed; inset:0;
+    background:rgba(4,9,22,0.72);
+    display:none;
+    align-items:center; justify-content:center;
+    z-index:200;
+    padding:20px;
+  }
+  .modal-overlay.visible{display:flex;}
+
+  .modal-box{
+    position:relative;
+    background:var(--surface-solid);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    width:100%;
+    max-width:420px;
+    max-height:85vh;
+    overflow-y:auto;
+    padding:30px 26px 26px;
+    box-shadow:0 24px 70px rgba(0,0,0,0.55), 0 0 50px rgba(34,211,238,0.10);
+  }
+
+  .modal-box-lg{max-width:700px;}
+
+  .modal-close{
+    position:absolute;
+    top:14px; right:14px;
+    width:30px;height:30px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.06);
+    border:1px solid var(--border-soft);
+    color:var(--text-secondary);
+    font-size:18px;
+    line-height:1;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .modal-close:hover{background:rgba(255,255,255,0.12); color:var(--text-primary);}
+
+  .modal-eyebrow{
+    font-family:var(--font-display);
+    font-size:12px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--accent);
+    font-weight:600;
+    margin-bottom:6px;
+  }
+
+  .modal-title{
+    font-family:var(--font-display);
+    font-size:21px;
+    font-weight:700;
+    margin-bottom:6px;
+    color:var(--text-primary);
+  }
+
+  .modal-sub{
+    color:var(--text-secondary);
+    font-size:13.5px;
+    margin-bottom:22px;
+  }
+
+  .modal-back{
+    background:none;border:none;color:var(--text-secondary);font-size:12.5px;
+    display:inline-flex;align-items:center;gap:5px;margin-bottom:16px;padding:0;
+  }
+  .modal-back:hover{color:var(--accent);}
+
+  .modal-domain-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+    gap:12px;
+  }
+
+  .modal-domain-card{
+    border:1.5px solid var(--border-soft);
+    border-radius:var(--radius-sm);
+    padding:16px 14px;
+    background:rgba(255,255,255,0.025);
+    text-align:left;
+    display:flex; flex-direction:column; gap:10px;
+    width:100%;
+  }
+  .modal-domain-card:hover{border-color:var(--accent); background:rgba(34,211,238,0.06);}
+
+  .modal-domain-icon{
+    width:38px;height:38px;
+    border-radius:50%;
+    background:rgba(34,211,238,0.12);
+    border:1px solid rgba(34,211,238,0.35);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--accent);
+    flex-shrink:0;
+  }
+  .modal-domain-icon svg{width:18px;height:18px;}
+
+  .modal-domain-name{font-size:13.5px;font-weight:700;color:var(--text-primary);}
+  .modal-domain-desc{font-size:12px;color:var(--text-secondary);}
+
+  .modal-ps-list{display:flex;flex-direction:column;gap:10px;}
+
+  .modal-ps-card{
+    border:1.5px solid var(--border-soft);
+    border-radius:var(--radius-sm);
+    padding:14px;
+    background:rgba(255,255,255,0.025);
+    display:flex; align-items:center; gap:12px;
+    width:100%; text-align:left;
+  }
+  .modal-ps-card:hover{border-color:var(--accent); background:rgba(34,211,238,0.06);}
+
+  .modal-ps-code{font-family:var(--font-mono); font-size:11px; color:var(--accent); font-weight:700; flex-shrink:0;}
+  .modal-ps-title{font-size:13px;color:var(--text-primary);font-weight:600;}
+
+  .modal-confirm-box{
+    background:rgba(255,255,255,0.03);
+    border:1px dashed var(--border);
+    border-radius:var(--radius-sm);
+    padding:16px;
+    margin-bottom:20px;
+  }
+  .modal-confirm-row{display:flex; justify-content:space-between; gap:14px; padding:6px 0; font-size:13px;}
+  .modal-confirm-row .label{color:var(--text-secondary);}
+  .modal-confirm-row .value{font-weight:700;color:var(--text-primary); text-align:right;}
+
+  .modal-actions{display:flex; gap:10px; justify-content:flex-end;}
+  .modal-actions .btn{width:auto;}
+
+  .modal-score-list{display:flex;flex-direction:column;gap:10px;}
+
+  .modal-score-row{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 16px;
+    border:1px solid var(--border-soft);
+    border-radius:var(--radius-sm);
+    background:rgba(255,255,255,0.03);
+  }
+  .modal-score-round{font-size:13.5px;font-weight:600;color:var(--text-primary);}
+  .modal-score-value{font-family:var(--font-mono);font-size:16px;font-weight:700;color:var(--accent);}
+  .modal-score-note{font-size:11px;color:var(--text-muted); margin-top:16px; text-align:center;}
+
+  /* ---------- Sidebar cards ---------- */
+  .info-row{
+    display:flex;
+    justify-content:space-between;
+    padding:8px 0;
+    border-bottom:1px solid var(--border-soft);
+    font-size:13px;
+  }
+  .info-row:last-child{border-bottom:none;}
+  .info-row .label{color:var(--text-secondary);}
+  .info-row .value{font-weight:600; text-align:right; color:var(--text-primary);}
+
+  .team-members-block{margin-top:12px; padding-top:12px; border-top:1px solid var(--border-soft);}
+
+  .team-members-label{
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--text-secondary);
+    margin-bottom:10px;
+  }
+
+  .team-members-list{list-style:none; display:flex; flex-direction:column; gap:8px; max-height:230px; overflow-y:auto; padding-right:4px;}
+
+  .team-member-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:13px;
+  }
+
+  .member-index{
+    width:20px; height:20px;
+    border-radius:50%;
+    background:var(--accent-soft);
+    color:var(--accent);
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:700;
+    flex-shrink:0;
+  }
+
+  .member-name{font-weight:600; color:var(--text-primary);}
+  .member-phone{color:var(--text-muted); margin-left:auto; font-size:12px; font-family:var(--font-mono);}
+
+  /* ---------- PROGRESS STEPS – slightly thinner visible grey lines ---------- */
+  .steps{display:flex;flex-direction:column;gap:0;}
+
+  .step{
+    display:flex;
+    gap:10px;
+    padding:10px 0;
+    position:relative;
+  }
+
+  .step .dot{
+    width:22px; height:22px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.10);
+    border:2px solid var(--text-secondary);
+    flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700;
+    color:var(--text-secondary);
+    margin-top:1px;
+    transition: all 0.2s ease;
+  }
+
+  .step.done .dot{
+    background:var(--success);
+    border-color:var(--success);
+    color:#04241A;
+  }
+  .step.active .dot{
+    background:var(--accent-gradient);
+    border-color:var(--accent);
+    color:#04121C;
+    box-shadow:0 0 12px rgba(34,211,238,0.5);
+  }
+
+  .step .step-text .step-title{font-size:13px;font-weight:600;color:var(--text-primary);}
+  .step .step-text .step-sub{font-size:12px;color:var(--text-muted);}
+
+  /* Thinner joining lines – width 2px */
+  .step:not(:last-child)::after{
+    content:'';
+    position:absolute;
+    left:9px;
+    top:32px;
+    width:2px;
+    height:calc(100% - 20px);
+    background:#4a5a7a;
+    border-radius:2px;
+    transition: background 0.2s ease;
+  }
+  .step.done:not(:last-child)::after{
+    background:var(--success);
+  }
+
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:rgba(34,211,238,0.3);border-radius:20px;}
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN MODAL ================= -->
+<div id="loginOverlay">
+  <div class="login-card">
+    <div class="eyebrow">Team Access</div>
+    <h1>Team Login</h1>
+    <p class="sub">Enter your registered team details to open your dashboard.</p>
+
+    <form id="loginForm" novalidate>
+      <div class="field" id="field-teamName">
+        <label for="teamName">Team name</label>
+        <input type="text" id="teamName" name="teamName" placeholder="e.g. Byte Force" autocomplete="off">
+        <div class="error-msg">Enter your team name.</div>
+      </div>
+
+      <div class="field" id="field-leaderName">
+        <label for="leaderName">Team leader name</label>
+        <input type="text" id="leaderName" name="leaderName" placeholder="e.g. Arjun Mehta" autocomplete="off">
+        <div class="error-msg">Enter the team leader's name.</div>
+      </div>
+
+      <div class="field" id="field-phone">
+        <label for="phone">Phone number</label>
+        <input type="tel" id="phone" name="phone" placeholder="10-digit mobile number" autocomplete="off" inputmode="numeric" maxlength="10">
+        <div class="error-msg">Enter a valid 10-digit phone number.</div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="loginBtn">Log in to dashboard</button>
+    </form>
+    <p class="login-note">Details are verified against your hackathon registration.</p>
+  </div>
+</div>
+
+<!-- ================= MAIN APP ================= -->
+<div id="app">
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="brand-mark">TD</div>
+      <div class="brand-text">
+        <div class="event-name">Hackathon Team Dashboard</div>
+        <div class="team-name" id="topbarTeamName">—</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="sync-pill"><span class="sync-dot"></span> Synced with OC dashboard</div>
+      <!-- TODO: point this href at your actual hackathon home page -->
+      <a href="{% url 'home' %}" class="btn btn-secondary" id="backBtn">← Back</a>
+      <button class="btn btn-outline-danger" id="logoutBtn">Log out</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <div class="col-main">
+
+      <!-- Announcements -->
+      <section class="card">
+        <div class="card-header">
+          <h2>Announcements</h2>
+          <span class="count-badge" id="announcementCount">0</span>
+        </div>
+        <div id="announcementList"></div>
+      </section>
+
+      <!-- Domain & Problem Statement + Scorecard -->
+      <div class="status-cards-row">
+
+        <section class="card card-square" id="domainStatusCard">
+          <div class="card-header">
+            <h2>Domain &amp; Problem Statement</h2>
+          </div>
+          <p class="square-desc" id="domainSquareDesc">Your domain and problem statement status will appear here.</p>
+          <div class="square-footer footer-split">
+            <span class="status-badge" id="domainStatusBadge">—</span>
+            <button class="btn btn-secondary btn-small" id="viewDomainBtn" disabled>View</button>
+          </div>
+        </section>
+
+        <section class="card card-square" id="scorecardCard">
+          <div class="card-header">
+            <h2>Scorecard</h2>
+          </div>
+          <p class="square-desc" id="scorecardSquareDesc">See how your team scored in each round.</p>
+          <div class="square-footer">
+            <button class="btn btn-secondary btn-small" id="viewScoreBtn" disabled>View</button>
+          </div>
+        </section>
+
+      </div>
+
+    </div>
+
+    <div class="col-side">
+
+      <!-- Team details -->
+      <section class="card">
+        <div class="card-header"><h2>Your team</h2></div>
+        <div class="info-row"><span class="label">Team name</span><span class="value" id="sideTeamName">—</span></div>
+        <div class="info-row"><span class="label">Team leader</span><span class="value" id="sideLeaderName">—</span></div>
+        <div class="info-row"><span class="label">Team Code</span><span class="value" id="sideTeamCode">—</span></div>
+
+        <div class="team-members-block">
+          <div class="team-members-label">Team members</div>
+          <ol class="team-members-list" id="teamMembersList"></ol>
+        </div>
+      </section>
+
+      <!-- Progress steps -->
+      <section class="card">
+        <div class="card-header"><h2>Your progress</h2></div>
+        <div class="steps" id="stepsList"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ================= DOMAIN & PROBLEM STATEMENT MODAL ================= -->
+  <div class="modal-overlay" id="domainModalOverlay">
+    <div class="modal-box modal-box-lg" id="domainModalBox">
+      <button class="modal-close" id="domainModalClose" aria-label="Close">&times;</button>
+      <div id="domainModalContent"></div>
+    </div>
+  </div>
+
+  <!-- ================= SCORECARD MODAL ================= -->
+  <div class="modal-overlay" id="scoreModalOverlay">
+    <div class="modal-box" id="scoreModalBox">
+      <button class="modal-close" id="scoreModalClose" aria-label="Close">&times;</button>
+      <div id="scoreModalContent"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =================================================================
+   CONFIGURATION
+   Replace the MOCK_API functions below with real fetch() calls to
+   your backend (Flask / Django) once endpoints are ready. Each mock
+   function documents the endpoint it should map to.
+   ================================================================= */
+
+const CONFIG = {
+  POLL_INTERVAL_MS: 15000, // how often to re-check announcements & PS release status
+};
+
+/* -----------------------------------------------------------------
+   MOCK DATA — swap these fetch stubs for real API calls.
+   ----------------------------------------------------------------- */
+
+// These flags simulate the toggles the organizing committee (OC) controls
+// from the OC dashboard for the "Domain & Problem Statement" status card.
+// In production, GET /api/team/domain-status should return all three:
+//   { released: bool, teamSelected: bool, locked: bool }
+// For local testing, preview states by appending to the URL, e.g.
+// ?domains_released=true   -> "Live"
+// ?domains_released=true&domain_selected=true            -> "Selected"
+// ?domains_released=true&domain_selected=true&domains_locked=true -> "Locked"
+let DOMAINS_RELEASED = new URLSearchParams(window.location.search).get('domains_released') === 'true';
+let DOMAINS_LOCKED   = new URLSearchParams(window.location.search).get('domains_locked') === 'true';
+const INITIAL_DOMAIN_SELECTED = new URLSearchParams(window.location.search).get('domain_selected') === 'true';
+
+// This flag simulates the OC toggling score release from the OC dashboard.
+// In production, GET /api/team/scores/status should return this.
+// For local testing, append ?scores_released=true to the URL to preview the released state.
+let SCORES_RELEASED = new URLSearchParams(window.location.search).get('scores_released') === 'true';
+
+// GET /api/team/scores  (only meaningful once SCORES_RELEASED is true)
+const ROUND_SCORES = [
+  { round: 'Round 1 (Student Review)', score: 82, outOf: 100 },
+  { round: 'Round 2 (Faculty Review)', score: 76, outOf: 100 },
+  { round: 'Final Review (Industry Review)', score: null, outOf: 100 },
+];
+
+// Small inline icon set for the domain picker (mirrors the domain cards on the landing page).
+const DOMAIN_ICONS = {
+  rocket: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c2.5 2 4 5.5 4 9 0 2-.5 3.7-1 5l-3 3-3-3c-.5-1.3-1-3-1-5 0-3.5 1.5-7 4-9z"/><circle cx="12" cy="9" r="1.5"/><path d="M9 16l-2.5 1.5M15 16l2.5 1.5"/></svg>',
+  chip: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M9 3v3M12 3v3M15 3v3M9 18v3M12 18v3M15 18v3M3 9h3M3 12h3M3 15h3M18 9h3M18 12h3M18 15h3"/></svg>',
+  heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-5 3 10 2-7 2 4h5"/></svg>',
+  bot: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="8" width="14" height="10" rx="2"/><path d="M12 8V5M9 5h6"/><circle cx="9" cy="13" r="1.1" fill="currentColor" stroke="none"/><circle cx="15" cy="13" r="1.1" fill="currentColor" stroke="none"/><path d="M9 16.5h6"/></svg>',
+  signal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17a11 11 0 0 1 16 0"/><path d="M7.5 13.5a6.5 6.5 0 0 1 9 0"/><circle cx="12" cy="19" r="1.3" fill="currentColor" stroke="none"/></svg>',
+};
+
+// GET /api/team/domains
+const DOMAINS = [
+  { id: 'aviation',   name: 'Aviation & Space Tech',              desc: 'Build intelligent systems for aerospace, autonomous flight and satellite technologies.',      icon: DOMAIN_ICONS.rocket },
+  { id: 'iot',        name: 'Internet of Things',                 desc: 'Create real-time hardware-software systems for devices, automation and edge computing.',       icon: DOMAIN_ICONS.chip },
+  { id: 'healthcare', name: 'Healthcare & Assistive Tech',         desc: 'Design technologies that improve access, rehabilitation and quality of life.',                  icon: DOMAIN_ICONS.heart },
+  { id: 'aiml',       name: 'Artificial Intelligence & Machine Learning', desc: 'Engineer resilient cities through smart energy, mobility and monitoring.',              icon: DOMAIN_ICONS.bot },
+  { id: 'comm',       name: 'Communication & Networking',          desc: 'Develop secure networks and intelligent connected infrastructure.',                            icon: DOMAIN_ICONS.signal },
+];
+
+// GET /api/team/problem-statements?domain=<id>
+// Placeholder only for now — swap in the organizing committee's real list per domain once confirmed.
+function getPlaceholderProblemStatements(domainId) {
+  const prefix = (domainId || 'gen').slice(0, 3).toUpperCase();
+  return Array.from({ length: 5 }, (_, i) => ({
+    code: `PS-${prefix}-0${i + 1}`,
+    title: `Problem statement ${i + 1}`,
+    desc: 'To be announced by the organizing committee.',
+  }));
+}
+
+// GET /api/team/announcements
+let ANNOUNCEMENTS = [
+  { id: 1, tag: 'general', time: '2026-07-26T08:30:00', text: 'Registration desks open at 8:00 AM. Please carry your college ID and a printed confirmation.' },
+  { id: 2, tag: 'domain', time: '2026-07-26T09:10:00', text: 'Domain selection is now open. You can change your domain until you freeze it, so take your time.' },
+  { id: 3, tag: 'urgent', time: '2026-07-26T09:45:00', text: 'Wi-Fi credentials will be shared at your table by 10:00 AM. Please do not share credentials outside your team.' },
+];
+
+/* -----------------------------------------------------------------
+   STATE
+   ----------------------------------------------------------------- */
+const state = {
+  loggedIn: false,
+  team: { teamName: '', leaderName: '', phone: '', teamCode: '' },
+  domainSelected: INITIAL_DOMAIN_SELECTED,
+  chosenDomainId: null,
+  chosenPSIndex: null,
+};
+
+/* -----------------------------------------------------------------
+   MOCK API WRAPPERS
+   Each of these is written so you can drop in a real fetch() call
+   without changing any of the rendering code below.
+   ----------------------------------------------------------------- */
+
+async function apiLoginTeam(payload) {
+  // TODO: replace with -> const res = await fetch('/api/team/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }); return res.json();
+  // Mock: accept any well-formed submission and issue a team code.
+  const teamCode = 'TM-' + payload.teamName.trim().slice(0,3).toUpperCase() + '-' + Math.floor(1000 + Math.random()*9000);
+  return { ok: true, teamCode };
+}
+
+async function apiFetchAnnouncements() {
+  // TODO: replace with -> const res = await fetch('/api/team/announcements'); return res.json();
+  return ANNOUNCEMENTS;
+}
+
+async function apiFetchDomainStatus() {
+  // TODO: replace with -> const res = await fetch('/api/team/domain-status'); return res.json();
+  // Expected shape: { released: bool, teamSelected: bool, locked: bool }
+  return { released: DOMAINS_RELEASED, teamSelected: state.domainSelected, locked: DOMAINS_LOCKED };
+}
+
+async function apiFetchScoreStatus() {
+  // TODO: replace with -> const res = await fetch('/api/team/scores/status'); return res.json(); // { released: bool }
+  return { released: SCORES_RELEASED };
+}
+
+async function apiConfirmDomainSelection(domainId, psIndex) {
+  // TODO: replace with -> await fetch('/api/team/domain/select', { method:'POST', body: JSON.stringify({ domainId, psIndex }) });
+  return { ok: true };
+}
+
+async function apiFetchTeamMembers() {
+  // TODO: replace with -> const res = await fetch(`/api/team/members?teamCode=${state.team.teamCode}`); return res.json();
+  // Mock: your registration backend should return the full roster tied to this team code.
+  // The leader is included here as the first member.
+  return [
+    { name: state.team.leaderName, phone: state.team.phone },
+    { name: 'Member 2', phone: '9000000002' },
+    { name: 'Member 3', phone: '9000000003' },
+  ];
+}
+
+async function loadTeamMembers() {
+  const members = await apiFetchTeamMembers();
+  const list = document.getElementById('teamMembersList');
+  list.innerHTML = members.map((m, i) => `
+    <li class="team-member-row">
+      <span class="member-index">${i + 1}</span>
+      <span class="member-name">${escapeHtml(m.name || '—')}</span>
+      <span class="member-phone">${escapeHtml(m.phone || '—')}</span>
+    </li>
+  `).join('');
+}
+
+/* -----------------------------------------------------------------
+   LOGIN HANDLING
+   ----------------------------------------------------------------- */
+const loginForm = document.getElementById('loginForm');
+const loginOverlay = document.getElementById('loginOverlay');
+const appEl = document.getElementById('app');
+
+function setFieldError(fieldId, hasError) {
+  const el = document.getElementById(fieldId);
+  el.classList.toggle('has-error', hasError);
+}
+
+function validatePhone(value) {
+  return /^[6-9]\d{9}$/.test(value.trim());
+}
+
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const teamName = document.getElementById('teamName').value.trim();
+  const leaderName = document.getElementById('leaderName').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+
+  let valid = true;
+  if (!teamName) { setFieldError('field-teamName', true); valid = false; } else setFieldError('field-teamName', false);
+  if (!leaderName) { setFieldError('field-leaderName', true); valid = false; } else setFieldError('field-leaderName', false);
+  if (!validatePhone(phone)) { setFieldError('field-phone', true); valid = false; } else setFieldError('field-phone', false);
+
+  if (!valid) return;
+
+  const loginBtn = document.getElementById('loginBtn');
+  loginBtn.disabled = true;
+  loginBtn.textContent = 'Logging in…';
+
+  try {
+    const result = await apiLoginTeam({ teamName, leaderName, phone });
+    if (result.ok) {
+      state.loggedIn = true;
+      state.team = { teamName, leaderName, phone, teamCode: result.teamCode };
+      enterDashboard();
+    }
+  } finally {
+    loginBtn.disabled = false;
+    loginBtn.textContent = 'Log in to dashboard';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  state.loggedIn = false;
+  state.domainSelected = false;
+  appEl.classList.remove('visible');
+  loginOverlay.style.display = 'flex';
+  loginForm.reset();
+});
+
+function enterDashboard() {
+  loginOverlay.style.display = 'none';
+  appEl.classList.add('visible');
+
+  document.getElementById('topbarTeamName').textContent = state.team.teamName;
+  document.getElementById('sideTeamName').textContent = state.team.teamName;
+  document.getElementById('sideLeaderName').textContent = state.team.leaderName;
+  document.getElementById('sideTeamCode').textContent = state.team.teamCode;
+
+  loadTeamMembers();
+  loadAnnouncements();
+  renderDomainStatusCard();
+  loadProgress();
+
+  setInterval(async () => {
+    await loadAnnouncements();
+
+    const domainStatus = await apiFetchDomainStatus();
+    DOMAINS_RELEASED = domainStatus.released;
+    DOMAINS_LOCKED = domainStatus.locked;
+    state.domainSelected = domainStatus.teamSelected;
+    renderDomainStatusCard();
+
+    const scoreStatus = await apiFetchScoreStatus();
+    SCORES_RELEASED = scoreStatus.released;
+    if (document.getElementById('scoreModalOverlay').classList.contains('visible')) {
+      renderScoreModal();
+    }
+
+    await loadProgress();
+  }, CONFIG.POLL_INTERVAL_MS);
+}
+
+/* -----------------------------------------------------------------
+   ANNOUNCEMENTS
+   ----------------------------------------------------------------- */
+function formatTime(iso) {
+  const d = new Date(iso);
+  return d.toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+}
+
+async function loadAnnouncements() {
+  const data = await apiFetchAnnouncements();
+  ANNOUNCEMENTS = data;
+  renderAnnouncements();
+}
+
+function renderAnnouncements() {
+  const list = document.getElementById('announcementList');
+  const countBadge = document.getElementById('announcementCount');
+  countBadge.textContent = ANNOUNCEMENTS.length;
+
+  if (!ANNOUNCEMENTS.length) {
+    list.innerHTML = '<div class="empty-state">No announcements yet. New updates from the OC dashboard will show up here.</div>';
+    return;
+  }
+
+  const sorted = [...ANNOUNCEMENTS].sort((a,b) => new Date(b.time) - new Date(a.time));
+
+  list.innerHTML = sorted.map(a => `
+    <div class="announcement-item">
+      <div class="meta">
+        <span class="tag ${a.tag}">${a.tag}</span>
+        <span class="timestamp">${formatTime(a.time)}</span>
+      </div>
+      <div class="body-text">${escapeHtml(a.text)}</div>
+    </div>
+  `).join('');
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+/* -----------------------------------------------------------------
+   DOMAIN & PROBLEM STATEMENT — status card
+   Shows exactly one status, bottom-right of the card, driven by the
+   OC dashboard toggles:
+     Yet to be released -> Live -> Selected -> Locked
+   ----------------------------------------------------------------- */
+function getDomainStatus() {
+  if (DOMAINS_LOCKED)      return { text: 'Locked',              cls: 'locked'   };
+  if (state.domainSelected) return { text: 'Selected',            cls: 'selected' };
+  if (DOMAINS_RELEASED)    return { text: 'Live',                 cls: 'live'     };
+  return                      { text: 'Yet to be released', cls: 'pending' };
+}
+
+// The Domain & PS "View" button opens the picker/summary. It's only
+// clickable once domains are Live (so there's something to pick) or
+// once the team has already made a Selected/Locked choice to review.
+function getDomainViewEnabled() {
+  const s = getDomainStatus().cls;
+  return s === 'live' || s === 'selected';
+}
+
+// The Scorecard "View" button only unlocks once the team's domain
+// choice is Selected or Locked — whether the scores themselves are
+// visible inside is governed separately by SCORES_RELEASED.
+function getScoreViewEnabled() {
+  const s = getDomainStatus().cls;
+  return s === 'selected' || s === 'locked';
+}
+
+const DOMAIN_DESCRIPTIONS = {
+  pending:  'Domains haven\u2019t been announced yet. This will update automatically the moment the organizing committee releases them.',
+  live:     'Domains are live! Tap View to choose your domain and problem statement.',
+  selected: 'You\u2019ve confirmed your domain and problem statement. Tap View to review your selection.',
+  locked:   'Your domain and problem statement are locked in by the organizing committee.',
+};
+
+function renderDomainStatusCard() {
+  const badge = document.getElementById('domainStatusBadge');
+  const status = getDomainStatus();
+  badge.textContent = status.text;
+  badge.className = `status-badge ${status.cls}`;
+
+  document.getElementById('domainSquareDesc').textContent = DOMAIN_DESCRIPTIONS[status.cls];
+  document.getElementById('viewDomainBtn').disabled = !getDomainViewEnabled();
+
+  const scoreBtn = document.getElementById('viewScoreBtn');
+  scoreBtn.disabled = !getScoreViewEnabled();
+  document.getElementById('scorecardSquareDesc').textContent = getScoreViewEnabled()
+    ? 'See how your team scored in each round.'
+    : 'Available once your domain & problem statement are selected.';
+}
+
+/* -----------------------------------------------------------------
+   DOMAIN & PROBLEM STATEMENT — picker modal
+   Step flow: domains -> ps -> confirm -> summary
+   ----------------------------------------------------------------- */
+let domainModalStep = 'domains';
+let modalPickedDomainId = null;
+let modalPickedPSIndex = null;
+
+function openDomainModal() {
+  if (!getDomainViewEnabled()) return;
+  domainModalStep = state.domainSelected ? 'summary' : 'domains';
+  modalPickedDomainId = null;
+  modalPickedPSIndex = null;
+  document.getElementById('domainModalOverlay').classList.add('visible');
+  renderDomainModal();
+}
+
+function closeDomainModal() {
+  document.getElementById('domainModalOverlay').classList.remove('visible');
+}
+
+function renderDomainModal() {
+  const content = document.getElementById('domainModalContent');
+
+  if (domainModalStep === 'summary') {
+    const domain = DOMAINS.find(d => d.id === state.chosenDomainId);
+    const ps = state.chosenDomainId ? getPlaceholderProblemStatements(state.chosenDomainId)[state.chosenPSIndex] : null;
+    content.innerHTML = `
+      <div class="modal-eyebrow">Domain &amp; Problem Statement</div>
+      <div class="modal-title">${domain ? domain.name : 'Selection confirmed'}</div>
+      <p class="modal-sub">${DOMAINS_LOCKED ? 'This has been locked by the organizing committee.' : 'You\u2019ve confirmed this selection.'}</p>
+      <div class="modal-confirm-box">
+        <div class="modal-confirm-row"><span class="label">Domain</span><span class="value">${domain ? domain.name : '\u2014'}</span></div>
+        <div class="modal-confirm-row"><span class="label">Problem statement</span><span class="value">${ps ? ps.code : '\u2014'}</span></div>
+      </div>
+      ${DOMAINS_LOCKED ? '<p class="square-desc">Contact your organizing committee if this needs to change.</p>' : ''}
+    `;
+    return;
+  }
+
+  if (domainModalStep === 'domains') {
+    content.innerHTML = `
+      <div class="modal-eyebrow">Step 1 of 3</div>
+      <div class="modal-title">Choose your domain</div>
+      <p class="modal-sub">Pick the track your team will build in. You can change this until you confirm.</p>
+      <div class="modal-domain-grid">
+        ${DOMAINS.map(d => `
+          <button class="modal-domain-card" type="button" data-domain="${d.id}">
+            <span class="modal-domain-icon">${d.icon}</span>
+            <span class="modal-domain-name">${d.name}</span>
+            <span class="modal-domain-desc">${d.desc}</span>
+          </button>
+        `).join('')}
+      </div>
+    `;
+    content.querySelectorAll('.modal-domain-card').forEach(btn => {
+      btn.addEventListener('click', () => {
+        modalPickedDomainId = btn.dataset.domain;
+        domainModalStep = 'ps';
+        renderDomainModal();
+      });
+    });
+    return;
+  }
+
+  if (domainModalStep === 'ps') {
+    const domain = DOMAINS.find(d => d.id === modalPickedDomainId);
+    const list = getPlaceholderProblemStatements(modalPickedDomainId);
+    content.innerHTML = `
+      <button class="modal-back" type="button" id="modalBackToDomains">\u2190 Back to domains</button>
+      <div class="modal-eyebrow">Step 2 of 3</div>
+      <div class="modal-title">${domain.name}</div>
+      <p class="modal-sub">Choose a problem statement for this domain.</p>
+      <div class="modal-ps-list">
+        ${list.map((ps, i) => `
+          <button class="modal-ps-card" type="button" data-index="${i}">
+            <span class="modal-ps-code">${ps.code}</span>
+            <span class="modal-ps-title">${ps.title}</span>
+          </button>
+        `).join('')}
+      </div>
+    `;
+    document.getElementById('modalBackToDomains').addEventListener('click', () => {
+      domainModalStep = 'domains';
+      renderDomainModal();
+    });
+    content.querySelectorAll('.modal-ps-card').forEach(btn => {
+      btn.addEventListener('click', () => {
+        modalPickedPSIndex = Number(btn.dataset.index);
+        domainModalStep = 'confirm';
+        renderDomainModal();
+      });
+    });
+    return;
+  }
+
+  if (domainModalStep === 'confirm') {
+    const domain = DOMAINS.find(d => d.id === modalPickedDomainId);
+    const ps = getPlaceholderProblemStatements(modalPickedDomainId)[modalPickedPSIndex];
+    content.innerHTML = `
+      <button class="modal-back" type="button" id="modalBackToPS">\u2190 Back</button>
+      <div class="modal-eyebrow">Step 3 of 3</div>
+      <div class="modal-title">Confirm your selection</div>
+      <p class="modal-sub">Are you sure you want to select this domain and problem statement? You won\u2019t be able to change it once confirmed.</p>
+      <div class="modal-confirm-box">
+        <div class="modal-confirm-row"><span class="label">Domain</span><span class="value">${domain.name}</span></div>
+        <div class="modal-confirm-row"><span class="label">Problem statement</span><span class="value">${ps.code} \u2014 ${ps.title}</span></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" type="button" id="modalConfirmNo">No</button>
+        <button class="btn btn-primary" type="button" id="modalConfirmYes">Yes, confirm</button>
+      </div>
+    `;
+    document.getElementById('modalBackToPS').addEventListener('click', () => {
+      domainModalStep = 'ps';
+      renderDomainModal();
+    });
+    document.getElementById('modalConfirmNo').addEventListener('click', () => {
+      modalPickedPSIndex = null;
+      domainModalStep = 'ps';
+      renderDomainModal();
+    });
+    document.getElementById('modalConfirmYes').addEventListener('click', async () => {
+      const yesBtn = document.getElementById('modalConfirmYes');
+      yesBtn.disabled = true;
+      yesBtn.textContent = 'Confirming\u2026';
+      await apiConfirmDomainSelection(modalPickedDomainId, modalPickedPSIndex);
+      state.domainSelected = true;
+      state.chosenDomainId = modalPickedDomainId;
+      state.chosenPSIndex = modalPickedPSIndex;
+      renderDomainStatusCard();
+      domainModalStep = 'summary';
+      renderDomainModal();
+    });
+    return;
+  }
+}
+
+document.getElementById('viewDomainBtn').addEventListener('click', openDomainModal);
+document.getElementById('domainModalClose').addEventListener('click', closeDomainModal);
+document.getElementById('domainModalOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'domainModalOverlay') closeDomainModal();
+});
+
+/* -----------------------------------------------------------------
+   SCORECARD — viewer modal
+   Read-only: shows round-by-round scores once released, otherwise a
+   "not released yet" note.
+   ----------------------------------------------------------------- */
+function openScoreModal() {
+  if (!getScoreViewEnabled()) return;
+  document.getElementById('scoreModalOverlay').classList.add('visible');
+  renderScoreModal();
+}
+
+function closeScoreModal() {
+  document.getElementById('scoreModalOverlay').classList.remove('visible');
+}
+
+function renderScoreModal() {
+  const content = document.getElementById('scoreModalContent');
+
+  if (!SCORES_RELEASED) {
+    content.innerHTML = `
+      <div class="modal-eyebrow">Scorecard</div>
+      <div class="modal-title">Scores are yet to be released</div>
+      <p class="modal-sub">Your organizing committee hasn\u2019t published round scores yet. This will update automatically once they do \u2014 no need to refresh.</p>
+    `;
+    return;
+  }
+
+  content.innerHTML = `
+    <div class="modal-eyebrow">Scorecard</div>
+    <div class="modal-title">Your round scores</div>
+    <p class="modal-sub">View only \u2014 scores are set by the judging panel and can\u2019t be edited here.</p>
+    <div class="modal-score-list">
+      ${ROUND_SCORES.map(r => `
+        <div class="modal-score-row">
+          <span class="modal-score-round">${r.round}</span>
+          <span class="modal-score-value">${r.score === null ? '\u2014' : r.score + '/' + r.outOf}</span>
+        </div>
+      `).join('')}
+    </div>
+    <p class="modal-score-note">Scores are read-only.</p>
+  `;
+}
+
+document.getElementById('viewScoreBtn').addEventListener('click', openScoreModal);
+document.getElementById('scoreModalClose').addEventListener('click', closeScoreModal);
+document.getElementById('scoreModalOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'scoreModalOverlay') closeScoreModal();
+});
+
+/* -----------------------------------------------------------------
+   PROGRESS STEPS (sidebar)
+   Static event-flow checklist for the hackathon. Backend-ready: this
+   is fully decoupled from the Domain/PS and Scorecard cards above —
+   it only reflects what GET /api/team/progress returns.
+
+   Expected response shape:
+     { currentStageIndex: number }
+   currentStageIndex is a 0-based index into PROGRESS_STAGES:
+     - every stage before it renders as done (checkmark)
+     - the stage at that index renders as active (highlighted)
+     - every stage after it renders as pending
+   Send 0 for a brand-new team (nothing completed yet), or
+   PROGRESS_STAGES.length once everything, including Closing Ceremony,
+   is done.
+   ----------------------------------------------------------------- */
+const PROGRESS_STAGES = [
+  'Online Registration & Payment',
+  'Payment Verification',
+  'Offline Registration at Venue',
+  'Hackathon Inauguration',
+  'Round 1 (Student Review)',
+  'Round 2 (Faculty Review)',
+  'Final Review (Industry Review)',
+  'Closing Ceremony',
+];
+
+let progressState = { currentStageIndex: 0 };
+
+async function apiFetchProgressStatus() {
+  // TODO: replace with -> const res = await fetch('/api/team/progress'); return res.json();
+  // For testing, you can set ?progress=3 in the URL to simulate being at stage 3 (0-based)
+  const urlProgress = parseInt(new URLSearchParams(window.location.search).get('progress'));
+  if (!isNaN(urlProgress) && urlProgress >= 0 && urlProgress <= PROGRESS_STAGES.length) {
+    return { currentStageIndex: urlProgress };
+  }
+  return { currentStageIndex: 0 };
+}
+
+async function loadProgress() {
+  progressState = await apiFetchProgressStatus();
+  renderSteps();
+}
+
+function renderSteps() {
+  const currentIndex = progressState.currentStageIndex;
+
+  document.getElementById('stepsList').innerHTML = PROGRESS_STAGES.map((title, i) => {
+    const done = i < currentIndex;
+    const active = i === currentIndex;
+    return `
+      <div class="step ${done ? 'done' : ''} ${active ? 'active' : ''}">
+        <div class="dot">${done ? '\u2713' : i + 1}</div>
+        <div class="step-text">
+          <div class="step-title">${title}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+</script>
+</body>
+</html>
