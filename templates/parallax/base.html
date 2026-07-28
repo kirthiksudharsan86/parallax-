@@ -12,10 +12,24 @@
   <link rel="stylesheet" href="{% static 'css/parallax.css' %}">
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
+  <link rel="stylesheet" href="{% static 'css/motion.css' %}">
   {% block extra_css %}{% endblock %}
   {% block extra_head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}" data-page="{% block body_data_page %}{% endblock %}">
+
+<!-- Loading experience: blocks interaction until UI modules are ready -->
+<div id="loader">
+  <div class="loader-mark"></div>
+  <div id="loader-text">Initializing Innovation...</div>
+</div>
+
+<!-- Ambient neural-network background (Layer 1) -->
+<canvas id="particles-canvas" aria-hidden="true"></canvas>
+
+<!-- Custom liquid cursor + trail (desktop only, System Overlay layer) -->
+<canvas id="cursor-trail-canvas" aria-hidden="true"></canvas>
+<div id="custom-cursor" aria-hidden="true"></div>
 
 <div id="progress-bar"></div>
 <div id="cursor-glow"></div>
@@ -43,13 +57,41 @@
       TEAM SPACE <i class="fa-solid fa-arrow-right"></i>
     </a>
     {% else %}
-    <a href="{% url 'team_login' %}" class="nav-login-btn">
+    <a href="{% url 'team_dashboard_static' %}" class="nav-login-btn">
       TEAM LOGIN <i class="fa-solid fa-arrow-right"></i>
     </a>
     {% endif %}
     <a href="{% url 'registration_index' %}" class="nav-register-btn">Register <i class="fa-solid fa-arrow-right"></i></a>
   </div>
+
+  <button type="button" id="nav-hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="nav-drawer">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+
+<!-- Mobile navigation drawer (mirrors existing nav links/actions, no content changes) -->
+<div id="nav-drawer-overlay"></div>
+<aside id="nav-drawer" aria-hidden="true">
+  <div class="nav-drawer-head">
+    <img src="{% static 'assets/VIT WHITE LOGO.png' %}" alt="VIT Chennai" style="height:30px">
+    <button type="button" id="nav-drawer-close" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <a href="{% url 'home' %}" class="nav-drawer-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a>
+  <a href="{% url 'tracks' %}" class="nav-drawer-link {% if request.resolver_match.url_name == 'tracks' %}active{% endif %}">Tracks</a>
+  <a href="{% url 'information' 'prizes' %}" class="nav-drawer-link">Prizes</a>
+  <a href="{% url 'information' 'guidelines' %}" class="nav-drawer-link">Guidelines</a>
+  <a href="{% url 'about' %}" class="nav-drawer-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}">About</a>
+  <div class="nav-drawer-actions">
+    {% if request.user.is_authenticated and request.user.is_staff %}
+    <a href="{% url 'admin_panel' %}" class="nav-login-btn">OC DASHBOARD <i class="fa-solid fa-arrow-right"></i></a>
+    {% elif request.user.is_authenticated %}
+    <a href="{% url 'participant_dashboard' %}" class="nav-login-btn">TEAM SPACE <i class="fa-solid fa-arrow-right"></i></a>
+    {% else %}
+    <a href="{% url 'team_dashboard_static' %}" class="nav-login-btn">TEAM LOGIN <i class="fa-solid fa-arrow-right"></i></a>
+    {% endif %}
+    <a href="{% url 'registration_index' %}" class="nav-register-btn">Register <i class="fa-solid fa-arrow-right"></i></a>
+  </div>
+</aside>
 
 {% if messages %}
 <div class="site-messages">
@@ -89,7 +131,7 @@
         {% elif request.user.is_authenticated %}
         <li><a href="{% url 'participant_dashboard' %}"><i class="fa-solid fa-chevron-right footer-li-icon"></i><span>Team Space</span></a></li>
         {% else %}
-        <li><a href="{% url 'team_login' %}"><i class="fa-solid fa-chevron-right footer-li-icon"></i><span>Team Login</span></a></li>
+        <li><a href="{% url 'team_dashboard_static' %}"><i class="fa-solid fa-chevron-right footer-li-icon"></i><span>Team Login</span></a></li>
         {% endif %}
       </ul>
     </div>
@@ -115,7 +157,20 @@
   </div>
 </footer>
 
-<script src="{% static 'js/main.js' %}"></script>
+<div id="toast-stack" aria-live="polite" aria-atomic="false"></div>
+<button type="button" id="back-to-top" aria-label="Back to top"><i class="fa-solid fa-arrow-up"></i></button>
+
+<script src="{% static 'js/loader.js' %}"></script>
+<script src="{% static 'js/navbar.js' %}"></script>
+<script src="{% static 'js/scroll.js' %}"></script>
+<script src="{% static 'js/particles.js' %}"></script>
+<script src="{% static 'js/cursor.js' %}"></script>
+<script src="{% static 'js/interactions.js' %}"></script>
+<script src="{% static 'js/faq.js' %}"></script>
+<script src="{% static 'js/toast.js' %}"></script>
+<script src="{% static 'js/countdown.js' %}"></script>
+<script src="{% static 'js/backtotop.js' %}"></script>
+<script src="{% static 'js/app.js' %}"></script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

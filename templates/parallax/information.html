@@ -3,13 +3,13 @@
 {% if page == 'prizes' %}
 <style>
 .prize-summary{display:flex;justify-content:center;margin-bottom:36px}
-.prize-pool-card{text-align:center;padding:34px 52px;border-radius:var(--rl);border:1px solid rgba(0,217,255,.4);background:linear-gradient(155deg,rgba(0,82,204,.14),rgba(0,217,255,.05));box-shadow:0 0 40px rgba(0,217,255,.22),inset 0 0 30px rgba(0,217,255,.05);animation:prizeGlowPulse 3.5s ease-in-out infinite}
+.prize-pool-card{text-align:center;padding:34px 52px;border-radius:var(--rl);border:1px solid rgba(0,217,255,.4);background:linear-gradient(155deg,rgba(0,82,204,.14),rgba(0,217,255,.05));box-shadow:0 0 40px rgba(0,217,255,.22),inset 0 0 30px rgba(0,217,255,.05);animation:prizeGlowPulse 4.1s ease-in-out infinite}
 .prize-pool-label{display:block;font-family:var(--mono);font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--cyan);margin-bottom:10px}
 .prize-pool-value{display:block;font-family:var(--hero);font-size:clamp(2.4rem,6vw,3.6rem);background:linear-gradient(135deg,#0052CC,#00D9FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
 .prize-pool-card p{margin-top:12px;color:var(--muted);font-size:.85rem}
 @keyframes prizeGlowPulse{0%,100%{box-shadow:0 0 40px rgba(0,217,255,.22),inset 0 0 30px rgba(0,217,255,.05)}50%{box-shadow:0 0 62px rgba(0,217,255,.42),inset 0 0 40px rgba(0,217,255,.1)}}
 .prize-tracks-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:32px;margin-bottom:36px}
-.prize-track-card{background:rgba(255,255,255,.04);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.10);border-radius:var(--rl);padding:34px;transition:border-color .3s,box-shadow .3s,transform .3s}
+.prize-track-card{background:rgba(255,255,255,.04);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.10);border-radius:var(--rl);padding:34px;transition:border-color .35s,box-shadow .35s,transform .35s}
 .prize-track-card:hover{border-color:rgba(0,217,255,.5);box-shadow:0 0 32px rgba(0,217,255,.2);transform:translateY(-3px)}
 .prize-track-header{display:flex;align-items:center;gap:14px;margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid var(--border)}
 .prize-track-header i{font-size:1.25rem;color:var(--cyan);width:44px;height:44px;border-radius:50%;border:1.5px solid rgba(0,217,255,.4);display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -37,17 +37,38 @@
 .guide-block ul{margin:0;padding-left:20px;display:grid;gap:8px;color:#C9D3DE;line-height:1.7}
 .guide-block p{margin:0 0 10px;color:#C9D3DE;line-height:1.8}
 .guide-block p:last-child{margin-bottom:0}
-.guide-block a{color:var(--cyan);text-decoration:underline;text-underline-offset:3px;transition:color .2s}
+.guide-block a{color:var(--cyan);text-decoration:underline;text-underline-offset:3px;transition:color .25s}
 .guide-block a:hover{color:#fff}
 .guide-intro p,.prose p{color:#C9D3DE}
 .faq-heading{margin-top:56px}
 .faq-list{display:grid;gap:12px;margin-top:24px}
-.faq-item{background:rgba(255,255,255,.04);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:0 22px;transition:border-color .25s}
+.faq-item{background:rgba(255,255,255,.04);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:0 22px;transition:border-color .3s}
 .faq-item:hover{border-color:rgba(0,217,255,.35)}
 .faq-item summary{list-style:none;cursor:pointer;padding:18px 0;display:flex;justify-content:space-between;align-items:center;gap:14px;color:var(--text);font-weight:600;font-size:.92rem}
 .faq-item summary::-webkit-details-marker{display:none}
-.faq-item summary::after{content:'^';color:var(--cyan);font-size:1.1rem;font-weight:700;flex-shrink:0;transition:transform .25s;line-height:1;transform:rotate(180deg)}
+.faq-item summary::after{content:'^';color:var(--cyan);font-size:1.1rem;font-weight:700;flex-shrink:0;transition:transform .3s;line-height:1;transform:rotate(180deg)}
 .faq-item[open] summary::after{transform:rotate(0deg)}
+/* Robust collapse: animate the grid row itself (0fr -> 1fr) instead of
+   measuring scrollHeight in JS. This can never clip/hide the answer text
+   and never gets stuck mid-animation on fast repeated clicks.
+   display:grid overrides the browser's default "hide non-summary
+   children" behaviour so height can be measured/animated at any time;
+   while closed the row height is still genuinely 0. */
+.faq-body{
+  display:block;
+  max-height:0;
+  opacity:0;
+  overflow:hidden;
+  transition:max-height .4s var(--ease), opacity .3s ease;
+}
+.faq-item[open] .faq-body{
+  max-height:800px;
+  opacity:1;
+}
+.faq-body-inner{
+  overflow:hidden;
+  min-height:0;
+}
 .faq-item .faq-answer{color:#C9D3DE;line-height:1.75;padding:0 0 20px;margin:0}
 .faq-answer ul{margin:8px 0 0;padding-left:20px;display:grid;gap:6px;color:#C9D3DE}
 </style>
@@ -220,65 +241,70 @@
 <div class="faq-list">
   <details class="faq-item">
     <summary>Who is eligible to participate?</summary>
-    <p class="faq-answer">Students from any recognized college or university are eligible to participate.</p>
+    <div class="faq-body"><div class="faq-body-inner"><p class="faq-answer">Students from any recognized college or university are eligible to participate.</p></div></div>
   </details>
   <details class="faq-item">
     <summary>Is there a registration fee?</summary>
-    <p class="faq-answer">Yes. The registration fee is ₹299 per participant.</p>
+    <div class="faq-body"><div class="faq-body-inner"><p class="faq-answer">Yes. The registration fee is ₹299 per participant.</p></div></div>
   </details>
   <details class="faq-item">
     <summary>What is the team size?</summary>
-    <p class="faq-answer">Each team must consist of 3 to 5 members.</p>
+    <div class="faq-body"><div class="faq-body-inner"><p class="faq-answer">Each team must consist of 3 to 5 members.</p></div></div>
   </details>
   <details class="faq-item">
     <summary>Can team members be from different colleges, branches, or years?</summary>
-    <p class="faq-answer">Yes. Multi-college teams are allowed, and team members can be from different branches and academic years.</p>
+    <div class="faq-body"><div class="faq-body-inner"><p class="faq-answer">Yes. Multi-college teams are allowed, and team members can be from different branches and academic years.</p></div></div>
   </details>
   <details class="faq-item">
     <summary>What are the hackathon tracks or domains?</summary>
-    <div class="faq-answer">
-      <ul>
-        <li>Aerospace and Space Tech</li>
-        <li>Internet of Things (IoT)</li>
-        <li>Healthcare and Assistive Technologies</li>
-        <li>Artificial Intelligence and Machine Learning (AIML)</li>
-        <li>Communication and Networks</li>
-      </ul>
-    </div>
+    <div class="faq-body"><div class="faq-body-inner">
+      <div class="faq-answer">
+        <ul>
+          <li>Aerospace and Space Tech</li>
+          <li>Internet of Things (IoT)</li>
+          <li>Healthcare and Assistive Technologies</li>
+          <li>Artificial Intelligence and Machine Learning (AIML)</li>
+          <li>Communication and Networks</li>
+        </ul>
+      </div>
+    </div></div>
   </details>
   <details class="faq-item">
     <summary>When will the problem statements be released?</summary>
-    <p class="faq-answer">Software track problem statements will be released 36 hours before the hackathon, while Hardware track problem statements will be released 108 hours before the hackathon.</p>
+    <div class="faq-body"><div class="faq-body-inner"><p class="faq-answer">Software track problem statements will be released 36 hours before the hackathon, while Hardware track problem statements will be released 108 hours before the hackathon.</p></div></div>
   </details>
   <details class="faq-item">
     <summary>What should participants bring to the hackathon?</summary>
-    <p class="faq-answer">Participants must bring their laptops, chargers, student ID cards, an extension box, and any additional hardware or components required for their project.</p>
+    <div class="faq-body"><div class="faq-body-inner"><p class="faq-answer">Participants must bring their laptops, chargers, student ID cards, an extension box, and any additional hardware or components required for their project.</p></div></div>
   </details>
   <details class="faq-item">
     <summary>Will food, accommodation, internet facilities, and extension cords be provided?</summary>
-    <p class="faq-answer">Yes. Dinner, breakfast, internet facilities, and extension cords will be provided. Bring a mini extension box, as only a limited number of sockets will be provided. Travel and stay facilities (before and after the event) will not be provided for external participants.</p>
+    <div class="faq-body"><div class="faq-body-inner"><p class="faq-answer">Yes. Dinner, breakfast, internet facilities, and extension cords will be provided. Bring a mini extension box, as only a limited number of sockets will be provided. Travel and stay facilities (before and after the event) will not be provided for external participants.</p></div></div>
   </details>
   <details class="faq-item">
     <summary>How will the projects be evaluated?</summary>
-    <div class="faq-answer">
-      <ul>
-        <li>15% – Student Review</li>
-        <li>35% – Faculty Review</li>
-        <li>50% – Industry Review</li>
-      </ul>
-    </div>
+    <div class="faq-body"><div class="faq-body-inner">
+      <div class="faq-answer">
+        <ul>
+          <li>15% – Student Review</li>
+          <li>35% – Faculty Review</li>
+          <li>50% – Industry Review</li>
+        </ul>
+      </div>
+    </div></div>
   </details>
   <details class="faq-item">
     <summary>What is the prize pool?</summary>
-    <p class="faq-answer">Total Prize Pool: ₹60,000+</p>
+    <div class="faq-body"><div class="faq-body-inner"><p class="faq-answer">Total Prize Pool: ₹60,000+</p></div></div>
   </details>
   <details class="faq-item">
     <summary>Will all participants receive certificates?</summary>
-    <p class="faq-answer">Yes. All eligible participants will receive an E-Certificate of Participation, while winners will receive additional certificates and prizes.</p>
+    <div class="faq-body"><div class="faq-body-inner"><p class="faq-answer">Yes. All eligible participants will receive an E-Certificate of Participation, while winners will receive additional certificates and prizes.</p></div></div>
   </details>
   <details class="faq-item">
     <summary>How can I contact the organizing team if I have any queries?</summary>
-    <div class="faq-answer">
+    <div class="faq-body"><div class="faq-body-inner">
+      <div class="faq-answer">
       <p>You can reach out to any of the following organizers:</p>
       <ul>
         <li>Kailash A – +91 94450 50953</li>
@@ -286,7 +312,8 @@
         <li>Jaidev K – +91 96770 02037</li>
         <li>Sai Vignesh – +91 97907 22565</li>
       </ul>
-    </div>
+      </div>
+    </div></div>
   </details>
 </div>
 
