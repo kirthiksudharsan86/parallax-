@@ -20,6 +20,12 @@
         <a class="dashboard-button-secondary" href="{% url 'admin_sponsors' %}">Sponsors</a>
         <a class="dashboard-button-secondary" href="{% url 'admin_announcements' %}">Announcements</a>
       </div>
+      <div class="d-flex justify-content-end mb-4">
+        <a href="{% url 'account_logout' %}" class="btn btn-outline-danger">
+        <i class="fas fa-sign-out-alt me-2"></i>
+        Sign Out
+        </a>
+      </div>
     </section>
   </div>
 </section>
