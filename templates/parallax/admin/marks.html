@@ -87,15 +87,37 @@
             </select>
           </div>
           <div class="dashboard-field full">
-            <label for="award-team-search">Team</label>
-            <input class="dashboard-input" id="award-team-search" type="text" placeholder="Search team by name or track…" autocomplete="off">
-            <select class="dashboard-input" id="award-team" name="team_id" size="6" required style="margin-top:.5rem;">
-              {% for team in teams %}
-              <option value="{{ team.id }}" data-search="{{ team.team_name|lower }} {% if team.track %}{{ team.track.name|lower }}{% endif %}">{{ team.team_name }}{% if team.track %} · {{ team.track.name }}{% endif %}</option>
-              {% endfor %}
-            </select>
-            <p class="dashboard-small" id="award-team-empty" style="display:none; margin-top:.35rem;">No teams match your search.</p>
-          </div>
+
+    <label for="award-team">
+        Team
+    </label>
+
+    <input
+        class="dashboard-input"
+        id="award-team-search"
+        list="team-list"
+        placeholder="Search Team ID or Team Name..."
+        autocomplete="off">
+
+    <datalist id="team-list">
+
+        {% for team in teams %}
+
+        <option
+            value="{{ team.team_code }} | {{ team.team_name }}"
+            data-id="{{ team.id }}">
+        </option>
+
+        {% endfor %}
+
+    </datalist>
+
+    <input
+        type="hidden"
+        id="award-team"
+        name="team_id">
+
+</div>
           <div class="dashboard-field full">
             <label for="award-score">Score</label>
             <input class="dashboard-input" id="award-score" name="score" type="number" step="0.01" min="0" placeholder="e.g. 85" required>
@@ -150,50 +172,52 @@
       </table>
     </section>
   </div>
-</section>
+</section>*/
 {% endblock %}
 {% block extra_js %}
 <script>
-  (function () {
-    var search = document.getElementById('award-team-search');
-    var select = document.getElementById('award-team');
-    var empty = document.getElementById('award-team-empty');
-    if (!search || !select) return;
-    var options = Array.prototype.slice.call(select.options);
+(function () {
 
-    function filter() {
-      var query = search.value.trim().toLowerCase();
-      var visible = 0;
-      options.forEach(function (option) {
-        var haystack = option.getAttribute('data-search') || option.text.toLowerCase();
-        var match = !query || haystack.indexOf(query) !== -1;
-        option.hidden = !match;
-        if (match) visible++;
-      });
-      if (empty) empty.style.display = visible ? 'none' : 'block';
-      if (select.selectedOptions.length && select.selectedOptions[0].hidden) {
-        select.selectedIndex = -1;
-      }
-    }
+    const search = document.getElementById("award-team-search");
+    const hidden = document.getElementById("award-team");
+    const list = document.getElementById("team-list");
 
-    search.addEventListener('input', filter);
-    search.addEventListener('keydown', function (event) {
-      if (event.key === 'Enter') event.preventDefault();
+    if (!search || !hidden || !list) return;
+
+    search.addEventListener("change", function () {
+
+        const value = this.value;
+
+        hidden.value = "";
+
+        Array.from(list.options).forEach(function (option) {
+
+            if (option.value === value) {
+
+                hidden.value = option.dataset.id;
+
+            }
+
+        });
+
     });
 
-    var form = select.closest('form');
-    if (form) {
-      form.addEventListener('submit', function (event) {
-        if (!select.value) {
-          event.preventDefault();
-          if (empty) {
-            empty.textContent = 'Please select a team before saving marks.';
-            empty.style.display = 'block';
-          }
-          select.focus();
+    const form = search.closest("form");
+
+    form.addEventListener("submit", function (e) {
+
+        if (!hidden.value) {
+
+            e.preventDefault();
+
+            alert("Please select a valid team.");
+
+            search.focus();
+
         }
-      });
-    }
-  })();
+
+    });
+
+})();
 </script>
 {% endblock %}

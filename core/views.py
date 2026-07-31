@@ -106,19 +106,27 @@ def about(request):
         'core_members': [],
     }
     return render(request, 'parallax/about.html', context)
+from django.db.models import Prefetch
+
 def tracks(request):
-    published_tracks = list(
+    published_tracks = (
         Track.objects.filter(is_published=True)
         .prefetch_related(
             Prefetch(
                 'problem_statement_slots',
-                queryset=ProblemStatement.objects.filter(is_published=True, is_active=True).order_by('code', 'title'),
+                queryset=ProblemStatement.objects.filter(
+                    is_active=True
+                ).order_by('code', 'title'),
                 to_attr='public_problem_statements',
             )
         )
         .order_by('name')
     )
-    context = {'tracks': published_tracks or build_default_track_cards()}
+    for track in published_tracks:
+        print(track.name, len(track.public_problem_statements))
+    context = {
+        'tracks': published_tracks,
+    }
     return render(request, 'parallax/tracks.html', context)
 def information(request, page):
     if page not in INFORMATION_PAGES:
@@ -135,11 +143,9 @@ def information(request, page):
         'heading': INFORMATION_PAGES[page][0],
         'tagline': INFORMATION_PAGES[page][1],
         'reviews': Review.objects.all().order_by('scheduled_at'),
-        'tracks': public_tracks(),
     }
 )
-def team_dashboard_static(request):
-    return render(request, 'parallax/dashboard.html')
+
 def team_login(request):
     if request.user.is_authenticated:
         if request.user.is_staff:
@@ -178,6 +184,8 @@ def participant_dashboard(request):
         return redirect("access_denied")
 
     team = participant.team
+    track_id = None
+
     if request.method == "POST":
         track_id = request.POST.get("track")
 
@@ -196,18 +204,102 @@ def participant_dashboard(request):
     reviews = Review.objects.all().order_by("scheduled_at")
 
     context = {
-    "participant": participant,
-    "team": team,
 
-    "tracks": tracks,
-    "problem_statements": problem_statements,
+    "team": {
+        "name": team.team_name,
+        "id": team.team_code,
+        "leader_name": team.leader.full_name if team.leader else "",
+        "leader_email": team.leader.email if team.leader else "",
+        "college": participant.college_name,
+        "track_id": team.track.id if team.track else None,
+    },
 
-    "announcements": announcements,
-    "reviews": reviews,
+    "registration": {
+        "status": team.status.lower(),
+    },
 
-    "marks": Marks.objects.filter(team=team).select_related("review"),
+    "tracks": Track.objects.filter(
+        is_published=True
+    ),
+
+    "track": {
+        "released": bool(team.track),
+        "name": team.track.name if team.track else None,
+        "public_problem_statements":
+            ProblemStatement.objects.filter(
+                track=team.track,
+                is_published=True,
+                is_active=True,
+            ) if team.track else [],
+    },
+
+    "marks": [
+        {
+            "round": mark.review.name,
+            "score": mark.score,
+            "weightage": f"{mark.review.weightage}%",
+            "remarks": mark.remarks,
+            "last_updated": mark.updated_at.strftime("%d %b %Y"),
+        }
+        for mark in Marks.objects.filter(team=team).select_related("review")
+    ],
+
+    "members": [
+        {
+            "name": member.full_name,
+            "role": "Leader" if member.is_team_leader else "Member",
+            "email": member.email,
+            "phone": member.phone_number,
+            "is_leader": member.is_team_leader,
+        }
+        for member in team.members.all()
+    ],
+
+    "notifications": [],
+
+    "announcements": [
+        {
+            "title": a.title,
+            "message": a.description,
+            "timestamp": a.created_at.strftime("%d %b %Y"),
+            "tag": "general",
+        }
+        for a in Announcement.objects.all().order_by("-created_at")
+    ],
+
+    "downloads": {
+        "rulebook_url": None,
+        "schedule_url": None,
+        "resources_url": None,
+        "certificates_url": None,
+        "certificates_enabled": False,
+    },
+
+    "timeline": [
+        {
+            "stage": "Registration",
+            "status": "done",
+            "date": team.created_at.strftime("%d %b %Y"),
+        },
+        {
+            "stage": "Track Selection",
+            "status": "active" if team.track else "upcoming",
+            "date": None,
+        },
+        {
+            "stage": "Hackathon",
+            "status": "upcoming",
+            "date": None,
+        },
+    ],
+
+    "urls": {
+        "home": reverse("home"),
+        "set_team_name": reverse("participant_dashboard"),
+        "select_track": reverse("participant_dashboard"),
+        "logout": reverse("logout"),
+    },
     }
-
     return render(request, "parallax/dashboard.html", context)
 def admin_panel(request):
     if not request.user.is_staff:
@@ -322,20 +414,39 @@ def admin_marks(request):
                 )
                 messages.success(request, f'Round "{name}" created.')
             return redirect('admin_marks')
+        if action == 'delete_round':
+            review = get_object_or_404(
+                Review,
+                id=request.POST.get('review_id')
+            )
+            round_name = review.name
+            review.delete()
+            messages.success(
+                request,
+                f'Round "{round_name}" deleted successfully.'
+            )
+            return redirect('admin_marks')
         if action == 'award_marks':
-            review = Review.objects.filter(id=request.POST.get('review_id')).first()
-            if review is None:
-                 messages.error(request, 'Select a valid round to award marks.')
+            review = get_object_or_404(Review, id=request.POST.get('review_id'))
+            team = get_object_or_404(Team, id=request.POST.get('team_id'))
+            raw_score = request.POST.get('score', '').strip()   
+            if not raw_score:
+                messages.error(request, 'Enter a score.')
+                return redirect('admin_marks')
+            Marks.objects.update_or_create(
+                team=team,
+                review=review,
+                defaults={
+                'score': raw_score,
+                'remarks': request.POST.get('remarks', '').strip(),
+                'graded_by': request.user,
+                }
+            )
+            messages.success(
+                request,
+                f'Marks saved for {team.team_name} - {review.name}.'
+            )
             return redirect('admin_marks')
-        team = Team.objects.filter(id=request.POST.get('team_id')).first()
-        if team is None:
-            messages.error(request, 'Select a team before saving marks.')
-            return redirect('admin_marks')
-        raw_score = request.POST.get('score', '').strip()
-        if not raw_score:
-            messages.error(request, 'Enter a score to award marks.')
-            return redirect('admin_marks')
-        messages.success(request, f'Marks saved for {team.team_name} - {review.name}.')
     reviews = Review.objects.annotate(team_total=Count('marks')).order_by('scheduled_at', 'name')
     teams = Team.objects.select_related('track').order_by('team_name')
     marks = Marks.objects.select_related('team', 'review', 'graded_by').order_by('-updated_at')
@@ -375,103 +486,152 @@ def admin_announcements(request):
 def admin_tracks(request):
     if not request.user.is_staff:
         return redirect('home')
-    if request.method == 'POST':
-        action = request.POST.get('action', 'toggle_track')
-        if action == 'add_problem_statement':
-            track = get_object_or_404(Track, id=request.POST.get('track_id'))
-            title = request.POST.get('title', '').strip()
+    if request.method == "POST":
+        action = request.POST.get("action", "").strip()
+        if action == "add_problem_statement":
+            track = get_object_or_404(
+                Track,
+                id=request.POST.get("track_id")
+            )
+            title = request.POST.get("title", "").strip()
             if not title:
-                messages.error(request, 'Problem statement title is required.')
-            else:
-                ProblemStatement.objects.create(
-                    track=track,
-                    code=request.POST.get('code', '').strip(),
-                    title=title,
-                    description=_limit_text(request.POST.get('description')),
-                    context=_limit_text(request.POST.get('context')),
-                    impact=_limit_text(request.POST.get('impact')),
-                    min_requirements=_limit_text(request.POST.get('min_requirements')),
-                    dependencies=_limit_text(request.POST.get('dependencies')),
-                    slot_capacity=_parse_positive_int(request.POST.get('slot_capacity')),
-                    is_published=request.POST.get('is_published') == 'on',
+                messages.error(request, "Problem title is required.")
+                return redirect("admin_tracks")
+            ProblemStatement.objects.create(
+                track=track,
+                code=request.POST.get("code", "").strip(),
+                title=title,
+                description=_limit_text(
+                    request.POST.get("statement")
+                ),
+                context=_limit_text(
+                    request.POST.get("context")
+                ),
+                min_requirements=_limit_text(
+                    request.POST.get("minimum_requirements")
+                ),
+                dependencies=_limit_text(
+                    request.POST.get("dependencies")
+                ),
+                slot_capacity=_parse_positive_int(
+                    request.POST.get("slot_capacity")
+                ),
+                is_active=True,
+                is_published=request.POST.get("is_published") == "on",
+            )
+            messages.success(
+                request,
+                "Problem statement added successfully."
+            )
+            return redirect("admin_tracks")
+        if action == "edit_problem_statement":
+            ps = get_object_or_404(
+                ProblemStatement,
+                id=request.POST.get("problem_statement_id")
+            )
+            ps.track_id = request.POST.get("track_id")
+            ps.code = request.POST.get("code", "").strip()
+            ps.title = request.POST.get("title", "").strip()
+            ps.description = _limit_text(
+                request.POST.get("statement")
+            )
+            ps.context = _limit_text(
+                request.POST.get("context")
+            )
+            ps.min_requirements = _limit_text(
+                request.POST.get("minimum_requirements")
+            )
+            ps.dependencies = _limit_text(
+                request.POST.get("dependencies")
+            )
+            ps.slot_capacity = _parse_positive_int(
+                request.POST.get("slot_capacity")
+            )
+            ps.is_published = (
+                request.POST.get("is_published") == "on"
+            )
+            ps.save()
+            messages.success(
+                request,
+                "Problem statement updated."
+            )
+            return redirect("admin_tracks")
+        if action == "delete_problem_statement":
+            ps = get_object_or_404(
+                ProblemStatement,
+                id=request.POST.get("problem_statement_id")
+            )
+            ps.delete()
+            messages.success(
+                request,
+                "Problem statement deleted."
+            )
+            return redirect("admin_tracks")
+        if action == "toggle_problem_published":
+            ps = get_object_or_404(
+                ProblemStatement,
+                id=request.POST.get("problem_statement_id")
+            )
+            ps.is_published = not ps.is_published
+            ps.save(update_fields=[
+                "is_published",
+                "updated_at"
+            ])
+            return redirect("admin_tracks")
+        if action == "toggle_track":
+            track = get_object_or_404(
+                Track,
+                id=request.POST.get("track_id")
+            )
+            field = request.POST.get("field")
+            if field in [
+                "is_published",
+                "is_problem_live"
+            ]:
+                setattr(
+                    track,
+                    field,
+                    not getattr(track, field)
                 )
-                messages.success(request, f'Problem statement "{title}" added.')
-            return redirect(_admin_tracks_redirect(request))
-        if action == 'edit_problem_statement':
-            problem_statement = get_object_or_404(
-                ProblemStatement, id=request.POST.get('problem_statement_id')
+                track.save(
+                    update_fields=[
+                        field,
+                        "updated_at"
+                    ]
+                )
+            return redirect("admin_tracks")
+    tracks = (
+        Track.objects
+        .prefetch_related(
+            Prefetch(
+                "problem_statement_slots",
+                queryset=ProblemStatement.objects.order_by(
+                    "code",
+                    "title"
+                ),
+                to_attr="public_problem_statements"
             )
-            title = request.POST.get('title', '').strip()
-            if not title:
-                messages.error(request, 'Problem statement title is required.')
-                return redirect(_admin_tracks_redirect(request))
-            problem_statement.code = request.POST.get('code', '').strip()
-            problem_statement.title = title
-            problem_statement.description = _limit_text(request.POST.get('description'))
-            problem_statement.context = _limit_text(request.POST.get('context'))
-            problem_statement.impact = _limit_text(request.POST.get('impact'))
-            problem_statement.min_requirements = _limit_text(request.POST.get('min_requirements'))
-            problem_statement.dependencies = _limit_text(request.POST.get('dependencies'))
-            problem_statement.slot_capacity = _parse_positive_int(request.POST.get('slot_capacity'))
-            problem_statement.is_active = request.POST.get('is_active') == 'on'
-            problem_statement.is_published = request.POST.get('is_published') == 'on'
-            problem_statement.save()
-            messages.success(request, f'Problem statement "{title}" saved.')
-            return redirect(_admin_tracks_redirect(request))
-        if action == 'update_slot_capacity':
-            problem_statement = get_object_or_404(
-                ProblemStatement, id=request.POST.get('problem_statement_id')
-            )
-            problem_statement.slot_capacity = _parse_positive_int(request.POST.get('slot_capacity'))
-            problem_statement.is_active = request.POST.get('is_active') == 'on'
-            problem_statement.save(update_fields=['slot_capacity', 'is_active', 'updated_at'])
-            messages.success(request, f'Slots updated for "{problem_statement.title}".')
-            return redirect(_admin_tracks_redirect(request))
-        if action == 'toggle_problem_published':
-            problem_statement = get_object_or_404(
-                ProblemStatement, id=request.POST.get('problem_statement_id')
-            )
-            problem_statement.is_published = not problem_statement.is_published
-            problem_statement.save(update_fields=['is_published', 'updated_at'])
-            state_label = 'published' if problem_statement.is_published else 'unpublished'
-            messages.success(request, f'"{problem_statement.title}" {state_label}.')
-            return redirect(_admin_tracks_redirect(request))
-        if action == 'delete_problem_statement':
-            problem_statement = get_object_or_404(
-                ProblemStatement, id=request.POST.get('problem_statement_id')
-            )
-            title = problem_statement.title
-            problem_statement.delete()
-            messages.success(request, f'Problem statement "{title}" deleted.')
-            return redirect(_admin_tracks_redirect(request))
-        track = get_object_or_404(Track, id=request.POST.get('track_id'))
-        field = request.POST.get('field')
-        if field in {'is_published', 'is_problem_live'}:
-            setattr(track, field, not getattr(track, field))
-            track.save(update_fields=[field, 'updated_at'])
-        return redirect(_admin_tracks_redirect(request))
-    selected_track_id = request.GET.get('track', '').strip()
-    search_query = request.GET.get('q', '').strip()
-    problem_statements = (
-        ProblemStatement.objects.select_related('track')
-        .annotate(booked_total=Count('booked_teams'))
-        .order_by('track__name', 'code', 'title')
-    )
-    if selected_track_id:
-        problem_statements = problem_statements.filter(track_id=selected_track_id)
-    if search_query:
-        problem_statements = problem_statements.filter(
-            Q(title__icontains=search_query)
-            | Q(code__icontains=search_query)
-            | Q(description__icontains=search_query)
         )
+        .order_by("name")
+    )
+    problem_statements = (
+        ProblemStatement.objects
+        .select_related("track")
+        .order_by(
+            "track__name",
+            "code",
+            "title"
+        )
+    )
     context = {
-        'tracks': Track.objects.annotate(team_total=Count('teams')).order_by('name'),
-        'problem_statements': problem_statements,
-        'selected_track_id': selected_track_id,
-        'search_query': search_query,
+        "tracks": tracks,
+        "problem_statements": problem_statements,
     }
-    return render(request, 'parallax/admin/tracks.html', context)
+    return render(
+        request,
+        "parallax/admin/tracks.html",
+        context
+    )
 @login_required(login_url='team_login')
 def admin_sponsors(request):
     if not request.user.is_staff:

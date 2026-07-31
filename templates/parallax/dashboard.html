@@ -1,101 +1,1098 @@
-{% extends 'parallax/base.html' %}
-{% load static %}
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-{% endblock %}
-{% block title %}Team Dashboard | Parallax{% endblock %}
+{% comment %}
+====================================================================
+  PARALLAX — PARTICIPANT DASHBOARD (participant_dashboard.html)
+====================================================================
+  Frontend-only Django template. No models/views/URLs/auth are
+  implemented here. Every dynamic value below is a template variable
+  the view layer is expected to pass in. Nothing is hardcoded.
 
-{% block content %}
-<section class="dashboard-shell">
-  <div class="dashboard-wrap">
+  EXPECTED CONTEXT VARIABLES (generic names, backend-agnostic)
+  --------------------------------------------------------------
+  team = {
+    "name": str|None,            # None/empty -> team-name modal shows
+    "id": str,
+    "leader_name": str,
+    "leader_email": str,
+    "college": str,
+    "registration_date": str,    # pre-formatted by backend
+    "track_id": str|None,
+  }
+  registration = { "status": "complete"|"pending"|"approved"|"rejected" }
+  tracks = [ {"id": str, "name": str} , ... ]      # for the dropdown
+  track = {
+    "released": bool,
+    "name": str|None,
+    "public_problem_statements": [
+       {"id": str, "code": str, "title": str, "description": str,
+        "context": str, "expected_impact": str,
+        "minimum_requirements": [str, ...],
+        "dependencies": [str, ...]}, ...
+    ]
+  }
+  marks = [ {"round": str, "score": num, "weightage": str,
+             "remarks": str, "last_updated": str}, ... ]   # [] -> empty state
+  members = [ {"name": str, "role": str, "email": str|None,
+               "phone": str|None, "is_leader": bool}, ... ]
+  notifications = [ {"title": str, "message": str, "timestamp": str}, ... ]
+  announcements = [ {"title": str, "message": str, "timestamp": str,
+                      "tag": "general"|"urgent"|"schedule"}, ... ]
+  downloads = { "rulebook_url": str|None, "schedule_url": str|None,
+                "resources_url": str|None, "certificates_url": str|None,
+                "certificates_enabled": bool }
+  timeline = [ {"stage": str, "status": "done"|"active"|"upcoming",
+                "date": str|None}, ... ]
+  urls = {                                    # backend endpoints (submit-only)
+    "home": str, "set_team_name": str, "select_track": str, "logout": str
+  }
+====================================================================
+{% endcomment %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Participant Dashboard · Parallax</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#080E22;
+    --bg-mid:#0D1B3D;
+    --surface:rgba(19,32,64,0.62);
+    --surface-solid:#101E3F;
+    --surface-2:rgba(255,255,255,0.045);
+    --border:rgba(255,255,255,0.14);
+    --border-soft:rgba(255,255,255,0.09);
+    --text-primary:#EAF2FF;
+    --text-secondary:#93A8D1;
+    --text-muted:#5E7299;
+    --accent:#22D3EE;
+    --accent-2:#3B82F6;
+    --accent-dark:#0E9AB8;
+    --accent-soft:rgba(34,211,238,0.14);
+    --accent-gradient:linear-gradient(135deg,#22D3EE,#3B82F6);
+    --success:#34D399;
+    --success-soft:rgba(52,211,153,0.14);
+    --warning:#FBBF24;
+    --warning-soft:rgba(251,191,36,0.14);
+    --danger:#8FA3CC;
+    --danger-soft:rgba(143,163,204,0.14);
+    --danger-strong:#F87171;
+    --danger-strong-soft:rgba(248,113,113,0.14);
+    --radius:12px;
+    --radius-sm:8px;
+    --font-body:'Inter',system-ui,-apple-system,sans-serif;
+    --font-display:'Space Grotesk','Inter',system-ui,sans-serif;
+    --font-mono:'JetBrains Mono','SFMono-Regular',Consolas,monospace;
+    --sidebar-w:240px;
+  }
 
-    <section class="dashboard-hero">
-      <h1>Welcome, {{ team.team_name }}</h1>
-      <p>Manage your team, track selection and announcements.</p>
-    </section>
+  *{box-sizing:border-box;margin:0;padding:0;}
 
-    <div class="dashboard-grid">
+  body{
+    background:linear-gradient(160deg,var(--bg-deep) 0%,var(--bg-mid) 45%,var(--bg-deep) 100%);
+    font-family:var(--font-body);
+    color:var(--text-primary);
+    min-height:100vh;
+    line-height:1.5;
+    position:relative;
+  }
 
-      <div>
+  body::before{
+    content:'';
+    position:fixed;
+    top:-260px; left:50%;
+    transform:translateX(-50%);
+    width:1000px; height:1000px;
+    background:radial-gradient(circle, rgba(34,211,238,0.16), transparent 62%);
+    pointer-events:none;
+    z-index:0;
+  }
 
-        <div class="dashboard-card">
-          <h2>Team Overview</h2>
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;}
+  ul{list-style:none;}
 
-          <div class="card-grid">
+  button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible, a:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+  }
 
-            <div class="info-box">
-              <div class="info-label">Team Name</div>
-              <div class="info-value">{{ team.team_name }}</div>
-            </div>
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:rgba(34,211,238,0.3);border-radius:20px;}
 
-            <div class="info-box">
-              <div class="info-label">Team Code</div>
-              <div class="info-value">{{ team.team_code }}</div>
-            </div>
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center;
+    gap:8px;
+    padding:11px 18px;
+    border-radius:var(--radius-sm);
+    font-size:14px;
+    font-weight:600;
+    border:1px solid transparent;
+    background:none;
+    color:var(--text-primary);
+    transition:box-shadow .18s ease, background .18s ease, border-color .18s ease, transform .12s ease;
+  }
+  .btn:active{transform:scale(.98);}
 
-            <div class="info-box">
-              <div class="info-label">Leader</div>
-              <div class="info-value">{{ participant.full_name }}</div>
-            </div>
-          </div>
-        </div>
-        <div class="dashboard-card">
-          <h2>Track Selection</h2>
+  .btn-primary{
+    background:var(--accent-gradient);
+    color:#04121C;
+    box-shadow:0 6px 22px rgba(34,211,238,0.28);
+  }
+  .btn-primary:hover{box-shadow:0 8px 26px rgba(34,211,238,0.42);}
+  .btn-primary:disabled{background:rgba(255,255,255,0.08); color:var(--text-muted); box-shadow:none; cursor:not-allowed;}
 
-          {% if team.problem_statement %}
-            <p><strong>Track:</strong> {{ team.problem_statement.track.name }}</p>
-            <p><strong>Problem:</strong> {{ team.problem_statement.code }} - {{ team.problem_statement.title }}</p>
-            <span class="dashboard-badge success">Locked</span>
-          {% else %}
-            <p>No problem statement selected.</p>
-            <button class="dashboard-button">Select Track</button>
-          {% endif %}
-        </div>
+  .btn-secondary{background:rgba(255,255,255,0.04); border-color:var(--border); color:var(--text-primary);}
+  .btn-secondary:hover{background:rgba(255,255,255,0.08);}
 
-        <div class="dashboard-card">
-          <h2>Scorecard</h2>
+  .btn-outline-danger{background:transparent; border-color:var(--border); color:var(--danger);}
+  .btn-outline-danger:hover{background:var(--danger-soft);}
 
-          {% if marks %}
-          <table class="dashboard-table">
-            <thead>
-            <tr><th>Round</th><th>Score</th></tr>
-            </thead>
-            <tbody>
-            {% for m in marks %}
-            <tr>
-              <td>{{ m.round }}</td>
-              <td>{{ m.score }}</td>
-            </tr>
-            {% endfor %}
-            </tbody>
-          </table>
-          {% else %}
-          <p>Scores have not been released.</p>
-          {% endif %}
-        </div>
+  .btn-small{padding:7px 14px;font-size:12.5px;}
+  .btn[disabled]{opacity:.5; cursor:not-allowed;}
 
+  /* ================= SKELETON / LOADING ================= */
+  .skel{
+    background:linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.09) 37%, rgba(255,255,255,0.04) 63%);
+    background-size:400% 100%;
+    animation:skel-shine 1.4s ease infinite;
+    border-radius:6px;
+  }
+  @keyframes skel-shine{0%{background-position:100% 0;}100%{background-position:0 0;}}
+
+  /* ================= APP SHELL ================= */
+  .app-shell{display:flex; min-height:100vh; position:relative; z-index:1;}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:var(--sidebar-w);
+    flex-shrink:0;
+    background:rgba(9,16,36,0.82);
+    backdrop-filter:blur(18px);
+    border-right:1px solid var(--border-soft);
+    display:flex;
+    flex-direction:column;
+    padding:22px 16px;
+    position:sticky;
+    top:0;
+    height:100vh;
+    z-index:40;
+    transition:transform .25s ease;
+  }
+
+  .sidebar-brand{display:flex; align-items:center; gap:11px; padding:4px 8px 26px;}
+
+  .brand-mark{
+    width:36px;height:36px;
+    border-radius:9px;
+    background:var(--accent-gradient);
+    color:#04121C;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:14px;
+    flex-shrink:0;
+    box-shadow:0 4px 16px rgba(34,211,238,0.35);
+  }
+
+  .sidebar-brand .brand-name{font-family:var(--font-display); font-weight:700; font-size:15px; color:var(--text-primary);}
+  .sidebar-brand .brand-sub{font-size:10.5px; color:var(--text-muted); letter-spacing:.06em; text-transform:uppercase;}
+
+  .sidebar-nav{display:flex; flex-direction:column; gap:3px; flex:1;}
+
+  .nav-item{
+    display:flex; align-items:center; gap:12px;
+    padding:10px 12px;
+    border-radius:var(--radius-sm);
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--text-secondary);
+    border:1px solid transparent;
+    background:none;
+    width:100%;
+    text-align:left;
+  }
+  .nav-item svg{width:17px;height:17px;flex-shrink:0;}
+  .nav-item:hover{background:rgba(255,255,255,0.04); color:var(--text-primary);}
+  .nav-item.active{background:var(--accent-soft); color:var(--accent); border-color:rgba(34,211,238,0.25);}
+
+  .sidebar-foot{display:flex; flex-direction:column; gap:4px; padding-top:14px; border-top:1px solid var(--border-soft);}
+
+  .sidebar-toggle{
+    display:none;
+    position:fixed; top:16px; left:16px; z-index:60;
+    width:40px;height:40px;
+    border-radius:10px;
+    background:var(--surface-solid);
+    border:1px solid var(--border);
+    color:var(--text-primary);
+    align-items:center; justify-content:center;
+  }
+
+  .sidebar-scrim{display:none; position:fixed; inset:0; background:rgba(4,9,22,0.6); z-index:35;}
+
+  /* ---------- Main column ---------- */
+  .main-col{flex:1; min-width:0; display:flex; flex-direction:column;}
+
+  header.topbar{
+    background:rgba(9,16,36,0.72);
+    backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--border-soft);
+    padding:14px 30px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:12px;
+    position:sticky;
+    top:0;
+    z-index:10;
+  }
+
+  .topbar-left{display:flex; align-items:center; gap:14px;}
+  .back-link{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:13px; font-weight:600; color:var(--text-secondary);
+    padding:8px 13px; border-radius:20px;
+    border:1px solid var(--border-soft);
+    background:rgba(255,255,255,0.03);
+  }
+  .back-link:hover{color:var(--text-primary); border-color:var(--border);}
+
+  .topbar-right{display:flex; align-items:center; gap:14px;}
+
+  .sync-pill{
+    display:flex;align-items:center;gap:6px;
+    font-size:12px;color:var(--text-secondary);
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--border-soft);
+    padding:6px 10px;
+    border-radius:20px;
+  }
+  .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--success);flex-shrink:0;box-shadow:0 0 6px var(--success);}
+
+  main.layout{
+    max-width:1320px;
+    width:100%;
+    margin:0 auto;
+    padding:26px 30px 70px;
+  }
+
+  .welcome-block{margin-bottom:22px;}
+  .eyebrow{
+    font-family:var(--font-display);
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+    font-weight:600;
+    margin-bottom:6px;
+  }
+  .welcome-block h1{font-family:var(--font-display); font-size:26px; font-weight:700;}
+  .welcome-block p{color:var(--text-secondary); font-size:13.5px; margin-top:4px;}
+
+  .grid{
+    display:grid;
+    grid-template-columns:1fr 340px;
+    gap:20px;
+    align-items:start;
+  }
+  @media (max-width:980px){ .grid{grid-template-columns:1fr;} }
+
+  .col-main{display:flex;flex-direction:column;gap:20px;}
+  .col-side{display:flex;flex-direction:column;gap:20px;}
+
+  .row-2{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  @media (max-width:640px){ .row-2{grid-template-columns:1fr;} }
+
+  /* ---------- Card base ---------- */
+  .card{
+    background:var(--surface);
+    backdrop-filter:blur(18px);
+    border:1px solid var(--border-soft);
+    border-radius:var(--radius);
+    padding:23px 22px 22px;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 18px 40px rgba(0,0,0,0.28);
+  }
+  .card::before{
+    content:'';
+    position:absolute;
+    top:0; left:0; right:0;
+    height:3px;
+    background:var(--accent-gradient);
+  }
+
+  .card-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .card-header h2{font-family:var(--font-display); font-size:15px; font-weight:700; letter-spacing:0.01em; color:var(--text-primary);}
+  .card-header .card-icon{color:var(--accent); display:flex; align-items:center;}
+  .card-header-title{display:flex; align-items:center; gap:10px;}
+
+  .count-badge{
+    font-size:12px; font-weight:600; color:var(--accent);
+    background:var(--accent-soft); padding:2px 9px; border-radius:20px;
+  }
+
+  .empty-state{
+    text-align:center;
+    color:var(--text-muted);
+    font-size:13px;
+    padding:30px 10px;
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+  }
+  .empty-state svg{opacity:.5;}
+
+  /* ---------- Card 1: Team Overview ---------- */
+  .info-row{
+    display:flex; justify-content:space-between; gap:12px;
+    padding:9px 0;
+    border-bottom:1px solid var(--border-soft);
+    font-size:13px;
+  }
+  .info-row:last-child{border-bottom:none;}
+  .info-row .label{color:var(--text-secondary);}
+  .info-row .value{font-weight:600; text-align:right; color:var(--text-primary);}
+  .info-row .value.mono{font-family:var(--font-mono); font-size:12.5px;}
+
+  /* ---------- Card 2: Registration status badges ---------- */
+  .status-badge{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.03em;
+    padding:7px 14px; border-radius:20px; white-space:nowrap;
+  }
+  .status-badge::before{content:''; width:6px; height:6px; border-radius:50%; background:currentColor;}
+  .status-badge.st-complete{background:var(--success-soft); color:var(--success);}
+  .status-badge.st-pending{background:var(--warning-soft); color:var(--warning);}
+  .status-badge.st-approved{background:var(--accent-soft); color:var(--accent);}
+  .status-badge.st-rejected{background:var(--danger-strong-soft); color:var(--danger-strong);}
+  .reg-status-desc{font-size:13px; color:var(--text-secondary); margin-top:12px;}
+
+  /* ---------- Card 3: Track selection ---------- */
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:6px;}
+  select, input[type="text"]{
+    width:100%;
+    padding:11px 12px;
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    font-size:14px;
+    font-family:inherit;
+    background:rgba(255,255,255,0.04);
+    color:var(--text-primary);
+    appearance:none;
+  }
+  select{
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2393A8D1'%3E%3Cpath d='M5.5 7.5l4.5 4.5 4.5-4.5' stroke='%2393A8D1' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 12px center;
+    padding-right:34px;
+  }
+  select:focus, input[type="text"]:focus{
+    border-color:var(--accent);
+    background-color:rgba(255,255,255,0.06);
+    box-shadow:0 0 0 3px rgba(34,211,238,0.15);
+  }
+  select:disabled{opacity:.5; cursor:not-allowed;}
+
+  .track-current{
+    display:flex; align-items:center; gap:10px;
+    padding:11px 13px;
+    border:1px solid var(--border-soft);
+    border-radius:var(--radius-sm);
+    background:rgba(34,211,238,0.05);
+    font-size:13px;
+    margin-bottom:14px;
+  }
+  .track-current .dot{width:8px;height:8px;border-radius:50%;background:var(--accent); flex-shrink:0; box-shadow:0 0 6px var(--accent);}
+
+  /* ---------- Card 4: Problem statements accordion ---------- */
+  .accordion{display:flex; flex-direction:column; gap:10px;}
+  .accordion-item{border:1px solid var(--border-soft); border-radius:var(--radius-sm); background:rgba(255,255,255,0.025); overflow:hidden;}
+  .accordion-trigger{
+    width:100%; display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:14px 16px; background:none; border:none; color:var(--text-primary); text-align:left;
+  }
+  .accordion-trigger:hover{background:rgba(255,255,255,0.03);}
+  .accordion-trigger .ps-code{font-family:var(--font-mono); font-size:11px; color:var(--accent); font-weight:700; margin-right:10px;}
+  .accordion-trigger .ps-title{font-size:13.5px; font-weight:600; flex:1;}
+  .accordion-trigger .chevron{color:var(--text-muted); transition:transform .2s ease; flex-shrink:0;}
+  .accordion-item.open .chevron{transform:rotate(180deg); color:var(--accent);}
+
+  .accordion-panel{max-height:0; overflow:hidden; transition:max-height .28s ease;}
+  .accordion-item.open .accordion-panel{max-height:900px;}
+  .accordion-body{padding:0 16px 18px; display:flex; flex-direction:column; gap:14px;}
+  .ps-block .ps-block-label{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--accent); margin-bottom:5px;}
+  .ps-block p{font-size:13px; color:var(--text-secondary); line-height:1.6;}
+  .ps-block ul{display:flex; flex-direction:column; gap:5px;}
+  .ps-block ul li{font-size:13px; color:var(--text-secondary); padding-left:16px; position:relative;}
+  .ps-block ul li::before{content:'—'; position:absolute; left:0; color:var(--accent-2);}
+
+  /* ---------- Card 5: Scorecard ---------- */
+  .score-list{display:flex; flex-direction:column; gap:10px;}
+  .score-row{
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    padding:14px 16px; border:1px solid var(--border-soft); border-radius:var(--radius-sm);
+    background:rgba(255,255,255,0.03); flex-wrap:wrap;
+  }
+  .score-round{font-size:13.5px; font-weight:700; color:var(--text-primary);}
+  .score-round .weightage{display:block; font-size:11.5px; font-weight:500; color:var(--text-muted); margin-top:2px;}
+  .score-mid{flex:1; min-width:160px;}
+  .score-remarks{font-size:12.5px; color:var(--text-secondary);}
+  .score-updated{font-size:11px; color:var(--text-muted); margin-top:3px;}
+  .score-value{font-family:var(--font-mono); font-size:19px; font-weight:700; color:var(--accent); flex-shrink:0;}
+
+  /* ---------- Card 6: Team members ---------- */
+  .members-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:12px;}
+  .member-card{
+    display:flex; align-items:center; gap:12px;
+    padding:14px; border:1px solid var(--border-soft); border-radius:var(--radius-sm);
+    background:rgba(255,255,255,0.025); position:relative;
+  }
+  .member-card.leader{border-color:rgba(34,211,238,0.35); background:rgba(34,211,238,0.05);}
+  .member-avatar{
+    width:42px; height:42px; border-radius:50%;
+    background:var(--accent-gradient); color:#04121C;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display); font-weight:700; font-size:15px;
+    flex-shrink:0;
+  }
+  .member-info{min-width:0;}
+  .member-name{font-size:13.5px; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
+  .leader-chip{font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--accent); background:var(--accent-soft); padding:2px 7px; border-radius:20px;}
+  .member-role{font-size:12px; color:var(--text-secondary); margin-top:1px;}
+  .member-contact{font-size:11.5px; color:var(--text-muted); margin-top:3px; font-family:var(--font-mono); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+
+  /* ---------- Card 7 / 8: Notifications & Announcements ---------- */
+  .feed-list{display:flex; flex-direction:column; gap:10px; max-height:380px; overflow-y:auto; padding-right:6px;}
+  .feed-item{border:1px solid var(--border-soft); border-radius:var(--radius-sm); padding:12px 14px; background:rgba(255,255,255,0.03);}
+  .feed-item .meta{display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;}
+  .tag{font-size:10.5px; font-weight:700; letter-spacing:0.03em; text-transform:uppercase; padding:2px 8px; border-radius:20px;}
+  .tag.general{background:var(--accent-soft); color:var(--accent);}
+  .tag.urgent{background:var(--danger-strong-soft); color:var(--danger-strong);}
+  .tag.schedule{background:var(--warning-soft); color:var(--warning);}
+  .feed-item .timestamp{font-size:11.5px; color:var(--text-muted);}
+  .feed-item .feed-title{font-size:13px; font-weight:700; color:var(--text-primary); margin-bottom:3px;}
+  .feed-item .feed-body{font-size:12.5px; color:var(--text-secondary); line-height:1.5;}
+
+  /* ---------- Card 9: Downloads ---------- */
+  .downloads-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  @media (max-width:480px){ .downloads-grid{grid-template-columns:1fr;} }
+  .download-btn{
+    display:flex; align-items:center; gap:10px;
+    padding:13px 14px; border:1px solid var(--border-soft); border-radius:var(--radius-sm);
+    background:rgba(255,255,255,0.03); color:var(--text-primary); font-size:13px; font-weight:600;
+  }
+  .download-btn:hover{border-color:var(--accent); background:rgba(34,211,238,0.06);}
+  .download-btn svg{color:var(--accent); flex-shrink:0;}
+  .download-btn[aria-disabled="true"]{opacity:.45; cursor:not-allowed; pointer-events:none;}
+  .download-btn .dl-sub{display:block; font-size:10.5px; font-weight:500; color:var(--text-muted); margin-top:1px;}
+
+  /* ---------- Card 10: Event timeline ---------- */
+  .timeline{display:flex; flex-direction:column;}
+  .tl-step{display:flex; gap:14px; padding:12px 0; position:relative;}
+  .tl-step .dot{
+    width:22px;height:22px; border-radius:50%;
+    background:rgba(255,255,255,0.04); border:2px solid var(--border);
+    flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    font-size:11px; color:var(--text-muted); margin-top:1px; z-index:1;
+  }
+  .tl-step.done .dot{background:var(--success); border-color:var(--success); color:#04241A;}
+  .tl-step.active .dot{background:var(--accent-gradient); border-color:var(--accent); color:#04121C; box-shadow:0 0 0 4px rgba(34,211,238,0.16);}
+  .tl-step .tl-text .tl-title{font-size:13.5px; font-weight:700; color:var(--text-primary);}
+  .tl-step.upcoming .tl-text .tl-title{color:var(--text-secondary); font-weight:600;}
+  .tl-step .tl-text .tl-date{font-size:11.5px; color:var(--text-muted); margin-top:1px;}
+  .tl-step:not(:last-child)::after{
+    content:''; position:absolute; left:10px; top:36px; width:2px;
+    height:calc(100% - 14px); background:var(--border-soft);
+  }
+  .tl-step.done:not(:last-child)::after{background:var(--success);}
+
+  /* ================= TEAM NAME MODAL ================= */
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(4,9,22,0.72);
+    display:flex; align-items:center; justify-content:center;
+    z-index:200; padding:20px;
+  }
+  .modal-box{
+    background:var(--surface-solid);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    width:100%; max-width:420px;
+    padding:30px 26px 26px;
+    box-shadow:0 24px 70px rgba(0,0,0,0.55), 0 0 50px rgba(34,211,238,0.10);
+  }
+  .modal-box .eyebrow{margin-bottom:8px;}
+  .modal-title{font-family:var(--font-display); font-size:21px; font-weight:700; margin-bottom:6px;}
+  .modal-sub{color:var(--text-secondary); font-size:13.5px; margin-bottom:22px;}
+  .field .error-msg{display:none; color:var(--danger-strong); font-size:12px; margin-top:5px;}
+  .field.has-error input{border-color:var(--danger-strong);}
+  .field.has-error .error-msg{display:block;}
+
+  /* ================= UTIL ================= */
+  .hidden{display:none !important;}
+  .sr-only{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
+
+  @media (max-width:900px){
+    .sidebar{position:fixed; top:0; left:0; transform:translateX(-100%); box-shadow:0 0 60px rgba(0,0,0,0.5);}
+    .sidebar.open{transform:translateX(0);}
+    .sidebar-toggle{display:flex;}
+    .sidebar-scrim.visible{display:block;}
+    main.layout{padding-top:20px;}
+    header.topbar{padding-left:64px;}
+  }
+</style>
+</head>
+<body>
+
+{% comment %} ================= TEAM NAME MODAL (Step 2) ================= {% endcomment %}
+{% if not team.name %}
+<div class="modal-overlay" id="teamNameOverlay">
+  <div class="modal-box">
+    <div class="eyebrow">One quick step</div>
+    <h1 class="modal-title">Enter your team name</h1>
+    <p class="modal-sub">This is how your team will appear across Parallax. You can't change it later, so pick carefully.</p>
+
+    <form id="teamNameForm" data-action="{{ urls.set_team_name }}" novalidate>
+      {% csrf_token %}
+      <div class="field" id="field-teamNameInput">
+        <label for="teamNameInput">Team name</label>
+        <input type="text" id="teamNameInput" name="team_name" placeholder="e.g. Byte Force" autocomplete="off" maxlength="60">
+        <div class="error-msg">Enter a team name to continue.</div>
       </div>
+      <button type="submit" class="btn btn-primary" id="teamNameSaveBtn" style="width:100%;">Save and continue</button>
+    </form>
+  </div>
+</div>
+{% endif %}
 
-      <aside>
+<div class="sidebar-scrim" id="sidebarScrim"></div>
+<button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle navigation" aria-expanded="false">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
 
-        <div class="dashboard-card">
-          <h2>Announcements</h2>
+<div class="app-shell">
 
-          {% for announcement in announcements %}
-            <div class="announcement-card">
-              <h3>{{ announcement.title }}</h3>
-              <p>{{ announcement.content }}</p>
-            </div>
-          {% empty %}
-            <p>No announcements.</p>
-          {% endfor %}
-        </div>
-
-      </aside>
-
+  {% comment %} ================= SIDEBAR ================= {% endcomment %}
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-mark">PX</div>
+      <div>
+        <div class="brand-name">Parallax</div>
+        <div class="brand-sub">Participant</div>
+      </div>
     </div>
 
-  </div>
-</section>
-{% endblock %}
+    <nav class="sidebar-nav" aria-label="Dashboard navigation">
+      <a href="#dashboard-top" class="nav-item active" data-nav="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Dashboard
+      </a>
+      <a href="#track-selection" class="nav-item" data-nav="track">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".6" fill="currentColor"/></svg>
+        Track Selection
+      </a>
+      <a href="#scorecard" class="nav-item" data-nav="scorecard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.4 5.3 5.6.6-4.2 3.9 1.2 5.6L12 15.9 6.9 18.4 8.1 12.8 3.9 8.9l5.6-.6L12 3z"/></svg>
+        Scorecard
+      </a>
+      <a href="#announcements" class="nav-item" data-nav="announcements">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a2 2 0 0 0 2 2h1l3 4V5L6 9H5a2 2 0 0 0-2 2z"/><path d="M15 8a4 4 0 0 1 0 8"/></svg>
+        Announcements
+      </a>
+      <a href="#downloads" class="nav-item" data-nav="downloads">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 19h16"/></svg>
+        Downloads
+      </a>
+    </nav>
 
+    <div class="sidebar-foot">
+      <a href="{{ urls.home|default:'#' }}" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
+        Back to Home
+      </a>
+      <button class="nav-item" id="logoutBtn" data-action="{{ urls.logout }}" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+        Log out
+      </button>
+    </div>
+  </aside>
+
+  {% comment %} ================= MAIN COLUMN ================= {% endcomment %}
+  <div class="main-col">
+    <header class="topbar">
+      <div class="topbar-left">
+        <a href="{{ urls.home|default:'#' }}" class="back-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+          Back to Home
+        </a>
+      </div>
+      <div class="topbar-right">
+        <div class="sync-pill"><span class="sync-dot"></span> Synced with organizer dashboard</div>
+      </div>
+    </header>
+
+    <main class="layout" id="dashboard-top">
+      <div class="welcome-block">
+        <div class="eyebrow">Participant Dashboard</div>
+        <h1>Welcome, {% if team.leader_name %}{{ team.leader_name }}{% else %}<span class="skel" style="display:inline-block;width:160px;height:22px;vertical-align:middle;"></span>{% endif %}</h1>
+        <p>Track your team's registration, track selection, scoring and updates in one place.</p>
+      </div>
+
+      <div class="grid">
+        <div class="col-main">
+
+          {% comment %} ===== ROW: Team Overview + Registration Status ===== {% endcomment %}
+          <div class="row-2">
+            {% comment %} ---- Card 1: Team Overview ---- {% endcomment %}
+            <section class="card" id="team-overview">
+              <div class="card-header">
+                <div class="card-header-title">
+                  <span class="card-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+                  <h2>Team Overview</h2>
+                </div>
+              </div>
+              <div class="info-row"><span class="label">Team Name</span><span class="value">{{ team.name|default:"—" }}</span></div>
+              <div class="info-row"><span class="label">Team ID</span><span class="value mono">{{ team.id|default:"—" }}</span></div>
+              <div class="info-row"><span class="label">Team Leader</span><span class="value">{{ team.leader_name|default:"—" }}</span></div>
+              <div class="info-row"><span class="label">Leader Email</span><span class="value">{{ team.leader_email|default:"—" }}</span></div>
+              <div class="info-row"><span class="label">College</span><span class="value">{{ team.college|default:"—" }}</span></div>
+              <div class="info-row"><span class="label">Registration Date</span><span class="value">{{ team.registration_date|default:"—" }}</span></div>
+              <div class="info-row"><span class="label">Current Track</span><span class="value">{{ track.name|default:"Not selected" }}</span></div>
+            </section>
+
+            {% comment %} ---- Card 2: Registration Status ---- {% endcomment %}
+            <section class="card" id="registration-status">
+              <div class="card-header">
+                <div class="card-header-title">
+                  <span class="card-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+                  <h2>Registration Status</h2>
+                </div>
+              </div>
+
+              {% if registration.status == "complete" %}
+                <span class="status-badge st-complete">Registration Complete</span>
+                <p class="reg-status-desc">Your team's registration is confirmed. You're all set for the event.</p>
+              {% elif registration.status == "approved" %}
+                <span class="status-badge st-approved">Approved</span>
+                <p class="reg-status-desc">Your team has been approved by the organizers.</p>
+              {% elif registration.status == "rejected" %}
+                <span class="status-badge st-rejected">Rejected</span>
+                <p class="reg-status-desc">Your registration was not approved. Check announcements or contact the organizing team for details.</p>
+              {% else %}
+                <span class="status-badge st-pending">Pending Approval</span>
+                <p class="reg-status-desc">Your registration is being reviewed by the organizers.</p>
+              {% endif %}
+            </section>
+          </div>
+
+          {% comment %} ---- Card 3: Track Selection ---- {% endcomment %}
+          <section class="card" id="track-selection">
+            <div class="card-header">
+              <div class="card-header-title">
+                <span class="card-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".6" fill="currentColor"/></svg></span>
+                <h2>Track Selection</h2>
+              </div>
+            </div>
+
+            {% if not tracks %}
+              <div class="empty-state">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+                Track selection will open when announced.
+              </div>
+            {% else %}
+              {% if team.track_id %}
+                <div class="track-current">
+                  <span class="dot"></span>
+                  Currently registered under <strong>&nbsp;{{ track.name }}</strong>
+                </div>
+              {% endif %}
+
+              <form id="trackForm" data-action="{{ urls.select_track }}">
+                {% csrf_token %}
+                <div class="field">
+                  <label for="trackSelect">Choose your track</label>
+                  <select id="trackSelect" name="track_id" {% if registration.status == "rejected" %}disabled{% endif %}>
+                    <option value="" disabled {% if not team.track_id %}selected{% endif %}>Select a track…</option>
+                    {% for t in tracks %}
+                      <option value="{{ t.id }}" {% if team.track_id == t.id %}selected{% endif %}>{{ t.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-small">Register Track</button>
+              </form>
+            {% endif %}
+          </section>
+
+          {% comment %} ---- Card 4: Problem Statements ---- {% endcomment %}
+          <section class="card" id="problem-statements">
+            <div class="card-header">
+              <div class="card-header-title">
+                <span class="card-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg></span>
+                <h2>Problem Statements</h2>
+              </div>
+              {% if track.public_problem_statements %}<span class="count-badge">{{ track.public_problem_statements|length }}</span>{% endif %}
+            </div>
+
+            {% if not track.public_problem_statements %}
+              <div class="empty-state">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 0 1 5 0c0 1.66-2.5 2-2.5 3.5"/><path d="M12 17h.01"/></svg>
+                Coming Soon
+              </div>
+            {% else %}
+              <div class="accordion" id="psAccordion">
+                {% for ps in track.public_problem_statements %}
+                  <div class="accordion-item">
+                    <button type="button" class="accordion-trigger" aria-expanded="false">
+                      {% if ps.code %}<span class="ps-code">{{ ps.code }}</span>{% endif %}
+                      <span class="ps-title">{{ ps.title }}</span>
+                      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="accordion-panel">
+                      <div class="accordion-body">
+                        {% if ps.description %}<div class="ps-block"><div class="ps-block-label">Description</div><p>{{ ps.description }}</p></div>{% endif %}
+                        {% if ps.context %}<div class="ps-block"><div class="ps-block-label">Context</div><p>{{ ps.context }}</p></div>{% endif %}
+                        {% if ps.expected_impact %}<div class="ps-block"><div class="ps-block-label">Expected Impact</div><p>{{ ps.expected_impact }}</p></div>{% endif %}
+                        {% if ps.minimum_requirements %}
+                          <div class="ps-block">
+                            <div class="ps-block-label">Minimum Requirements</div>
+                            <ul>{% for r in ps.minimum_requirements %}<li>{{ r }}</li>{% endfor %}</ul>
+                          </div>
+                        {% endif %}
+                        {% if ps.dependencies %}
+                          <div class="ps-block">
+                            <div class="ps-block-label">Dependencies</div>
+                            <ul>{% for d in ps.dependencies %}<li>{{ d }}</li>{% endfor %}</ul>
+                          </div>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </section>
+
+          {% comment %} ---- Card 5: Scorecard ---- {% endcomment %}
+          <section class="card" id="scorecard">
+            <div class="card-header">
+              <div class="card-header-title">
+                <span class="card-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.4 5.3 5.6.6-4.2 3.9 1.2 5.6L12 15.9 6.9 18.4 8.1 12.8 3.9 8.9l5.6-.6L12 3z"/></svg></span>
+                <h2>Scorecard</h2>
+              </div>
+              {% if marks %}<span class="count-badge">{{ marks|length }}</span>{% endif %}
+            </div>
+
+            {% if not marks %}
+              <div class="empty-state">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.4 5.3 5.6.6-4.2 3.9 1.2 5.6L12 15.9 6.9 18.4 8.1 12.8 3.9 8.9l5.6-.6L12 3z"/></svg>
+                No evaluations yet.
+              </div>
+            {% else %}
+              <div class="score-list">
+                {% for m in marks %}
+                  <div class="score-row">
+                    <div class="score-round">
+                      {{ m.round }}
+                      {% if m.weightage %}<span class="weightage">Weightage: {{ m.weightage }}</span>{% endif %}
+                    </div>
+                    <div class="score-mid">
+                      {% if m.remarks %}<div class="score-remarks">{{ m.remarks }}</div>{% endif %}
+                      {% if m.last_updated %}<div class="score-updated">Updated {{ m.last_updated }}</div>{% endif %}
+                    </div>
+                    <div class="score-value">{{ m.score }}</div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </section>
+
+          {% comment %} ---- Card 6: Team Members ---- {% endcomment %}
+          <section class="card" id="team-members">
+            <div class="card-header">
+              <div class="card-header-title">
+                <span class="card-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+                <h2>Team Members</h2>
+              </div>
+              {% if members %}<span class="count-badge">{{ members|length }}</span>{% endif %}
+            </div>
+
+            {% if not members %}
+              <div class="empty-state">No team members added yet.</div>
+            {% else %}
+              <div class="members-grid">
+                {% for mem in members %}
+                  <div class="member-card {% if mem.is_leader %}leader{% endif %}">
+                    <div class="member-avatar">{{ mem.name|slice:":1"|upper }}</div>
+                    <div class="member-info">
+                      <div class="member-name">{{ mem.name }} {% if mem.is_leader %}<span class="leader-chip">Leader</span>{% endif %}</div>
+                      <div class="member-role">{{ mem.role|default:"Member" }}</div>
+                      {% if mem.email %}<div class="member-contact">{{ mem.email }}</div>{% endif %}
+                      {% if mem.phone %}<div class="member-contact">{{ mem.phone }}</div>{% endif %}
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </section>
+
+          {% comment %} ---- Card 9: Downloads ---- {% endcomment %}
+          <section class="card" id="downloads">
+            <div class="card-header">
+              <div class="card-header-title">
+                <span class="card-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 19h16"/></svg></span>
+                <h2>Downloads</h2>
+              </div>
+            </div>
+            <div class="downloads-grid">
+              <a class="download-btn" href="{{ downloads.rulebook_url|default:'#' }}" {% if not downloads.rulebook_url %}aria-disabled="true"{% endif %} target="_blank" rel="noopener">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                <span>Rulebook</span>
+              </a>
+              <a class="download-btn" href="{{ downloads.schedule_url|default:'#' }}" {% if not downloads.schedule_url %}aria-disabled="true"{% endif %} target="_blank" rel="noopener">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>Schedule</span>
+              </a>
+              <a class="download-btn" href="{{ downloads.resources_url|default:'#' }}" {% if not downloads.resources_url %}aria-disabled="true"{% endif %} target="_blank" rel="noopener">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span>Resources</span>
+              </a>
+              <a class="download-btn" href="{{ downloads.certificates_url|default:'#' }}" {% if not downloads.certificates_enabled %}aria-disabled="true"{% endif %} target="_blank" rel="noopener">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M9 14l-2 7 5-3 5 3-2-7"/></svg>
+                <span>Certificates{% if not downloads.certificates_enabled %}<span class="dl-sub">Unlocks after the event</span>{% endif %}</span>
+              </a>
+            </div>
+          </section>
+
+          {% comment %} ---- Card 10: Event Timeline ---- {% endcomment %}
+          <section class="card" id="event-timeline">
+            <div class="card-header">
+              <div class="card-header-title">
+                <span class="card-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg></span>
+                <h2>Event Timeline</h2>
+              </div>
+            </div>
+
+            {% if not timeline %}
+              <div class="empty-state">Timeline will appear here once published.</div>
+            {% else %}
+              <div class="timeline">
+                {% for stage in timeline %}
+                  <div class="tl-step {{ stage.status }}">
+                    <div class="dot">{% if stage.status == "done" %}
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      {% endif %}</div>
+                    <div class="tl-text">
+                      <div class="tl-title">{{ stage.stage }}</div>
+                      {% if stage.date %}<div class="tl-date">{{ stage.date }}</div>{% endif %}
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </section>
+
+        </div>
+
+        {% comment %} ================= SIDE COLUMN ================= {% endcomment %}
+        <div class="col-side">
+
+          {% comment %} ---- Card 8: Announcements ---- {% endcomment %}
+          <section class="card" id="announcements">
+            <div class="card-header">
+              <div class="card-header-title">
+                <span class="card-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a2 2 0 0 0 2 2h1l3 4V5L6 9H5a2 2 0 0 0-2 2z"/><path d="M15 8a4 4 0 0 1 0 8"/></svg></span>
+                <h2>Announcements</h2>
+              </div>
+              <span class="count-badge">{{ announcements|length|default:0 }}</span>
+            </div>
+            {% if not announcements %}
+              <div class="empty-state">No announcements yet. Check back soon.</div>
+            {% else %}
+              <div class="feed-list">
+                {% for a in announcements %}
+                  <div class="feed-item">
+                    <div class="meta">
+                      {% if a.tag %}<span class="tag {{ a.tag }}">{{ a.tag }}</span>{% endif %}
+                      <span class="timestamp">{{ a.timestamp }}</span>
+                    </div>
+                    <div class="feed-title">{{ a.title }}</div>
+                    <div class="feed-body">{{ a.message }}</div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </section>
+
+          {% comment %} ---- Card 7: Notifications ---- {% endcomment %}
+          <section class="card" id="notifications">
+            <div class="card-header">
+              <div class="card-header-title">
+                <span class="card-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+                <h2>Notifications</h2>
+              </div>
+              <span class="count-badge">{{ notifications|length|default:0 }}</span>
+            </div>
+            {% if not notifications %}
+              <div class="empty-state">You're all caught up.</div>
+            {% else %}
+              <div class="feed-list">
+                {% for n in notifications %}
+                  <div class="feed-item">
+                    <div class="meta"><span class="timestamp">{{ n.timestamp }}</span></div>
+                    <div class="feed-title">{{ n.title }}</div>
+                    <div class="feed-body">{{ n.message }}</div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </section>
+
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  function getCsrf(root){
+    var el = root ? root.querySelector('[name=csrfmiddlewaretoken]') : document.querySelector('[name=csrfmiddlewaretoken]');
+    return el ? el.value : '';
+  }
+
+  /* ---------- Generic backend-driven form submit ----------
+     Every form here just POSTs its data to the URL supplied by the
+     backend via data-action. No local persistence, no fake success
+     states — the UI reflects whatever the server responds with by
+     re-rendering (a full reload) once the backend confirms the write. */
+  function bindFormSubmit(form, onSuccess){
+    if(!form) return;
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      var action = form.getAttribute('data-action');
+      if(!action){
+        console.warn('No backend action URL bound to this form yet.');
+        return;
+      }
+      var submitBtn = form.querySelector('button[type="submit"]');
+      if(submitBtn){ submitBtn.disabled = true; }
+
+      var formData = new FormData(form);
+      fetch(action, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCsrf(form) },
+        body: formData
+      }).then(function(res){
+        if(!res.ok) throw new Error('Request failed');
+        return res.json().catch(function(){ return {}; });
+      }).then(function(data){
+        if(onSuccess) onSuccess(data);
+      }).catch(function(err){
+        console.error(err);
+        if(submitBtn){ submitBtn.disabled = false; }
+      });
+    });
+  }
+
+  /* ---------- Team name modal ---------- */
+  var teamNameForm = document.getElementById('teamNameForm');
+  bindFormSubmit(teamNameForm, function(){
+    window.location.reload();
+  });
+  if(teamNameForm){
+    teamNameForm.addEventListener('submit', function(e){
+      var field = document.getElementById('field-teamNameInput');
+      var input = document.getElementById('teamNameInput');
+      if(!input.value.trim()){
+        e.preventDefault();
+        field.classList.add('has-error');
+      } else {
+        field.classList.remove('has-error');
+      }
+    });
+  }
+
+  /* ---------- Track selection form ---------- */
+  bindFormSubmit(document.getElementById('trackForm'), function(){
+    window.location.reload();
+  });
+
+  /* ---------- Logout ---------- */
+  var logoutBtn = document.getElementById('logoutBtn');
+  if(logoutBtn){
+    logoutBtn.addEventListener('click', function(){
+      var action = logoutBtn.getAttribute('data-action');
+      if(!action){ console.warn('No logout URL bound.'); return; }
+      fetch(action, { method: 'POST', headers: { 'X-CSRFToken': getCsrf(document) } })
+        .then(function(){ window.location.href = "{{ urls.home|default:'/' }}"; })
+        .catch(function(err){ console.error(err); });
+    });
+  }
+
+  /* ---------- Problem statement accordion ---------- */
+  document.querySelectorAll('.accordion-trigger').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var item = btn.closest('.accordion-item');
+      var isOpen = item.classList.contains('open');
+      item.parentElement.querySelectorAll('.accordion-item.open').forEach(function(other){
+        if(other !== item){
+          other.classList.remove('open');
+          other.querySelector('.accordion-trigger').setAttribute('aria-expanded', 'false');
+        }
+      });
+      item.classList.toggle('open', !isOpen);
+      btn.setAttribute('aria-expanded', String(!isOpen));
+    });
+  });
+
+  /* ---------- Sidebar nav active state + mobile toggle ---------- */
+  var navItems = document.querySelectorAll('.nav-item[data-nav]');
+  var sections = {};
+  navItems.forEach(function(item){
+    var key = item.getAttribute('data-nav');
+    var target = document.querySelector(item.getAttribute('href'));
+    if(target) sections[key] = target;
+    item.addEventListener('click', function(){
+      navItems.forEach(function(n){ n.classList.remove('active'); });
+      item.classList.add('active');
+      closeSidebar();
+    });
+  });
+
+  var sidebar = document.getElementById('sidebar');
+  var toggle = document.getElementById('sidebarToggle');
+  var scrim = document.getElementById('sidebarScrim');
+
+  function openSidebar(){
+    sidebar.classList.add('open');
+    scrim.classList.add('visible');
+    toggle.setAttribute('aria-expanded', 'true');
+  }
+  function closeSidebar(){
+    sidebar.classList.remove('open');
+    scrim.classList.remove('visible');
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+  if(toggle){
+    toggle.addEventListener('click', function(){
+      sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+    });
+  }
+  if(scrim){ scrim.addEventListener('click', closeSidebar); }
+
+})();
+</script>
+
+</body>
+</html>

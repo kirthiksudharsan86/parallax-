@@ -28,15 +28,16 @@ def auth_router(request):
 
     if team is None:
         team = Team.objects.create(
-            team_name=team_name
-        )
+        team_name=team_name,
+        team_code=Team.generate_unique_team_code(),
+    )
 
     participant = Participant.objects.filter(email__iexact=email).first()
 
     if participant is None:
         participant = Participant.objects.create(
             user=request.user,
-            full_name=data.get("Leader Name", ""),
+            full_name=data.get("Lead", ""),
             email=email,
             phone_number=data.get("Phone Number", ""),
             college_name=data.get("College Name", ""),

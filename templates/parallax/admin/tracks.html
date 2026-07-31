@@ -1,219 +1,1202 @@
 {% extends 'parallax/base.html' %}
+{% load static %}
+
 {% block title %}Track Management | Parallax Admin{% endblock %}
+
 {% block content %}
+
+<style>
+  :root {
+    --bg-deep: #080E22;
+    --bg-mid: #0D1B3D;
+    --surface: rgba(19, 32, 64, 0.62);
+    --surface-solid: #101E3F;
+    --surface-2: rgba(255, 255, 255, 0.045);
+    --border: rgba(255, 255, 255, 0.14);
+    --text-primary: #EAF2FF;
+    --text-secondary: #93A8D1;
+    --text-muted: #5E7299;
+    --accent: #22D3EE;
+    --accent-2: #3B82F6;
+    --accent-dark: #0E9AB8;
+    --accent-soft: rgba(34, 211, 238, 0.14);
+    --success: #34D399;
+    --success-soft: rgba(52, 211, 153, 0.14);
+    --warning: #FBBF24;
+    --danger: #EF4444;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background: linear-gradient(160deg, var(--bg-deep) 0%, var(--bg-mid) 45%, var(--bg-deep) 100%);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+
+  .admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+
+  .admin-header {
+    margin-bottom: 40px;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .header-content h1 {
+    font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 700;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #22D3EE, #3B82F6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header-content p {
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+
+  .btn-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    font-family: inherit;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #22D3EE, #3B82F6);
+    color: #04121C;
+    box-shadow: 0 8px 24px rgba(34, 211, 238, 0.3);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(34, 211, 238, 0.4);
+  }
+
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(34, 211, 238, 0.5);
+  }
+
+  .btn-sm {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+
+  .btn-icon {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .stat-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--accent);
+    font-family: 'Space Grotesk', monospace;
+  }
+
+  .tracks-section {
+    margin-bottom: 40px;
+  }
+
+  .section-title {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .tracks-list {
+    display: grid;
+    gap: 16px;
+  }
+
+  .track-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .track-card:hover {
+    border-color: rgba(34, 211, 238, 0.5);
+    box-shadow: 0 12px 48px rgba(34, 211, 238, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .track-card.expanded {
+    border-color: rgba(34, 211, 238, 0.5);
+  }
+
+  .track-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .track-header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .track-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(34, 211, 238, 0.15);
+    border: 1px solid rgba(34, 211, 238, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .track-info h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+
+  .track-meta {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .track-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .toggle-icon {
+    font-size: 18px;
+    color: var(--text-secondary);
+    transition: transform 0.25s;
+  }
+
+  .track-card.expanded .toggle-icon {
+    transform: rotate(180deg);
+  }
+
+  .track-content {
+    display: none;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    animation: slideDown 0.25s ease-out;
+  }
+
+  .track-content.active {
+    display: block;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .track-description {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  .track-controls {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .control-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .toggle-switch {
+    position: relative;
+    width: 48px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+
+  .toggle-switch.active {
+    background: rgba(34, 211, 238, 0.3);
+    border-color: var(--accent);
+  }
+
+  .toggle-switch-circle {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 24px;
+    height: 24px;
+    background: var(--text-secondary);
+    border-radius: 50%;
+    transition: all 0.25s;
+  }
+
+  .toggle-switch.active .toggle-switch-circle {
+    left: 22px;
+    background: var(--accent);
+  }
+
+  .problem-statements-section {
+    margin-bottom: 24px;
+  }
+
+  .ps-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .ps-title {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+
+  .ps-list {
+    display: grid;
+    gap: 12px;
+  }
+
+  .ps-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .ps-card:hover {
+    background: rgba(34, 211, 238, 0.08);
+    border-color: rgba(34, 211, 238, 0.3);
+  }
+
+  .ps-card.expanded {
+    background: rgba(34, 211, 238, 0.08);
+    border-color: rgba(34, 211, 238, 0.3);
+  }
+
+  .ps-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .ps-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .ps-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .ps-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-top: 4px;
+  }
+
+  .ps-badges {
+    display: flex;
+    gap: 8px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .badge-published {
+    background: var(--success-soft);
+    color: var(--success);
+  }
+
+  .badge-draft {
+    background: rgba(251, 191, 36, 0.15);
+    color: var(--warning);
+  }
+
+  .badge-active {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--accent-2);
+  }
+
+  .ps-content {
+    display: none;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    animation: slideDown 0.25s ease-out;
+  }
+
+  .ps-content.active {
+    display: block;
+  }
+
+  .ps-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .ps-detail {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+  }
+
+  .ps-detail-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .ps-detail-value {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  .ps-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .add-ps-btn {
+    background: rgba(34, 211, 238, 0.15);
+    border: 1px solid rgba(34, 211, 238, 0.3);
+    color: var(--accent);
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .add-ps-btn:hover {
+    background: rgba(34, 211, 238, 0.25);
+    border-color: var(--accent);
+  }
+
+  /* MODALS */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(4, 9, 22, 0.8);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-overlay.active {
+    display: flex;
+  }
+
+  .modal {
+    background: var(--surface-solid);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55), 0 0 50px rgba(34, 211, 238, 0.1);
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: modalIn 0.25s ease-out;
+  }
+
+  @keyframes modalIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .modal-header {
+    padding: 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .modal-title-group h2 {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+
+  .modal-title-group p {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 24px;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .modal-close:hover {
+    color: var(--text-primary);
+  }
+
+  .modal-content {
+    padding: 32px;
+  }
+
+  .form-group {
+    margin-bottom: 24px;
+  }
+
+  .form-group:last-child {
+    margin-bottom: 0;
+  }
+
+  .form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+
+  .form-input,
+  .form-textarea,
+  .form-select {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+
+  .form-input:focus,
+  .form-textarea:focus,
+  .form-select:focus {
+    outline: none;
+    background: rgba(34, 211, 238, 0.05);
+    border-color: rgba(34, 211, 238, 0.5);
+    box-shadow: 0 0 12px rgba(34, 211, 238, 0.1);
+  }
+
+  .form-textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+
+  .checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .checkbox-input {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--accent);
+  }
+
+  .checkbox-label {
+    font-size: 14px;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+    padding: 32px;
+    border-top: 1px solid var(--border);
+  }
+
+  .modal-actions .btn {
+    flex: 1;
+  }
+
+  .confirm-dialog {
+    text-align: center;
+    padding: 32px;
+  }
+
+  .confirm-dialog h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+  }
+
+  .confirm-dialog p {
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+
+  .confirm-actions {
+    display: flex;
+    gap: 12px;
+  }
+
+  .confirm-actions .btn {
+    flex: 1;
+  }
+
+  .btn-danger {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    color: #FECACA;
+  }
+
+  .btn-danger:hover {
+    background: rgba(239, 68, 68, 0.3);
+  }
+
+  /* SLIDE PANEL */
+  .slide-panel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 100%;
+    max-width: 500px;
+    height: 100vh;
+    background: var(--surface-solid);
+    border-left: 1px solid var(--border);
+    box-shadow: -12px 0 48px rgba(0, 0, 0, 0.5);
+    z-index: 1100;
+    transform: translateX(100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .slide-panel.active {
+    transform: translateX(0);
+  }
+
+  .slide-panel-header {
+    padding: 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .slide-panel-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .slide-panel-close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 24px;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .slide-panel-close:hover {
+    color: var(--text-primary);
+  }
+
+  .slide-panel-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+  }
+
+  .slide-panel-footer {
+    padding: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 12px;
+  }
+
+  .slide-panel-footer .btn {
+    flex: 1;
+  }
+
+  .slide-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(4, 9, 22, 0.4);
+    z-index: 1050;
+  }
+
+  .slide-overlay.active {
+    display: block;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 1024px) {
+    .admin-container {
+      padding: 24px 16px;
+    }
+
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .ps-detail-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .header-top {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .header-content h1 {
+      font-size: 1.8rem;
+    }
+
+    .btn-group {
+      width: 100%;
+    }
+
+    .btn-group .btn {
+      flex: 1;
+    }
+
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .track-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .track-meta {
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .slide-panel {
+      max-width: 100%;
+    }
+
+    .modal {
+      max-width: 90%;
+    }
+  }
+</style>
+
+<div class="admin-container">
+  <div class="admin-header">
+    <div class="header-top">
+      <div class="header-content">
+        <h1>Track Management</h1>
+        <p>Manage tracks and problem statements for Parallax 2026</p>
+      </div>
+      <div class="btn-group">
+        <a href="{% url 'admin_panel' %}" class="btn btn-secondary btn-sm">← Back to Dashboard</a>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Tracks</div>
+        <div class="stat-value">{{ tracks|length }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Published</div>
+        <div class="stat-value">{% widthratio tracks|length 1 1 %}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Problem Statements</div>
+        <div class="stat-value">{{ problem_statements|length }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tracks-section">
+    <h2 class="section-title">
+      <span>Tracks</span>
+      <span style="font-size: 12px; color: var(--text-muted);">({{ tracks|length }})</span>
+    </h2>
+
+    {% if tracks %}
+      <div class="tracks-list">
+        {% for track in tracks %}
+          <div class="track-card" data-track-id="{{ track.id }}">
+            <div class="track-header">
+              <div class="track-header-left" onclick="toggleTrack(this)">
+                <div class="track-icon">
+                  {% if track.icon %}
+                    <i class="{{ track.icon }}"></i>
+                  {% else %}
+                    <i class="fa-solid fa-lightbulb"></i>
+                  {% endif %}
+                </div>
+                <div class="track-info">
+                  <h3>{{ track.name }}</h3>
+                  <div class="track-meta">
+                    <span>{% if track.is_published %}Published{% else %}Draft{% endif %}</span>
+                    <span>{{ track.problem_statement_slots.all.count }} Problem Statement{{ track.problem_statement_slots.all.count|pluralize }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="track-actions">
+                <span class="toggle-icon">▼</span>
+              </div>
+            </div>
+
+            <div class="track-content">
+              {% if track.description %}
+                <div class="track-description">{{ track.description }}</div>
+              {% endif %}
+
+              <div class="track-controls">
+                <div class="control-group">
+                  <span class="control-label">Publish</span>
+                  <div class="toggle-switch {% if track.is_published %}active{% endif %}" onclick="togglePublish(event, {{ track.id }})">
+                    <div class="toggle-switch-circle"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="problem-statements-section">
+                <div class="ps-header">
+                  <span class="ps-title">Problem Statements</span>
+                  <button class="add-ps-btn" onclick="openAddPS({{ track.id }})">+ Add</button>
+                </div>
+
+                {% if track.problem_statement_slots.all %}
+                  <div class="ps-list">
+                    {% for ps in track.problem_statement_slots.all %}
+                      <div class="ps-card" data-ps-id="{{ ps.id }}">
+                        <div class="ps-header-bar" onclick="togglePS(this)">
+                          <div class="ps-info">
+                            <div class="ps-code">{{ ps.code }}</div>
+                            <div class="ps-name">{{ ps.title }}</div>
+                          </div>
+                          <div class="ps-badges">
+                            {% if ps.is_published %}
+                              <span class="badge badge-published">Published</span>
+                            {% else %}
+                              <span class="badge badge-draft">Draft</span>
+                            {% endif %}
+                            {% if ps.is_active %}
+                              <span class="badge badge-active">Active</span>
+                            {% endif %}
+                          </div>
+                        </div>
+
+                        <div class="ps-content">
+                          <div class="ps-detail-grid">
+                            <div class="ps-detail">
+                              <div class="ps-detail-label">Slots</div>
+                              <div class="ps-detail-value">{{ ps.slot_capacity }}</div>
+                            </div>
+                            {% if ps.statement %}
+                              <div class="ps-detail">
+                                <div class="ps-detail-label">Statement</div>
+                                <div class="ps-detail-value">{{ ps.statement|truncatewords:20 }}</div>
+                              </div>
+                            {% endif %}
+                            {% if ps.context %}
+                              <div class="ps-detail">
+                                <div class="ps-detail-label">Context</div>
+                                <div class="ps-detail-value">{{ ps.context|truncatewords:15 }}</div>
+                              </div>
+                            {% endif %}
+                            {% if ps.minimum_requirements %}
+                              <div class="ps-detail">
+                                <div class="ps-detail-label">Min Requirements</div>
+                                <div class="ps-detail-value">{{ ps.minimum_requirements|truncatewords:15 }}</div>
+                              </div>
+                            {% endif %}
+                            {% if ps.dependencies %}
+                              <div class="ps-detail">
+                                <div class="ps-detail-label">Dependencies</div>
+                                <div class="ps-detail-value">{{ ps.dependencies|truncatewords:15 }}</div>
+                              </div>
+                            {% endif %}
+                          </div>
+
+                          <div class="ps-actions">
+                            <button class="btn btn-secondary btn-sm" onclick="openEditPS({{ ps.id }})">Edit</button>
+                            <button class="btn btn-secondary btn-sm" onclick="togglePSPublish({{ ps.id }})">{% if ps.is_published %}Unpublish{% else %}Publish{% endif %}</button>
+                            <button class="btn btn-secondary btn-sm" style="color: #FECACA;" onclick="openDeletePS({{ ps.id }})">Delete</button>
+                          </div>
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <p style="color: var(--text-muted); font-size: 14px; padding: 16px; background: rgba(255, 255, 255, 0.04); border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                    No problem statements yet. Click "Add" to create one.
+                  </p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="text-align: center; padding: 40px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);">
+        <p style="color: var(--text-muted);">No tracks available</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ADD/EDIT PROBLEM STATEMENT SLIDE PANEL -->
+<div class="slide-overlay" id="slideOverlay" onclick="closeSlidePanel()"></div>
+<div class="slide-panel" id="slidePanel">
+  <div class="slide-panel-header">
+    <h3 id="slidePanelTitle">Add Problem Statement</h3>
+    <button class="slide-panel-close" onclick="closeSlidePanel()">✕</button>
+  </div>
+  <div class="slide-panel-content">
+    <form id="psForm" method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="action" id="psAction" value="add_problem_statement">
+      <input type="hidden" name="track_id" id="psTrackId">
+      <input type="hidden" name="problem_statement_id" id="psId">
+
+      <div class="form-group">
+        <label class="form-label">Track</label>
+        <select class="form-select" name="track_id" id="psTrackSelect" required>
+          <option value="">Select a track</option>
+          {% for track in tracks %}
+            <option value="{{ track.id }}">{{ track.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Problem Code</label>
+        <input type="text" class="form-input" name="code" id="psCode" placeholder="e.g., PS-001" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Problem Title</label>
+        <input type="text" class="form-input" name="title" id="psTitle" placeholder="Problem title" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Problem Statement</label>
+        <textarea class="form-textarea" name="statement" id="psStatement" placeholder="Detailed problem statement" required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Context</label>
+        <textarea class="form-textarea" name="context" id="psContext" placeholder="Background and context"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Minimum Requirements</label>
+        <textarea class="form-textarea" name="minimum_requirements" id="psMinReq" placeholder="Technical requirements"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Dependencies</label>
+        <textarea class="form-textarea" name="dependencies" id="psDependencies" placeholder="Required tools and libraries"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Slot Capacity</label>
+        <input type="number" class="form-input" name="slot_capacity" id="psSlots" value="5" min="1" required>
+      </div>
+
+      <div class="form-group">
+        <div class="checkbox-group">
+          <input type="checkbox" id="psPublish" name="is_published" class="checkbox-input">
+          <label for="psPublish" class="checkbox-label">Publish immediately</label>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="slide-panel-footer">
+    <button type="button" class="btn btn-secondary" onclick="closeSlidePanel()">Cancel</button>
+    <button type="submit" form="psForm" class="btn btn-primary">Save</button>
+  </div>
+</div>
+
+<!-- DELETE CONFIRMATION MODAL -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <div class="confirm-dialog">
+      <h3>Delete Problem Statement?</h3>
+      <p>This action cannot be undone. The problem statement will be permanently removed.</p>
+      <form method="POST" id="deleteForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="delete_problem_statement">
+        <input type="hidden" name="problem_statement_id" id="deleteId">
+        <div class="confirm-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <script>
-function deleteConfirm(problemId) {
-  if(confirm('Delete this problem statement permanently?')) {
+  function toggleTrack(element) {
+    const card = element.closest('.track-card');
+    const content = card.querySelector('.track-content');
+    card.classList.toggle('expanded');
+    content.classList.toggle('active');
+  }
+
+  function togglePS(element) {
+    const card = element.closest('.ps-card');
+    const content = card.querySelector('.ps-content');
+    card.classList.toggle('expanded');
+    content.classList.toggle('active');
+  }
+
+  function togglePublish(e, trackId) {
+    e.stopPropagation();
     const form = document.createElement('form');
     form.method = 'POST';
     form.innerHTML = `
       <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-      <input type="hidden" name="action" value="delete_problem_statement">
-      <input type="hidden" name="problem_statement_id" value="${problemId}">
+      <input type="hidden" name="action" value="toggle_track">
+      <input type="hidden" name="track_id" value="${trackId}">
+      <input type="hidden" name="field" value="is_published">
     `;
     document.body.appendChild(form);
     form.submit();
   }
-}
-</script>
-<div class="dashboard-page">
-<div class="dashboard-page">
-  <div class="dashboard-wrap">
-    <section class="dashboard-hero">
-      <div class="dashboard-header">
-        <a href="{% url 'admin_panel' %}" class="dashboard-back">← Back to OC Dashboard</a>
-        <h1 class="dashboard-title">Track Management</h1>
-      </div>
-    </section>
-    <section class="dashboard-grid">
-      <article class="dashboard-card">
-        <small class="dashboard-kicker">Tracks</small>
-        <h3 class="dashboard-stat">{{ tracks|length }}</h3>
-        <p class="dashboard-copy">Total tracks</p>
-      </article>
-      <article class="dashboard-card">
-        <small class="dashboard-kicker">Published</small>
-        <h3 class="dashboard-stat">{% widthratio tracks|length 1 1 %}</h3>
-        <p class="dashboard-copy">Published tracks</p>
-      </article>
-      <article class="dashboard-card">
-        <small class="dashboard-kicker">Problems</small>
-        <h3 class="dashboard-stat">{{ problem_statements|length }}</h3>
-        <p class="dashboard-copy">Problem statements</p>
-      </article>
-    </section>
-    <section class="dashboard-section">
-      <h2 class="dashboard-section-title">Tracks</h2>
-      <div class="dashboard-grid">
-        {% for track in tracks %}
-        <article class="track-card">
-          <div class="track-header">
-            <h3 class="track-name">{{ track.name }}</h3>
-            <form method="POST" class="track-actions">
-              {% csrf_token %}
-              <input type="hidden" name="track_id" value="{{ track.id }}">
-              <input type="hidden" name="field" value="is_published">
-              <button type="submit" class="dashboard-button-icon">
-                {% if track.is_published %}<i class="fa-solid fa-eye"></i>{% else %}<i class="fa-solid fa-eye-slash"></i>{% endif %}
-              </button>
-            </form>
-          </div>
-          <p class="track-description">{{ track.description }}</p>
-          <div class="track-meta">
-            <span class="track-status {% if track.is_published %}published{% else %}draft{% endif %}">
-              {% if track.is_published %}Published{% else %}Draft{% endif %}
-            </span>
-          </div>
-        </article>
-        {% empty %}
-        <p class="dashboard-copy">No tracks available.</p>
-        {% endfor %}
-      </div>
-    </section>
-    <section class="dashboard-section">
-      <h2 class="dashboard-section-title">Problem Statements</h2>
-      <div class="problem-management-grid">
-        
-        <div class="problem-list">
-          <h3 class="dashboard-subsection-title">Existing Statements</h3>
-          {% for problem in problem_statements %}
-          <article class="problem-card">
-            <details class="problem-details">
-              <summary class="problem-summary">
-                <div class="problem-header">
-                  <div class="problem-title-section">
-                    <h4 class="problem-title">{{ problem.title }}</h4>
-                    <span class="problem-code">{{ problem.code }}</span>
-                  </div>
-                  <span class="problem-status {% if problem.is_published %}published{% else %}draft{% endif %}">
-                    {% if problem.is_published %}Published{% else %}Draft{% endif %}
-                  </span>
-                </div>
-              </summary>
-              <form method="POST" class="problem-edit-form">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="edit_problem_statement">
-                <input type="hidden" name="problem_id" value="{{ problem.id }}">
-                
-                <div class="form-group">
-                  <label class="dashboard-label">Track</label>
-                  <select name="track_id" class="dashboard-select" required>
-                    {% for track in tracks %}
-                    <option value="{{ track.id }}" {% if track.id == problem.track.id %}selected{% endif %}>{{ track.name }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-          
-                <div class="form-group">
-                  <label class="dashboard-label">Problem Statement</label>
-                  <input type="text" name="title" class="dashboard-input" value="{{ problem.title }}" required>
-                </div>
-                
-                <div class="form-group">
-                  <label class="dashboard-label">Description</label>
-                  <textarea name="description" class="dashboard-textarea" required>{{ problem.description }}</textarea>
-                </div>
-                
-                <div class="form-group">
-                  <label class="dashboard-label">Context</label>
-                  <textarea name="context" class="dashboard-textarea">{{ problem.context }}</textarea>
-                </div>
-                
-                <div class="form-group">
-                  <label class="dashboard-label">Minimum Requirements</label>
-                  <textarea name="min_requirements" class="dashboard-textarea">{{ problem.min_requirements }}</textarea>
-                </div>
-                
-                <div class="form-group">
-                  <label class="dashboard-label">Dependencies</label>
-                  <textarea name="dependencies" class="dashboard-textarea">{{ problem.dependencies }}</textarea>
-                </div>
-                
-                <div class="form-group">
-                  <label class="dashboard-label">Slot Capacity</label>
-                  <input type="number" name="slot_capacity" class="dashboard-input" value="{{ problem.slot_capacity }}" min="1" required>
-                </div>
-                
-                <div class="form-group checkbox">
-                  <label class="dashboard-label">
-                    <input type="checkbox" name="is_published" value="on" {% if problem.is_published %}checked{% endif %}>
-                    Published
-                  </label>
-                </div>
-                
-                <div class="problem-actions">
-                  <button type="submit" class="dashboard-button">Save Changes</button>
-                  <button type="button" class="dashboard-button-secondary" onclick="deleteConfirm({{ problem.id }})">Delete</button>
-                </div>
-              </form>
-            </details>
-          </article>
-          {% empty %}
-          <p class="dashboard-copy">No problem statements yet.</p>
-          {% endfor %}
-        </div>
-        
-        <div class="problem-form">
-          <h3 class="dashboard-subsection-title">Add Problem Statement</h3>
-          <form method="POST" class="dashboard-form">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="add_problem_statement">
-            
-            <div class="form-group">
-              <label class="dashboard-label">Track</label>
-              <select name="track_id" class="dashboard-select" required>
-                <option value="">Select a track</option>
-                {% for track in tracks %}
-                <option value="{{ track.id }}">{{ track.name }}</option>
-                {% endfor %}
-              </select>
-            </div>
-            
-          
-            <div class="form-group">
-              <label class="dashboard-label">Problem Title</label>
-              <input type="text" name="title" class="dashboard-input" placeholder="Problem title" required>
-            </div>
-            
-            <div class="form-group">
-              <label class="dashboard-label">Description</label>
-              <textarea name="description" class="dashboard-textarea" placeholder="Problem description" required></textarea>
-            </div>
-            
-            <div class="form-group">
-              <label class="dashboard-label">Context</label>
-              <textarea name="context" class="dashboard-textarea" placeholder="Background and context"></textarea>
-            </div>
-              
-            <div class="form-group">
-              <label class="dashboard-label">Minimum Requirements</label>
-              <textarea name="min_requirements" class="dashboard-textarea" placeholder="Technical requirements"></textarea>
-            </div>
-            
-            <div class="form-group">
-              <label class="dashboard-label">Dependencies</label>
-              <textarea name="dependencies" class="dashboard-textarea" placeholder="Required tools/libraries"></textarea>
-            </div>
-            
-            <div class="form-group">
-              <label class="dashboard-label">Slot Capacity</label>
-              <input type="number" name="slot_capacity" class="dashboard-input" value="5" min="1" required>
-            </div>
-            
-            <div class="form-group checkbox">
-              <label class="dashboard-label">
-                <input type="checkbox" name="is_published" value="on">
-                Publish immediately
-              </label>
-            </div>
-            
-            <button type="submit" class="dashboard-button">Add Problem Statement</button>
-          </form>
-        </div>
-      </div>
-    </section>
 
-  </div>
-</div>
+  function togglePSPublish(psId) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.innerHTML = `
+      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+      <input type="hidden" name="action" value="toggle_problem_published">
+      <input type="hidden" name="problem_statement_id" value="${psId}">
+    `;
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  function openAddPS(trackId) {
+    document.getElementById('psAction').value = 'add_problem_statement';
+    document.getElementById('psId').value = '';
+    document.getElementById('slidePanelTitle').textContent = 'Add Problem Statement';
+    document.getElementById('psTrackId').value = trackId;
+    document.getElementById('psTrackSelect').value = trackId;
+    document.getElementById('psCode').value = '';
+    document.getElementById('psTitle').value = '';
+    document.getElementById('psStatement').value = '';
+    document.getElementById('psContext').value = '';
+    document.getElementById('psMinReq').value = '';
+    document.getElementById('psDependencies').value = '';
+    document.getElementById('psSlots').value = '5';
+    document.getElementById('psPublish').checked = false;
+    openSlidePanel();
+  }
+
+  function openEditPS(psId) {
+    document.getElementById('psAction').value = 'edit_problem_statement';
+    document.getElementById('slidePanelTitle').textContent = 'Edit Problem Statement';
+    
+    const psCard = document.querySelector(`[data-ps-id="${psId}"]`);
+    const psCode = psCard.querySelector('.ps-code').textContent;
+    const psTitle = psCard.querySelector('.ps-name').textContent;
+    
+    document.getElementById('psId').value = psId;
+    document.getElementById('psCode').value = psCode;
+    document.getElementById('psTitle').value = psTitle;
+    
+    openSlidePanel();
+  }
+
+  function openDeletePS(psId) {
+    document.getElementById('deleteId').value = psId;
+    document.getElementById('deleteModal').classList.add('active');
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('active');
+  }
+
+  function openSlidePanel() {
+    document.getElementById('slideOverlay').classList.add('active');
+    document.getElementById('slidePanel').classList.add('active');
+  }
+
+  function closeSlidePanel() {
+    document.getElementById('slideOverlay').classList.remove('active');
+    document.getElementById('slidePanel').classList.remove('active');
+  }
+
+  document.getElementById('slidePanel').addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+</script>
 
 {% endblock %}

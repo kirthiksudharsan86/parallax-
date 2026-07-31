@@ -117,7 +117,7 @@
       <div class="footer-social-row">
         <a href="https://www.instagram.com/parallaxhackathon?igsh=ZG83OXp5Y2dzOTB0" class="footer-social-btn" title="Instagram"><i class="fab fa-instagram"></i></a>
         <a href=" https://chat.whatsapp.com/EMSiS1pO4DbEOzx4DTLdUB?s=sw&p=a&mlu=0" class="footer-social-btn" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
-        <a href="https://www.linkedin.com/company/parallax-hackathon" class="footer-social-btn" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+
       </div>
     </div>
 
@@ -128,14 +128,6 @@
         <li><a href="{% url 'tracks' %}"><i class="fa-solid fa-chevron-right footer-li-icon"></i><span>Tracks</span></a></li>
         <li><a href="{% url 'information' 'prizes' %}"><i class="fa-solid fa-chevron-right footer-li-icon"></i><span>Prizes</span></a></li>
         <li><a href="{% url 'about' %}"><i class="fa-solid fa-chevron-right footer-li-icon"></i><span>About</span></a></li>
-        <li><a href="{% url 'registration_index' %}"><i class="fa-solid fa-chevron-right footer-li-icon"></i><span>Registration</span></a></li>
-        {% if request.user.is_authenticated and request.user.is_staff %}
-        <li><a href="{% url 'admin_panel' %}"><i class="fa-solid fa-chevron-right footer-li-icon"></i><span>OC Dashboard</span></a></li>
-        {% elif request.user.is_authenticated %}
-        <li><a href="{% url 'participant_dashboard' %}"><i class="fa-solid fa-chevron-right footer-li-icon"></i><span>Team Space</span></a></li>
-        {% else %}
-        <li><a href="{% provider_login_url 'google' %}"><i class="fa-solid fa-chevron-right footer-li-icon"></i><span>Team Login</span></a></li>
-        {% endif %}
       </ul>
     </div>
 

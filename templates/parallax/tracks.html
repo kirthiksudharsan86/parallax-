@@ -1,217 +1,627 @@
 {% extends 'parallax/base.html' %}
 {% load static %}
+
 {% block title %}Tracks | Parallax{% endblock %}
-{% block extra_css %}
-<style>
-.tracks-hero {
-  text-align: center;
-  padding: 40px 24px;
-  max-width: 1120px;
-  margin: 0 auto;
-}
-.tracks-hero h1 {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 2.4rem;
-  letter-spacing: 0.06em;
-  color: #fff;
-  margin: 0 0 8px;
-  text-transform: uppercase;
-}
-.tracks-hero p {
-  font-size: 0.9rem;
-  color: #94a3b8;
-  margin: 0;
-}
-.tracks-container {
-  max-width: 1120px;
-  margin: 40px auto;
-  padding: 0 24px 40px;
-}
-.tracks-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
-  margin-bottom: 18px;
-}
-.tracks-center {
-  display: flex;
-  justify-content: center;
-}
-.track-card {
-  padding: 24px;
-  border: 1px solid rgba(63, 176, 255, 0.3);
-  border-radius: 12px;
-  background: rgba(6, 20, 48, 0.5);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  min-height: 220px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  transition: all 0.35s ease;
-  position: relative;
-}
-.track-card:hover {
-  border-color: rgba(63, 176, 255, 0.7);
-  box-shadow: 0 0 30px rgba(63, 176, 255, 0.2);
-  transform: translateY(-2px);
-}
-.track-card.center-card {
-  max-width: 450px;
-  width: 100%;
-}
-.track-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-.track-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: 2px solid rgba(63, 176, 255, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.4rem;
-  color: #3fb0ff;
-  flex-shrink: 0;
-}
-.track-title-section {
-  flex: 1;
-}
-.track-card h2 {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: #fff;
-  margin: 0;
-  text-transform: uppercase;
-}
-.track-arrow {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #7ddaff;
-  font-size: 0.8rem;
-}
-.track-card p {
-  font-size: 0.85rem;
-  color: #cbd5e1;
-  margin: 0;
-  line-height: 1.4;
-  flex-grow: 1;
-}
-.track-status {
-  font-size: 0.8rem;
-  color: #fbbf24;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  margin-top: auto;
-  padding-top: 12px;
-  border-top: 1px solid rgba(251, 191, 36, 0.2);
-}
-.tracks-empty {
-  text-align: center;
-  padding: 40px 24px;
-}
-.tracks-empty h2 {
-  font-size: 1.4rem;
-  color: #fff;
-  margin: 0 0 8px;
-}
-.tracks-empty p {
-  font-size: 0.9rem;
-  color: #94a3b8;
-  margin: 0;
-}
-@media (max-width: 768px) {
-  .tracks-grid {
-    grid-template-columns: 1fr;
-  }
-  .tracks-hero h1 {
-    font-size: 1.8rem;
-  }
-}
-</style>
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-{% endblock %}
+
 {% block content %}
-<div class="tracks-hero">
-  <h1>Challenging Tracks</h1>
-  <p>Problem statements will be released prior to the event.</p>
-</div>
-{% if tracks %}
+
+<style>
+  .tracks-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 24px;
+  }
+
+  .tracks-hero {
+    text-align: center;
+    margin-bottom: 60px;
+  }
+
+  .tracks-hero h1 {
+    font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 16px 0;
+    letter-spacing: -0.02em;
+  }
+
+  .tracks-hero p {
+    font-size: 16px;
+    color: #93a8d1;
+    margin: 0;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .tracks-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .tracks-grid-center {
+    display: flex;
+    justify-content: center;
+  }
+
+  .track-card {
+    background: rgba(19, 32, 64, 0.62);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+    padding: 32px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: default;
+  }
+
+  .track-card:hover {
+    border-color: rgba(34, 211, 238, 0.5);
+    box-shadow: 0 8px 32px rgba(34, 211, 238, 0.15);
+    transform: translateY(-4px);
+  }
+
+  .track-card.center {
+    max-width: 500px;
+  }
+
+  .track-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .track-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(34, 211, 238, 0.15);
+    border: 1px solid rgba(34, 211, 238, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #22d3ee;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+
+  .track-title {
+    flex: 1;
+  }
+
+  .track-name {
+    font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0 0 4px 0;
+  }
+
+  .track-description {
+    font-size: 14px;
+    color: #93a8d1;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .track-dropdown-section {
+    margin-top: 20px;
+  }
+
+  .dropdown-trigger {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: #e2e8f0;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+
+  .dropdown-trigger:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(34, 211, 238, 0.3);
+  }
+
+  .dropdown-trigger.active {
+    background: rgba(34, 211, 238, 0.1);
+    border-color: rgba(34, 211, 238, 0.5);
+  }
+
+  .dropdown-chevron {
+    font-size: 12px;
+    transition: transform 0.3s;
+    color: #22d3ee;
+  }
+
+  .dropdown-trigger.active .dropdown-chevron {
+    transform: rotate(180deg);
+  }
+
+  .dropdown-content {
+    display: none;
+    margin-top: 12px;
+    animation: slideDown 0.3s ease-out;
+  }
+
+  .dropdown-content.active {
+    display: block;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .coming-soon-message {
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+    color: #fbbf24;
+    font-size: 14px;
+  }
+
+  .ps-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .ps-item {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .ps-item:hover {
+    background: rgba(34, 211, 238, 0.08);
+    border-color: rgba(34, 211, 238, 0.3);
+  }
+
+  .ps-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+    font: inherit;
+  }
+
+  .ps-code {
+    font-family: 'JetBrains Mono', 'SFMono-Regular', monospace;
+    font-size: 12px;
+    color: #22d3ee;
+    font-weight: 600;
+  }
+
+  .ps-title {
+    font-size: 14px;
+    color: #e2e8f0;
+    font-weight: 500;
+    margin-top: 4px;
+  }
+
+  .ps-chevron {
+    font-size: 12px;
+    color: #22d3ee;
+    transition: transform 0.3s;
+  }
+
+  .ps-item.active .ps-chevron {
+    transform: rotate(180deg);
+  }
+
+  .ps-details {
+    display: none;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 13px;
+    color: #93a8d1;
+  }
+
+  .ps-details.active {
+    display: block;
+  }
+
+  .ps-detail-row {
+    margin-bottom: 12px;
+  }
+
+  .ps-detail-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .ps-detail-label {
+    font-weight: 600;
+    color: #cbd5e1;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+
+  .ps-detail-value {
+    color: #93a8d1;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 1024px) {
+    .tracks-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .track-card {
+      padding: 24px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .tracks-container {
+      padding: 40px 16px;
+    }
+
+    .tracks-hero {
+      margin-bottom: 40px;
+    }
+
+    .tracks-hero h1 {
+      font-size: 2rem;
+    }
+
+    .tracks-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .track-card {
+      padding: 20px;
+    }
+
+    .track-header {
+      gap: 12px;
+    }
+
+    .track-icon {
+      width: 48px;
+      height: 48px;
+      font-size: 20px;
+    }
+  }
+</style>
+
 <div class="tracks-container">
-  <div class="tracks-grid">
-    {% for track in tracks %}
-      {% if forloop.counter <= 4 %}
-      <article class="track-card">
-        <div class="track-header">
-          <div class="track-icon">
-            {% if track.icon %}
-              <i class="{{ track.icon }}"></i>
+  <div class="tracks-hero">
+    <h1>Challenging Tracks</h1>
+    <p>Select a track to explore problem statements and hackathon challenges.</p>
+  </div>
+
+  {% if tracks %}
+    <div class="tracks-grid">
+      {% for track in tracks|slice:":4" %}
+        <div class="track-card">
+          <div class="track-header">
+            <div class="track-icon">
+              {% if track.icon %}
+                <i class="{{ track.icon }}"></i>
+              {% else %}
+                <i class="fa-solid fa-lightbulb"></i>
+              {% endif %}
+            </div>
+            <div class="track-title">
+              <h3 class="track-name">{{ track.name }}</h3>
+              <p class="track-description">{{ track.description }}</p>
+            </div>
+          </div>
+
+          <div class="track-dropdown-section">
+            {% if track.public_problem_statements %}
+              <button class="dropdown-trigger" onclick="toggleDropdown(this)">
+                <span>▼ Problem Statements</span>
+                <span class="dropdown-chevron">▼</span>
+              </button>
+              <div class="dropdown-content">
+                <div class="ps-list">
+                  {% for ps in track.public_problem_statements %}
+                    <div class="ps-item">
+                      <button class="ps-trigger" onclick="togglePS(this)">
+                        <div>
+                          <div class="ps-code">{{ ps.code }}</div>
+                          <div class="ps-title">{{ ps.title }}</div>
+                        </div>
+                        <span class="ps-chevron">▼</span>
+                      </button>
+                      <div class="ps-details">
+                        <div class="ps-detail-row">
+                          <div class="ps-detail-label">Problem Statement</div>
+                          <div class="ps-detail-value">{{ ps.description }}</div>
+                        </div>
+                        {% if ps.context %}
+                          <div class="ps-detail-row">
+                            <div class="ps-detail-label">Context</div>
+                            <div class="ps-detail-value">{{ ps.context }}</div>
+                          </div>
+                        {% endif %}
+                        {% if ps.min_requirements %}
+                          <div class="ps-detail-row">
+                            <div class="ps-detail-label">Minimum Requirements</div>
+                            <div class="ps-detail-value">{{ ps.min_requirements }}</div>
+                          </div>
+                        {% endif %}
+                        {% if ps.dependencies %}
+                          <div class="ps-detail-row">
+                            <div class="ps-detail-label">Dependencies</div>
+                            <div class="ps-detail-value">{{ ps.dependencies }}</div>
+                          </div>
+                        {% endif %}
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
             {% else %}
-              <i class="fa-solid fa-lightbulb"></i>
+              <button class="dropdown-trigger" onclick="showComingSoon()">
+                <span>▼ Coming Soon</span>
+                <span class="dropdown-chevron">▼</span>
+              </button>
+              <div class="dropdown-content">
+                <div class="coming-soon-message">
+                  Problem statements will be released soon.
+                </div>
+              </div>
             {% endif %}
           </div>
-          <div class="track-title-section">
-            <h2>{{ track.name }}</h2>
-          </div>
-          <div class="track-arrow">
-            <i class="fa-solid fa-chevron-down"></i>
-          </div>
         </div>
-        <p>{{ track.description }}</p>
-        <div class="track-status">
-          {% if track.is_published %}
-            Problem Statement Live
-          {% else %}
-            Coming Soon
-          {% endif %}
-        </div>
-      </article>
-      {% endif %}
-    {% endfor %}
-  </div>
-  {% if tracks|length > 4 %}
-  <div class="tracks-center">
-    <article class="track-card center-card">
-      <div class="track-header">
-        <div class="track-icon">
-          {% if tracks.4.icon %}
-            <i class="{{ tracks.4.icon }}"></i>
-          {% else %}
-            <i class="fa-solid fa-star"></i>
-          {% endif %}
-        </div>
-        <div class="track-title-section">
-          <h2>{{ tracks.4.name }}</h2>
-        </div>
-        <div class="track-arrow">
-          <i class="fa-solid fa-chevron-down"></i>
+      {% endfor %}
+    </div>
+
+    {% if tracks|length > 4 %}
+      <div class="tracks-grid-center">
+        <div class="track-card center">
+          {% with fifth_track=tracks|slice:"4:5"|first %}
+            <div class="track-header">
+              <div class="track-icon">
+                {% if fifth_track.icon %}
+                  <i class="{{ fifth_track.icon }}"></i>
+                {% else %}
+                  <i class="fa-solid fa-lightbulb"></i>
+                {% endif %}
+              </div>
+              <div class="track-title">
+                <h3 class="track-name">{{ fifth_track.name }}</h3>
+                <p class="track-description">{{ fifth_track.description }}</p>
+              </div>
+            </div>
+
+            <div class="track-dropdown-section">
+              {% if fifth_track.public_problem_statements %}
+                <button class="dropdown-trigger" onclick="toggleDropdown(this)">
+                  <span>▼ Problem Statements</span>
+                  <span class="dropdown-chevron">▼</span>
+                </button>
+                <div class="dropdown-content">
+                  <div class="ps-list">
+                    {% for ps in fifth_track.public_problem_statements %}
+                      <div class="ps-item">
+                        <button class="ps-trigger" onclick="togglePS(this)">
+                          <div>
+                            <div class="ps-code">{{ ps.code }}</div>
+                            <div class="ps-title">{{ ps.title }}</div>
+                          </div>
+                          <span class="ps-chevron">▼</span>
+                        </button>
+                        <div class="ps-details">
+                          <div class="ps-detail-row">
+                            <div class="ps-detail-label">Problem Statement</div>
+                            <div class="ps-detail-value">{{ ps.description }}</div>
+                          </div>
+                          {% if ps.context %}
+                            <div class="ps-detail-row">
+                              <div class="ps-detail-label">Context</div>
+                              <div class="ps-detail-value">{{ ps.context }}</div>
+                            </div>
+                          {% endif %}
+                          {% if ps.min_requirements %}
+                            <div class="ps-detail-row">
+                              <div class="ps-detail-label">Minimum Requirements</div>
+                              <div class="ps-detail-value">{{ ps.min_requirements }}</div>
+                            </div>
+                          {% endif %}
+                          {% if ps.dependencies %}
+                            <div class="ps-detail-row">
+                              <div class="ps-detail-label">Dependencies</div>
+                              <div class="ps-detail-value">{{ ps.dependencies }}</div>
+                            </div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                </div>
+              {% else %}
+                <button class="dropdown-trigger" onclick="showComingSoon()">
+                  <span>▼ Coming Soon</span>
+                  <span class="dropdown-chevron">▼</span>
+                </button>
+                <div class="dropdown-content">
+                  <div class="coming-soon-message">
+                    Problem statements will be released soon.
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          {% endwith %}
         </div>
       </div>
-      <p>{{ tracks.4.description }}</p>
-      <div class="track-status">
-        {% if tracks.4.is_published %}
-          Problem Statement Live
-        {% else %}
-          Coming Soon
-        {% endif %}  
+    {% endif %}
+
+  {% else %}
+    <div class="tracks-grid">
+      <div class="track-card">
+        <div class="track-header">
+          <div class="track-icon">
+            <i class="fa-solid fa-rocket"></i>
+          </div>
+          <div class="track-title">
+            <h3 class="track-name">Aviation & Space Tech</h3>
+            <p class="track-description">Build intelligent systems for aerospace, autonomous flight and satellite technologies.</p>
+          </div>
+        </div>
+        <div class="track-dropdown-section">
+          <button class="dropdown-trigger" onclick="showComingSoon()">
+            <span>▼ Coming Soon</span>
+            <span class="dropdown-chevron">▼</span>
+          </button>
+          <div class="dropdown-content">
+            <div class="coming-soon-message">
+              Problem statements will be released soon.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="track-card">
+        <div class="track-header">
+          <div class="track-icon">
+            <i class="fa-solid fa-microchip"></i>
+          </div>
+          <div class="track-title">
+            <h3 class="track-name">Internet of Things</h3>
+            <p class="track-description">Create real-time hardware-software systems for devices, automation and edge computing.</p>
+          </div>
+        </div>
+        <div class="track-dropdown-section">
+          <button class="dropdown-trigger" onclick="showComingSoon()">
+            <span>▼ Coming Soon</span>
+            <span class="dropdown-chevron">▼</span>
+          </button>
+          <div class="dropdown-content">
+            <div class="coming-soon-message">
+              Problem statements will be released soon.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="track-card">
+        <div class="track-header">
+          <div class="track-icon">
+            <i class="fa-solid fa-heart-pulse"></i>
+          </div>
+          <div class="track-title">
+            <h3 class="track-name">Healthcare & Assistive Tech</h3>
+            <p class="track-description">Design technologies that improve access, rehabilitation and quality of life.</p>
+          </div>
+        </div>
+        <div class="track-dropdown-section">
+          <button class="dropdown-trigger" onclick="showComingSoon()">
+            <span>▼ Coming Soon</span>
+            <span class="dropdown-chevron">▼</span>
+          </button>
+          <div class="dropdown-content">
+            <div class="coming-soon-message">
+              Problem statements will be released soon.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="track-card">
+        <div class="track-header">
+          <div class="track-icon">
+            <i class="fa-solid fa-brain"></i>
+          </div>
+          <div class="track-title">
+            <h3 class="track-name">Artificial Intelligence & Machine Learning</h3>
+            <p class="track-description">Engineer resilient systems through intelligent algorithms, data analytics and smart automation.</p>
+          </div>
+        </div>
+        <div class="track-dropdown-section">
+          <button class="dropdown-trigger" onclick="showComingSoon()">
+            <span>▼ Coming Soon</span>
+            <span class="dropdown-chevron">▼</span>
+          </button>
+          <div class="dropdown-content">
+            <div class="coming-soon-message">
+              Problem statements will be released soon.
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    </article>
-     </div>
+
+    <div class="tracks-grid-center">
+      <div class="track-card center">
+        <div class="track-header">
+          <div class="track-icon">
+            <i class="fa-solid fa-satellite-dish"></i>
+          </div>
+          <div class="track-title">
+            <h3 class="track-name">Communication & Networking</h3>
+            <p class="track-description">Develop secure networks and intelligent connected infrastructure for the future.</p>
+          </div>
+        </div>
+        <div class="track-dropdown-section">
+          <button class="dropdown-trigger" onclick="showComingSoon()">
+            <span>▼ Coming Soon</span>
+            <span class="dropdown-chevron">▼</span>
+          </button>
+          <div class="dropdown-content">
+            <div class="coming-soon-message">
+              Problem statements will be released soon.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   {% endif %}
 </div>
-{% else %}
-<div class="tracks-empty">
-  <h2>Tracks Coming Soon</h2>
-  <p>The organizing committee will publish the challenging tracks here.</p>
-</div>
-{% endif %}
-{% endblock %} 
+
+<script>
+function toggleDropdown(button) {
+  const content = button.nextElementSibling;
+  button.classList.toggle('active');
+  content.classList.toggle('active');
+}
+
+function togglePS(button) {
+  const details = button.closest('.ps-item').querySelector('.ps-details');
+  button.closest('.ps-item').classList.toggle('active');
+  details.classList.toggle('active');
+}
+
+function showComingSoon() {
+  return false;
+}
+</script>
+
+{% endblock %}
