@@ -48,12 +48,6 @@
 .faq-item summary::-webkit-details-marker{display:none}
 .faq-item summary::after{content:'^';color:var(--cyan);font-size:1.1rem;font-weight:700;flex-shrink:0;transition:transform .3s;line-height:1;transform:rotate(180deg)}
 .faq-item[open] summary::after{transform:rotate(0deg)}
-/* Robust collapse: animate the grid row itself (0fr -> 1fr) instead of
-   measuring scrollHeight in JS. This can never clip/hide the answer text
-   and never gets stuck mid-animation on fast repeated clicks.
-   display:grid overrides the browser's default "hide non-summary
-   children" behaviour so height can be measured/animated at any time;
-   while closed the row height is still genuinely 0. */
 .faq-body{
   display:block;
   max-height:0;
@@ -82,7 +76,6 @@
     <p>Across Software &amp; Hardware tracks, plus sponsor-exclusive awards.</p>
   </div>
 </div>
-
 <div class="prize-tracks-grid">
   <article class="prize-track-card">
     <div class="prize-track-header">
@@ -97,7 +90,6 @@
       <li class="rank-runner"><span class="rank-medal"><i class="fa-solid fa-star"></i></span><span class="rank-name">Top Runner-ups (x2)</span><span class="rank-amount">₹2,500 each</span></li>
     </ul>
   </article>
-
   <article class="prize-track-card">
     <div class="prize-track-header">
       <i class="fa-solid fa-microchip"></i>

@@ -435,3 +435,8 @@ footer {background: #0a0e1a;color: #8fa3c4;padding: 60px 60px 24px;font-family: 
 .glass-card .btn{
     min-width:180px;
 }
+.sponsor-card{
+    flex:0 1 340px;
+    max-width:340px;
+    width:100%;
+}

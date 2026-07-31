@@ -1,303 +1,101 @@
 {% extends 'parallax/base.html' %}
 {% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
 {% block title %}Team Dashboard | Parallax{% endblock %}
+
 {% block content %}
-<div id="app" class="visible">
-  <header class="topbar">
-    <div class="topbar-left">
-      <div class="brand-mark">P</div>
-      <div class="topbar-title">Parallax 2026</div>
-    </div>
-    <div class="topbar-right">
-      <div class="topbar-team-badge">
-        <span>Team:</span>
-        <span class="topbar-team-code">{{ team.team_code }}</span>
-      </div>
-        <a href="{% url 'account_logout' %}" class="btn-logout">
-        Logout
-        </a>
-    </div>
-  </header>
-  <div class="dashboard-layout">
-    <aside class="sidebar">
-      <div class="sidebar-section">
-        <div class="sidebar-title">Progress</div>
-        <div id="stepsList"></div>
-      </div>
-    </aside>
-    <main class="main-content">
-      <div class="page-header">
-        <h1 class="page-title">{{ team.team_name }}</h1>
-        <p class="page-subtitle">Team Dashboard · Manage your registration and track progress</p>
-      </div>
-      <div class="card">
-        <div class="card-header">
-          <h2 class="card-title">Team Information</h2>
-        </div>
-        <div class="card-grid">
-          <div class="info-box">
-            <div class="info-label">Team Code</div>
-            <div class="info-value">{{ team.team_code }}</div>
-          </div>
-          <div class="info-box">
-            <div class="info-label">Team Lead</div>
-            <div class="info-value">{{ participant.full_name }}</div>
-          </div>
-          <div class="info-box">
-            <div class="info-label">Team Size</div>
-            <div class="info-value">{{ team.members.count }}/10</div>
-          </div>
-          <div class="info-box">
-            <div class="info-label">Status</div>
-            <div class="info-value" style="color: {% if team.status == 'APPROVED' %}#34D399{% elif team.status == 'PENDING' %}#FBBF24{% else %}#8FA3CC{% endif %};">
-              {% if team.status == 'APPROVED' %}Approved{% elif team.status == 'PENDING' %}Pending{% else %}{{ team.get_status_display }}{% endif %}
+<section class="dashboard-shell">
+  <div class="dashboard-wrap">
+
+    <section class="dashboard-hero">
+      <h1>Welcome, {{ team.team_name }}</h1>
+      <p>Manage your team, track selection and announcements.</p>
+    </section>
+
+    <div class="dashboard-grid">
+
+      <div>
+
+        <div class="dashboard-card">
+          <h2>Team Overview</h2>
+
+          <div class="card-grid">
+
+            <div class="info-box">
+              <div class="info-label">Team Name</div>
+              <div class="info-value">{{ team.team_name }}</div>
+            </div>
+
+            <div class="info-box">
+              <div class="info-label">Team Code</div>
+              <div class="info-value">{{ team.team_code }}</div>
+            </div>
+
+            <div class="info-box">
+              <div class="info-label">Leader</div>
+              <div class="info-value">{{ participant.full_name }}</div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="card">
-        <div class="card-header">
-          <h2 class="card-title">Domain & Problem Statement</h2>
-          {% if not team.problem_statement %}
-          <button class="btn btn-primary" id="viewDomainBtn">Select Domain</button>
+        <div class="dashboard-card">
+          <h2>Track Selection</h2>
+
+          {% if team.problem_statement %}
+            <p><strong>Track:</strong> {{ team.problem_statement.track.name }}</p>
+            <p><strong>Problem:</strong> {{ team.problem_statement.code }} - {{ team.problem_statement.title }}</p>
+            <span class="dashboard-badge success">Locked</span>
+          {% else %}
+            <p>No problem statement selected.</p>
+            <button class="dashboard-button">Select Track</button>
           {% endif %}
         </div>
-        {% if team.problem_statement %}
-        <div style="padding: 16px; background: rgba(52, 211, 153, 0.1); border: 1px solid #34D399; border-radius: 8px; margin-top: 16px;">
-          <div class="info-box" style="margin-bottom: 12px;">
-            <div class="info-label">Track</div>
-            <div class="info-value">{{ team.problem_statement.track.name }}</div>
-          </div>
-          <div class="info-box" style="margin-bottom: 12px;">
-            <div class="info-label">Problem Code</div>
-            <div class="info-value">{{ team.problem_statement.code }}</div>
-          </div>
-          <div class="info-box">
-            <div class="info-label">Problem Title</div>
-            <div class="info-value" style="font-size: 13px; font-family: var(--font-body);">{{ team.problem_statement.title }}</div>
-          </div>
+
+        <div class="dashboard-card">
+          <h2>Scorecard</h2>
+
+          {% if marks %}
+          <table class="dashboard-table">
+            <thead>
+            <tr><th>Round</th><th>Score</th></tr>
+            </thead>
+            <tbody>
+            {% for m in marks %}
+            <tr>
+              <td>{{ m.round }}</td>
+              <td>{{ m.score }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <p>Scores have not been released.</p>
+          {% endif %}
         </div>
-        {% else %}
-        <p style="color: var(--text-muted); font-size: 14px; margin-top: 16px;">No domain selected yet. Click "Select Domain" to choose your track and problem statement.</p>
-        {% endif %}
+
       </div>
-      <div class="card">
-        <div class="card-header">
-          <h2 class="card-title">Announcements</h2>
-        </div>
-        {% if announcements %}
-        <div style="display: flex; flex-direction: column; gap: 12px;">
+
+      <aside>
+
+        <div class="dashboard-card">
+          <h2>Announcements</h2>
+
           {% for announcement in announcements %}
-          <div style="padding: 12px; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); border-radius: 8px;">
-            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">{{ announcement.created_at|date:"M d, Y" }}</div>
-            <div style="font-size: 14px; color: var(--text-primary); font-weight: 500;">{{ announcement.title }}</div>
-            <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">{{ announcement.content }}</div>
-          </div>
+            <div class="announcement-card">
+              <h3>{{ announcement.title }}</h3>
+              <p>{{ announcement.content }}</p>
+            </div>
+          {% empty %}
+            <p>No announcements.</p>
           {% endfor %}
         </div>
-        {% else %}
-        <p style="color: var(--text-muted); font-size: 14px;">No announcements yet.</p>
-        {% endif %}
-      </div>
-      <div class="card">
-        <div class="card-header">
-          <h2 class="card-title">Scorecard</h2>
-          <button class="btn btn-secondary" id="viewScoreBtn">View Scores</button>
-        </div>
-        <p style="color: var(--text-muted); font-size: 14px;">Click "View Scores" to see your team's round-by-round evaluation scores.</p>
-      </div>
-    </main>
-  </div>
-</div>
-<div id="domainModalOverlay" class="modal-overlay">
-  <div class="modal-card">
-    <button class="modal-close" id="domainModalClose">✕</button>
-    <div id="domainModalContent"></div>
-  </div>
-</div>
-<div id="scoreModalOverlay" class="modal-overlay">
-  <div class="modal-card">
-    <button class="modal-close" id="scoreModalClose">✕</button>
-    <div id="scoreModalContent"></div>
-  </div>
-</div>
-<script>
-const PROGRESS_STAGES = [
-  'Online Registration & Payment',
-  'Payment Verification',
-  'Offline Registration at Venue',
-  'Hackathon Inauguration',
-  'Round 1 (Student Review)',
-  'Round 2 (Faculty Review)',
-  'Final Review (Industry Review)',
-  'Closing Ceremony',
-];
 
-const TRACKS = {{ tracks_json|safe }};
-const PROBLEM_STATEMENTS = {{ problem_statements_json|safe }};
-const MARKS = {{ marks_json|safe }};
-const CURRENT_PROGRESS = {{ current_progress|default:"0" }};
+      </aside>
 
-let state = {
-  domainSelected: {{ team.problem_statement|yesno:"true,false" }},
-  chosenTrackId: "{{ team.problem_statement.track.id|default:'' }}",
-};
-
-let domainModalStep = '{% if team.problem_statement %}summary{% else %}domains{% endif %}';
-let modalPickedTrackId = null;
-let modalPickedPSId = null;
-
-/* ======================== PROGRESS STEPS ======================== */
-function renderSteps() {
-  const currentIndex = CURRENT_PROGRESS;
-  document.getElementById('stepsList').innerHTML = PROGRESS_STAGES.map((title, i) => {
-    const done = i < currentIndex;
-    const active = i === currentIndex;
-    return `
-      <div class="step ${done ? 'done' : ''} ${active ? 'active' : ''}">
-        <div class="dot">${done ? '✓' : i + 1}</div>
-        <div class="step-text">
-          <div class="step-title">${title}</div>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-renderSteps();
-
-/* ======================== DOMAIN MODAL ======================== */
-function openDomainModal() {
-  document.getElementById('domainModalOverlay').classList.add('visible');
-  renderDomainModal();
-}
-
-function closeDomainModal() {
-  document.getElementById('domainModalOverlay').classList.remove('visible');
-}
-
-function renderDomainModal() {
-  const content = document.getElementById('domainModalContent');
-
-  if (domainModalStep === 'summary') {
-    const track = TRACKS.find(t => t.id === state.chosenTrackId);
-    const ps = PROBLEM_STATEMENTS.find(p => p.id && p.track === state.chosenTrackId);
-    content.innerHTML = `
-      <div class="modal-eyebrow">Domain & Problem Statement</div>
-      <div class="modal-title">${track ? track.name : 'Selection confirmed'}</div>
-      <p class="modal-sub">Your selection has been confirmed and locked.</p>
-      <div class="modal-confirm-box">
-        <div class="modal-confirm-row"><span class="label">Track</span><span class="value">${track ? track.name : '—'}</span></div>
-        <div class="modal-confirm-row"><span class="label">Problem Code</span><span class="value">${ps ? ps.code : '—'}</span></div>
-      </div>
-    `;
-    return;
-  }
-
-  if (domainModalStep === 'domains') {
-    content.innerHTML = `
-      <div class="modal-eyebrow">Step 1 of 2</div>
-      <div class="modal-title">Choose your domain</div>
-      <p class="modal-sub">Pick the track your team will build in.</p>
-      <div class="modal-domain-grid">
-        ${TRACKS.map(t => `
-          <button class="modal-domain-card" type="button" data-track="${t.id}">
-            <span class="modal-domain-name">${t.name}</span>
-          </button>
-        `).join('')}
-      </div>
-    `;
-    content.querySelectorAll('.modal-domain-card').forEach(btn => {
-      btn.addEventListener('click', () => {
-        modalPickedTrackId = btn.dataset.track;
-        domainModalStep = 'ps';
-        renderDomainModal();
-      });
-    });
-    return;
-  }
-
-  if (domainModalStep === 'ps') {
-    const track = TRACKS.find(t => t.id === modalPickedTrackId);
-    const statements = PROBLEM_STATEMENTS.filter(p => p.track === modalPickedTrackId);
-    content.innerHTML = `
-      <button class="modal-back" type="button" id="modalBackToDomains">← Back</button>
-      <div class="modal-eyebrow">Step 2 of 2</div>
-      <div class="modal-title">${track ? track.name : 'Problems'}</div>
-      <p class="modal-sub">Choose a problem statement.</p>
-      <div class="modal-ps-list">
-        ${statements.map(ps => `
-          <button class="modal-ps-card" type="button" data-ps="${ps.id}">
-            <span class="modal-ps-code">${ps.code}</span>
-            <span class="modal-ps-title">${ps.title}</span>
-          </button>
-        `).join('')}
-      </div>
-    `;
-    document.getElementById('modalBackToDomains').addEventListener('click', () => {
-      domainModalStep = 'domains';
-      renderDomainModal();
-    });
-    content.querySelectorAll('.modal-ps-card').forEach(btn => {
-      btn.addEventListener('click', () => {
-        modalPickedPSId = btn.dataset.ps;
-        state.chosenTrackId = modalPickedTrackId;
-        state.domainSelected = true;
-        domainModalStep = 'summary';
-        renderDomainModal();
-      });
-    });
-  }
-}
-
-document.getElementById('viewDomainBtn').addEventListener('click', openDomainModal);
-document.getElementById('domainModalClose').addEventListener('click', closeDomainModal);
-document.getElementById('domainModalOverlay').addEventListener('click', (e) => {
-  if (e.target.id === 'domainModalOverlay') closeDomainModal();
-});
-
-/* ======================== SCORECARD MODAL ======================== */
-function openScoreModal() {
-  document.getElementById('scoreModalOverlay').classList.add('visible');
-  renderScoreModal();
-}
-
-function closeScoreModal() {
-  document.getElementById('scoreModalOverlay').classList.remove('visible');
-}
-
-function renderScoreModal() {
-  const content = document.getElementById('scoreModalContent');
-
-  if (!MARKS || MARKS.length === 0) {
-    content.innerHTML = `
-      <div class="modal-eyebrow">Scorecard</div>
-      <div class="modal-title">Scores not released</div>
-      <p class="modal-sub">Your organizing committee hasn't published scores yet. Check back later.</p>
-    `;
-    return;
-  }
-
-  content.innerHTML = `
-    <div class="modal-eyebrow">Scorecard</div>
-    <div class="modal-title">Your round scores</div>
-    <p class="modal-sub">Read-only scores set by the judging panel.</p>
-    <div class="modal-score-list">
-      ${MARKS.map(m => `
-        <div class="modal-score-row">
-          <span class="modal-score-round">${m.round || 'Round ' + (MARKS.indexOf(m) + 1)}</span>
-          <span class="modal-score-value">${m.score !== null ? m.score + '/' + (m.max_score || 100) : '—'}</span>
-        </div>
-      `).join('')}
     </div>
-  `;
-}
 
-document.getElementById('viewScoreBtn').addEventListener('click', openScoreModal);
-document.getElementById('scoreModalClose').addEventListener('click', closeScoreModal);
-document.getElementById('scoreModalOverlay').addEventListener('click', (e) => {
-  if (e.target.id === 'scoreModalOverlay') closeScoreModal();
-});
-</script>
-
+  </div>
+</section>
 {% endblock %}
+

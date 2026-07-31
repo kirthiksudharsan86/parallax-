@@ -8,7 +8,6 @@
 
   <div class="dashboard-actions" style="margin-bottom:1.5rem;">
     <a class="dashboard-button-secondary" href="{% url 'admin_panel' %}">Back to Dashboard</a>
-    <a class="dashboard-button-secondary" href="{% url 'admin_tracks' %}">Tracks &amp; Problems</a>
   </div>
 
   <div class="table-card">
@@ -20,11 +19,11 @@
           <input type="text" name="name" maxlength="150" required>
         </label>
         <label>Sponsor type
-          <select name="sponsor_type" required>
-            {% for value, label in sponsor_type_choices %}
-            <option value="{{ value }}">{{ label }}</option>
-            {% endfor %}
-          </select>
+          <input
+             type="text"
+             name="sponsor_type"
+              value="{{ sponsor.sponsor_type }}"
+              required>
         </label>
         <label>Tagline
           <input type="text" name="tagline" maxlength="200" placeholder="Short tagline">
@@ -35,11 +34,7 @@
         <label>Display order
           <input type="number" name="display_order" min="0" value="0">
         </label>
-        <label class="ps-check">
-          <input type="checkbox" name="is_active" checked> Active (show on home page)
-        </label>
-        <button class="btn-cta" type="submit">Save sponsor</button>
-      </form>
+        </form>
     </details>
 
     {% for sponsor in sponsors %}
@@ -54,6 +49,9 @@
             {% if sponsor.tagline %} · {{ sponsor.tagline }}{% endif %}
           </p>
         </div>
+        <form method="post" style="display:inline;">
+    {% csrf_token %}
+        </form>
       </div>
     </article>
     <details class="ps-editor">
@@ -65,12 +63,12 @@
           <input type="text" name="name" maxlength="150" value="{{ sponsor.name }}" required>
         </label>
         <label>Sponsor type
-          <select name="sponsor_type" required>
-            {% for value, label in sponsor_type_choices %}
-            <option value="{{ value }}" {% if sponsor.sponsor_type == value %}selected{% endif %}>{{ label }}</option>
-            {% endfor %}
-          </select>
-        </label>
+          <input
+             type="text"
+              name="sponsor_type"
+              placeholder="e.g. Title Sponsor, Technical Partner, Knowledge Partner"
+              required>
+           </label>
         <label>Tagline
           <input type="text" name="tagline" maxlength="200" value="{{ sponsor.tagline }}">
         </label>
@@ -83,25 +81,27 @@
         <label class="ps-check">
           <input type="checkbox" name="is_active" {% if sponsor.is_active %}checked{% endif %}> Active (show on home page)
         </label>
-        <div class="sponsor-actions">
-    <button class="btn-cta" type="submit">Save Changes</button>
-</form>
+<div class="sponsor-actions">
+    <button class="btn-cta" type="submit">
+        Save Changes
+    </button>
 
-<form method="post"
-      onsubmit="return confirm('Are you sure you want to delete this sponsor?');">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="delete_sponsor">
-    <input type="hidden" name="sponsor_id" value="{{ sponsor.id }}">
-    <button class="btn-danger" type="submit">
+    <button
+        class="btn-danger"
+        type="submit"
+        name="action"
+        value="delete_sponsor"
+        onclick="return confirm('Delete this sponsor?');">
         Delete Sponsor
     </button>
-</form>
+</div>
 </div>
     </details>
     {% empty %}
     <p>No sponsors added yet. Use the button above to add the first one.</p>
     {% endfor %}
   </div>
+</form>  
 </main>
 
 <style>

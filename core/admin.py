@@ -27,13 +27,19 @@ class TeamAdmin(admin.ModelAdmin):
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
     list_display = ('name', 'scheduled_at', 'max_marks', 'weightage')
-@admin.register(Marks)
 @admin.register(EventConfiguration)
 class EventConfigurationAdmin(admin.ModelAdmin):
     pass
+@admin.register(Marks)
 class MarksAdmin(admin.ModelAdmin):
-    list_display = ('team', 'review', 'score', 'graded_by', 'updated_at')
-    list_filter = ('review',)
+    list_display = (
+        "team",
+        "review",
+        "score",
+        "graded_by",
+        "updated_at",
+    )
+    list_filter = ("review",)
 @admin.register(Announcement)
 class AnnouncementAdmin(admin.ModelAdmin):
     list_display = ('title', 'is_pinned', 'send_email', 'created_by', 'created_at')

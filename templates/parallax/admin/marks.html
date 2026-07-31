@@ -1,12 +1,9 @@
 {% extends 'parallax/base.html' %}
 {% load static %}
-
 {% block title %}Review Marks | Parallax{% endblock %}
-
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 {% endblock %}
-
 {% block content %}
 <section class="dashboard-shell">
   <div class="dashboard-wrap">
@@ -18,7 +15,6 @@
         <a class="dashboard-button-secondary" href="{% url 'admin_panel' %}">Back to OC Dashboard</a>
       </div>
     </section>
-
     <section class="dashboard-grid">
       <article class="dashboard-form">
         <div class="dashboard-section-header">
@@ -27,7 +23,6 @@
             <h2 class="dashboard-section-title">Configure a round</h2>
           </div>
         </div>
-
         <form method="post" class="dashboard-form-grid" novalidate>
           {% csrf_token %}
           <input type="hidden" name="action" value="create_round">
@@ -47,7 +42,6 @@
             <button class="dashboard-button" type="submit">Add Round</button>
           </div>
         </form>
-
         <div class="dashboard-section-header" style="margin-top:1.5rem;">
           <div>
             <span class="dashboard-kicker">Configured Rounds</span>
@@ -73,7 +67,6 @@
           {% endfor %}
         </ul>
       </article>
-
       <aside class="dashboard-sidebar">
         <div class="dashboard-section-header">
           <div>
@@ -81,7 +74,6 @@
             <h2 class="dashboard-section-title">Score a team</h2>
           </div>
         </div>
-
         {% if reviews and teams %}
         <form method="post" class="dashboard-form-grid" novalidate>
           {% csrf_token %}
@@ -95,12 +87,14 @@
             </select>
           </div>
           <div class="dashboard-field full">
-            <label for="award-team">Team</label>
-            <select class="dashboard-input" id="award-team" name="team_id" required>
+            <label for="award-team-search">Team</label>
+            <input class="dashboard-input" id="award-team-search" type="text" placeholder="Search team by name or track…" autocomplete="off">
+            <select class="dashboard-input" id="award-team" name="team_id" size="6" required style="margin-top:.5rem;">
               {% for team in teams %}
-              <option value="{{ team.id }}">{{ team.team_name }}{% if team.track %} · {{ team.track.name }}{% endif %}</option>
+              <option value="{{ team.id }}" data-search="{{ team.team_name|lower }} {% if team.track %}{{ team.track.name|lower }}{% endif %}">{{ team.team_name }}{% if team.track %} · {{ team.track.name }}{% endif %}</option>
               {% endfor %}
             </select>
+            <p class="dashboard-small" id="award-team-empty" style="display:none; margin-top:.35rem;">No teams match your search.</p>
           </div>
           <div class="dashboard-field full">
             <label for="award-score">Score</label>
@@ -119,7 +113,6 @@
         {% endif %}
       </aside>
     </section>
-
     <section class="dashboard-table-card">
       <div class="dashboard-section-header">
         <div>
@@ -158,4 +151,49 @@
     </section>
   </div>
 </section>
+{% endblock %}
+{% block extra_js %}
+<script>
+  (function () {
+    var search = document.getElementById('award-team-search');
+    var select = document.getElementById('award-team');
+    var empty = document.getElementById('award-team-empty');
+    if (!search || !select) return;
+    var options = Array.prototype.slice.call(select.options);
+
+    function filter() {
+      var query = search.value.trim().toLowerCase();
+      var visible = 0;
+      options.forEach(function (option) {
+        var haystack = option.getAttribute('data-search') || option.text.toLowerCase();
+        var match = !query || haystack.indexOf(query) !== -1;
+        option.hidden = !match;
+        if (match) visible++;
+      });
+      if (empty) empty.style.display = visible ? 'none' : 'block';
+      if (select.selectedOptions.length && select.selectedOptions[0].hidden) {
+        select.selectedIndex = -1;
+      }
+    }
+
+    search.addEventListener('input', filter);
+    search.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') event.preventDefault();
+    });
+
+    var form = select.closest('form');
+    if (form) {
+      form.addEventListener('submit', function (event) {
+        if (!select.value) {
+          event.preventDefault();
+          if (empty) {
+            empty.textContent = 'Please select a team before saving marks.';
+            empty.style.display = 'block';
+          }
+          select.focus();
+        }
+      });
+    }
+  })();
+</script>
 {% endblock %}

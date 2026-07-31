@@ -13,7 +13,6 @@ class Participant(models.Model):
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=15, blank=True)
     college_name = models.CharField(max_length=200, blank=True)
-    reg_number = models.CharField(max_length=30, blank=True, null=True)
     team = models.ForeignKey('Team', on_delete=models.SET_NULL, null=True, blank=True, related_name='members')
     is_team_leader = models.BooleanField(default=False)
     approval_status = models.CharField(max_length=10, choices=APPROVAL_CHOICES, default='PENDING')
@@ -198,12 +197,8 @@ class ProblemStatement(models.Model):
 class Sponsor(models.Model):
     TITLE = 'TITLE'
     TECHNICAL = 'TECHNICAL'
-    SPONSOR_TYPE_CHOICES = [
-        (TITLE, 'Title Sponsor'),
-        (TECHNICAL, 'Technical Sponsor'),
-    ]
+    sponsor_type = models.CharField(max_length=100)
     name = models.CharField(max_length=150)
-    sponsor_type = models.CharField(max_length=10, choices=SPONSOR_TYPE_CHOICES, default=TECHNICAL)
     tagline = models.CharField(max_length=200, blank=True)
     logo = models.ImageField(upload_to='sponsors/', blank=True, null=True)
     is_active = models.BooleanField(default=True)

@@ -1,6 +1,22 @@
 {% extends 'parallax/base.html' %}
 {% block title %}Track Management | Parallax Admin{% endblock %}
 {% block content %}
+<script>
+function deleteConfirm(problemId) {
+  if(confirm('Delete this problem statement permanently?')) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.innerHTML = `
+      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+      <input type="hidden" name="action" value="delete_problem_statement">
+      <input type="hidden" name="problem_statement_id" value="${problemId}">
+    `;
+    document.body.appendChild(form);
+    form.submit();
+  }
+}
+</script>
+<div class="dashboard-page">
 <div class="dashboard-page">
   <div class="dashboard-wrap">
     <section class="dashboard-hero">

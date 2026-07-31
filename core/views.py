@@ -1,16 +1,23 @@
 from datetime import date
 from decimal import Decimal, InvalidOperation
 from django.shortcuts import render
-from .google_sheet import get_role
+from .google_sheet import get_role, get_all_teams
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Prefetch, Q
 from django.http import Http404, request
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import urlencode
+from .models import (
+    Participant,
+    Track,
+    ProblemStatement,
+    Announcement,
+    Review,
+)
 from core.models import (
     Announcement,
     EventConfiguration,
@@ -116,7 +123,7 @@ def information(request, page):
     }
 )
 def team_dashboard_static(request):
-    return render(request, 'parallax/team_dashboard_static.html')
+    return render(request, 'parallax/dashboard.html')
 def team_login(request):
     if request.user.is_authenticated:
         if request.user.is_staff:
@@ -143,30 +150,49 @@ from django.conf import settings
 
 def registration_event_hub(request):
     return redirect(settings.EVENT_HUB_URL)
+
 @login_required
 def participant_dashboard(request):
     if request.user.is_staff:
         return redirect("admin_panel")
 
-    role = get_role(request.user.email.lower())
-    if role != "team":
-        return redirect("access_denied")
-
     participant = Participant.objects.filter(user=request.user).first()
 
     if participant is None:
-        return redirect("home")  # or "team_login" / "access_denied"
+        return redirect("access_denied")
 
     team = participant.team
+    if request.method == "POST":
+        track_id = request.POST.get("track")
+
+    if track_id:
+        track = get_object_or_404(Track, id=track_id)
+
+        team.track = track
+        team.save(update_fields=["track"])
+
+        messages.success(request, "Track selected successfully.")
+        return redirect("participant_dashboard")
+
+    tracks = Track.objects.filter(is_published=True)
+    problem_statements = ProblemStatement.objects.filter(is_published=True)
+    announcements = Announcement.objects.all().order_by("-created_at")
+    reviews = Review.objects.all().order_by("scheduled_at")
 
     context = {
-        "participant": participant,
-        "team": team,
-        "announcements": Announcement.objects.all(),
-        "reviews": Review.objects.all().order_by("scheduled_at"),
+    "participant": participant,
+    "team": team,
+
+    "tracks": tracks,
+    "problem_statements": problem_statements,
+
+    "announcements": announcements,
+    "reviews": reviews,
+
+    "marks": Marks.objects.filter(team=team).select_related("review"),
     }
 
-    return render(request, "parallax/dashboard.html", context)@login_required(login_url='team_login')
+    return render(request, "parallax/dashboard.html", context)
 def admin_panel(request):
     if not request.user.is_staff:
         return redirect('home')
@@ -222,43 +248,44 @@ def admin_panel(request):
 def admin_teams(request):
     if not request.user.is_staff:
         return redirect('home')
-    if request.method == 'POST':
-        team_id = request.POST.get('team_id')
-        action = request.POST.get('action')
-        team = get_object_or_404(Team, id=team_id)
-        if action == 'approve':
-            team.status = 'APPROVED'
-            team.save(update_fields=['status', 'updated_at'])
-            messages.success(request, f'{team.team_name} marked as approved.')
-        elif action == 'reject':
-            team.status = 'REJECTED'
-            team.save(update_fields=['status', 'updated_at'])
-            messages.success(request, f'{team.team_name} marked as rejected.')
-        elif action == 'confirm_payment':
-            team.payment_confirmed = True
-            team.save()
-            messages.success(request, f'Payment confirmed for {team.team_name}.')
-        elif action == 'unconfirm_payment':
-            team.payment_confirmed = False
-            team.save()
-            messages.success(request, f'Payment confirmation removed for {team.team_name}.')
-        return redirect('admin_teams')
-    teams = (
-        Team.objects.select_related('leader', 'track')
-        .prefetch_related('members__user')
-        .annotate(participant_total=Count('members'))
-        .order_by('-created_at')
-    )
-    context = {'teams': teams}
-    selected_track_id = request.GET.get('track', '').strip()
+
+    teams = []
+
+    for row in get_all_teams():
+        team = {
+        "team_id": row.get("Team ID", ""),
+        "team_name": row.get("Team Name", ""),
+    "leader_name": row.get("Lead Name", ""),
+    "registration_email": row.get("Registration Email", ""),
+    "phone_number": row.get("Phone number ", ""),   # note the trailing space
+    "college_name": row.get("Collage name", ""),
+    "track": row.get("Track", ""),
+    "members": row.get("Members", ""),
+            }
+
+        teams.append(team)
+
+    # Track filter
+    selected_track_id = request.GET.get("track", "").strip()
+
     if selected_track_id:
-        teams = teams.filter(track_id=selected_track_id)
+        selected_track = Track.objects.filter(id=selected_track_id).first()
+
+        if selected_track:
+            teams = [
+                team
+                for team in teams
+                if team["track"].strip().lower()
+                == selected_track.name.strip().lower()
+            ]
+
     context = {
-        'teams': teams,
-        'tracks': Track.objects.order_by('name'),
-        'selected_track_id': selected_track_id,
+        "teams": teams,
+        "tracks": Track.objects.order_by("name"),
+        "selected_track_id": selected_track_id,
     }
-    return render(request, 'parallax/admin/teams.html', context)
+
+    return render(request, "parallax/admin/teams.html", context)
 @login_required(login_url='team_login')
 def admin_marks(request):
     if not request.user.is_staff:
@@ -280,28 +307,19 @@ def admin_marks(request):
                 messages.success(request, f'Round "{name}" created.')
             return redirect('admin_marks')
         if action == 'award_marks':
-            review = get_object_or_404(Review, id=request.POST.get('review_id'))
-            team = get_object_or_404(Team, id=request.POST.get('team_id'))
-            raw_score = request.POST.get('score', '').strip()
-            if not raw_score:
-                messages.error(request, 'Enter a score to award marks.')
-                return redirect('admin_marks')
-            try:
-                score = Decimal(raw_score)
-            except (InvalidOperation, ValueError):
-                messages.error(request, 'Enter a valid numeric score.')
-                return redirect('admin_marks')
-            Marks.objects.update_or_create(
-                team=team,
-                review=review,
-                defaults={
-                    'score': score,
-                    'remarks': request.POST.get('remarks', '').strip(),
-                    'graded_by': request.user,
-                },
-            )
-            messages.success(request, f'Marks saved for {team.team_name} - {review.name}.')
+            review = Review.objects.filter(id=request.POST.get('review_id')).first()
+            if review is None:
+                 messages.error(request, 'Select a valid round to award marks.')
             return redirect('admin_marks')
+        team = Team.objects.filter(id=request.POST.get('team_id')).first()
+        if team is None:
+            messages.error(request, 'Select a team before saving marks.')
+            return redirect('admin_marks')
+        raw_score = request.POST.get('score', '').strip()
+        if not raw_score:
+            messages.error(request, 'Enter a score to award marks.')
+            return redirect('admin_marks')
+        messages.success(request, f'Marks saved for {team.team_name} - {review.name}.')
     reviews = Review.objects.annotate(team_total=Count('marks')).order_by('scheduled_at', 'name')
     teams = Team.objects.select_related('track').order_by('team_name')
     marks = Marks.objects.select_related('team', 'review', 'graded_by').order_by('-updated_at')
@@ -444,30 +462,39 @@ def admin_sponsors(request):
         return redirect('home')
     if request.method == 'POST':
         action = request.POST.get('action', '').strip()
+        if action == "delete_sponsor":
+            sponsor = get_object_or_404(
+                Sponsor,
+                id=request.POST.get("sponsor_id")
+            )
+            sponsor.delete()
+            messages.success(request, "Sponsor deleted successfully.")
+            return redirect("admin_sponsors")
         name = request.POST.get('name', '').strip()
         sponsor_type = request.POST.get('sponsor_type', '').strip()
-        if not name or sponsor_type not in dict(Sponsor.SPONSOR_TYPE_CHOICES):
-            messages.error(request, 'Sponsor name and a valid sponsor type are required.')
+        if not name or not sponsor_type:
+            messages.error(request, 'Sponsor name and sponsor category are required.')
             return redirect('admin_sponsors')
         if action == 'edit_sponsor':
-            sponsor = get_object_or_404(Sponsor, id=request.POST.get('sponsor_id'))
+            sponsor = get_object_or_404(
+                Sponsor,
+                id=request.POST.get('sponsor_id')
+            )
         else:
             sponsor = Sponsor()
         sponsor.name = name
-        sponsor.sponsor_type = sponsor_type
+        sponsor.sponsor_type = sponsor_type 
         sponsor.tagline = request.POST.get('tagline', '').strip()
-        sponsor.display_order = _parse_positive_int(request.POST.get('display_order'))
+        sponsor.display_order = _parse_positive_int(request.POST.get('display_order'))        
         sponsor.is_active = request.POST.get('is_active') == 'on'
         if request.FILES.get('logo'):
             sponsor.logo = request.FILES['logo']
-        sponsor.save()
+            sponsor.save()
         messages.success(request, f'Sponsor "{name}" saved.')
         return redirect('admin_sponsors')
-    context = {
-        'sponsors': Sponsor.objects.all(),
-        'sponsor_type_choices': Sponsor.SPONSOR_TYPE_CHOICES,
-    }
+    context = {'sponsors': Sponsor.objects.all(),}
     return render(request, 'parallax/admin/sponsors.html', context)
+@login_required(login_url='team_login')
 def _admin_tracks_redirect(request):
     params = {}
     selected_track_id = request.POST.get('return_track') or request.GET.get('track')

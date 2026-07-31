@@ -31,7 +31,7 @@
     <div class="px-org">School of Electronics Engineering</div>
     <div class="hero-actions">
       <a  href="https://eventhubcc.vit.ac.in/EventHub/#:~:text=Parallax"
-   class="btn btn-primary"
+   class="btn-cta"
    target="_blank"
    rel="noopener">Register Now &nbsp;<i class="fa-solid fa-arrow-right"></i></a>
     </div>
@@ -90,14 +90,14 @@
      {% for sponsor in title_sponsors %}
       <div class="sponsor-card featured">
         <span class="sponsor-tag">TITLE SPONSOR</span>
-        {% if title_sponsor.logo %}
-        <img src="{{ title_sponsor.logo.url }}" class="sponsor-logo" alt="{{ title_sponsor.name }}">
+        {% if sponsor.logo %}
+          <img src="{{ sponsor.logo.url }}" class="sponsor-logo" alt="{{ sponsor.name }}">
         {% endif %}
-        <h3>{{ title_sponsor.name }}</h3>
-        {% if title_sponsor.tagline %}
-        <p>{{ title_sponsor.tagline }}</p>
-        {% endif %}
-      </div>
+        <h3>{{ sponsor.name }}</h3> 
+        {% if sponsor.tagline %}
+        <p>{{ sponsor.tagline }}</p>
+        {% endif %} 
+       </div>
      {% endfor %}
     </div>
     <div class="technical-sponsors reveal">
@@ -110,7 +110,7 @@
       <div class="sponsor-card">
         <span class="sponsor-tag small">TECHNICAL SPONSOR</span>
         <img src="{% static 'assets/nokkia.png' %}" class="sponsor-logo" alt="">
-        <h3>Nokkia</h3>
+        <h3>Nokia</h3>
         <p> Shaping the future of connectivity with advanced 5G and networking.</p>
       </div>
       {% for sponsor in technical_sponsors %}
