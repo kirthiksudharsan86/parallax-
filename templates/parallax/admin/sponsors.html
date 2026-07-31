@@ -34,6 +34,9 @@
         <label>Display order
           <input type="number" name="display_order" min="0" value="0">
         </label>
+        <button class="btn-cta" type="submit">
+           Add Sponsor
+        </button>
         </form>
     </details>
 
@@ -44,7 +47,7 @@
         <div>
           <b>{{ sponsor.name }}</b>
           <p>
-            {{ sponsor.get_sponsor_type_display }} ·
+            {{ sponsor.sponsor_type}} ·
             {% if sponsor.is_active %}<span class="dashboard-badge success">Active</span>{% else %}<span class="dashboard-badge pending">Hidden</span>{% endif %}
             {% if sponsor.tagline %} · {{ sponsor.tagline }}{% endif %}
           </p>
@@ -85,7 +88,6 @@
     <button class="btn-cta" type="submit">
         Save Changes
     </button>
-
     <button
         class="btn-danger"
         type="submit"

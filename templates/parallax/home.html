@@ -127,6 +127,20 @@
         {% endif %}
       </div>
       {% endfor %}
+      {% for sponsor in sponsors %}
+      <div class="sponsor-card">
+      <span class="sponsor-tag">
+        {{ sponsor.sponsor_type|upper }}
+      </span>
+    {% if sponsor.logo %}
+        <img src="{{ sponsor.logo.url }}" class="sponsor-logo">
+    {% endif %}
+    <h3>{{ sponsor.name }}</h3>
+    {% if sponsor.tagline %}
+        <p>{{ sponsor.tagline }}</p>
+    {% endif %}
+</div>
+{% endfor %}
     </div>
   </div>
 </section>

@@ -73,16 +73,32 @@ INFORMATION_PAGES = {
 }
 def home(request):
     published_tracks = list(
-        Track.objects.filter(is_published=True).select_related('prize').annotate(team_total=Count('teams')).order_by('name')
+        Track.objects.filter(is_published=True)
+        .select_related('prize')
+        .annotate(team_total=Count('teams'))
+        .order_by('name')
     )
     reviews = Review.objects.all().order_by('scheduled_at')
-    active_sponsors = list(Sponsor.objects.filter(is_active=True))
+    active_sponsors = Sponsor.objects.filter(
+        is_active=True
+    ).order_by(
+        'display_order',
+        'name'
+    )
     context = {
         'stats': build_home_stats(reviews),
-        'tracks': build_home_track_cards(published_tracks) if published_tracks else build_default_track_cards(),
-        'title_sponsors': [s for s in active_sponsors if s.sponsor_type == Sponsor.TITLE],
-        'technical_sponsors': [s for s in active_sponsors if s.sponsor_type == Sponsor.TECHNICAL],
-        'announcements': Announcement.objects.all().order_by('-is_pinned', '-created_at')[:6],
+        'tracks': (
+            build_home_track_cards(published_tracks)
+            if published_tracks
+            else build_default_track_cards()
+        ),
+
+    'title_sponsors': active_sponsors.filter(sponsor_type__iexact="Title Sponsor"),
+    'technical_sponsors': active_sponsors.filter(sponsor_type__iexact="Technical Sponsor"),
+    'co_powered_sponsors': active_sponsors.filter(sponsor_type__iexact="Co-Powered"),
+    'sponsors': active_sponsors,
+    'announcements': Announcement.objects.all()
+    .order_by('-is_pinned', '-created_at')[:6],
     }
     return render(request, 'parallax/home.html', context)
 def about(request):
@@ -105,10 +121,10 @@ def tracks(request):
     context = {'tracks': published_tracks or build_default_track_cards()}
     return render(request, 'parallax/tracks.html', context)
 def information(request, page):
-    if page not in pages:
+    if page not in INFORMATION_PAGES:
         from django.http import Http404
         raise Http404("Page not found")
-    if page not in pages:
+    if page not in INFORMATION_PAGES:
         from django.http import Http404
         raise Http404("Page not found")
     return render(
@@ -116,8 +132,8 @@ def information(request, page):
     'parallax/information.html',
     {
         'page': page,
-        'heading': pages[page][0],
-        'tagline': pages[page][1],
+        'heading': INFORMATION_PAGES[page][0],
+        'tagline': INFORMATION_PAGES[page][1],
         'reviews': Review.objects.all().order_by('scheduled_at'),
         'tracks': public_tracks(),
     }
@@ -460,21 +476,26 @@ def admin_tracks(request):
 def admin_sponsors(request):
     if not request.user.is_staff:
         return redirect('home')
+
     if request.method == 'POST':
         action = request.POST.get('action', '').strip()
-        if action == "delete_sponsor":
+
+        if action == 'delete_sponsor':
             sponsor = get_object_or_404(
                 Sponsor,
-                id=request.POST.get("sponsor_id")
+                id=request.POST.get('sponsor_id')
             )
             sponsor.delete()
-            messages.success(request, "Sponsor deleted successfully.")
-            return redirect("admin_sponsors")
+            messages.success(request, 'Sponsor deleted successfully.')
+            return redirect('admin_sponsors')
+
         name = request.POST.get('name', '').strip()
         sponsor_type = request.POST.get('sponsor_type', '').strip()
+
         if not name or not sponsor_type:
             messages.error(request, 'Sponsor name and sponsor category are required.')
             return redirect('admin_sponsors')
+
         if action == 'edit_sponsor':
             sponsor = get_object_or_404(
                 Sponsor,
@@ -482,17 +503,27 @@ def admin_sponsors(request):
             )
         else:
             sponsor = Sponsor()
+
         sponsor.name = name
-        sponsor.sponsor_type = sponsor_type 
+        sponsor.sponsor_type = sponsor_type
         sponsor.tagline = request.POST.get('tagline', '').strip()
-        sponsor.display_order = _parse_positive_int(request.POST.get('display_order'))        
+        sponsor.display_order = _parse_positive_int(
+            request.POST.get('display_order')
+        )
         sponsor.is_active = request.POST.get('is_active') == 'on'
+
         if request.FILES.get('logo'):
             sponsor.logo = request.FILES['logo']
-            sponsor.save()
+
+        sponsor.save()
+
         messages.success(request, f'Sponsor "{name}" saved.')
         return redirect('admin_sponsors')
-    context = {'sponsors': Sponsor.objects.all(),}
+
+    context = {
+        'sponsors': Sponsor.objects.all().order_by('display_order', 'name'),
+    }
+
     return render(request, 'parallax/admin/sponsors.html', context)
 @login_required(login_url='team_login')
 def _admin_tracks_redirect(request):
