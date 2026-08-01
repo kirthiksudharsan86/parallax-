@@ -260,7 +260,7 @@ def participant_dashboard(request):
     "announcements": [
         {
             "title": a.title,
-            "message": a.description,
+            "message": a.body,
             "timestamp": a.created_at.strftime("%d %b %Y"),
             "tag": "general",
         }
@@ -297,7 +297,7 @@ def participant_dashboard(request):
         "home": reverse("home"),
         "set_team_name": reverse("participant_dashboard"),
         "select_track": reverse("participant_dashboard"),
-        "logout": reverse("logout"),
+        "logout":"#",
     },
     }
     return render(request, "parallax/dashboard.html", context)

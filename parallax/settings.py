@@ -1,6 +1,8 @@
 import sys
 from pathlib import Path
 from decouple import config
+import dj_database_url
+import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 LOCAL_DEV_COMMANDS = {'runserver', 'test', 'check'}
 IS_LOCAL_DEV_COMMAND = any(command in sys.argv for command in LOCAL_DEV_COMMANDS)
@@ -65,10 +67,10 @@ TEMPLATES = [
 ]
 SITE_ID = 1
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    "default": dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+    )
 }
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
