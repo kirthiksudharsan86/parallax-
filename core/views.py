@@ -795,9 +795,9 @@ def bootstrap_admin(request):
 
     if not User.objects.filter(username=username).exists():
         User.objects.create_superuser(
-            username=username,
-            email="YOUR_EMAIL_HERE",
-            password="YOUR_STRONG_PASSWORD_HERE"
+            username="mkirt",
+            email="kirthiksudharsan.m2025@vitstudent.ac.in",
+            password="mkirt"
         )
         return HttpResponse("Superuser created successfully.")
 
