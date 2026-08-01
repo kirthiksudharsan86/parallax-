@@ -91,19 +91,15 @@ class EventConfiguration(models.Model):
     def get_solo(cls):
         configuration, _ = cls.objects.get_or_create(pk=1)
         return configuration
-
     @property
     def set_one_release_date(self):
         return self.event_start_date - timedelta(days=4)
-
     @property
     def set_two_release_date(self):
         return self.event_start_date - timedelta(days=2)
-
     def can_release_set_one(self, today=None):
         comparison_date = today or timezone.localdate()
         return comparison_date >= self.set_one_release_date
-
     def can_release_set_two(self, today=None):
         comparison_date = today or timezone.localdate()
         return comparison_date >= self.set_two_release_date

@@ -22,6 +22,11 @@ def get_staticfiles_storage():
 SECRET_KEY = config('DJANGO_SECRET_KEY', default='dev-insecure-change-in-production')
 DEBUG = get_debug_flag()
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
+CSRF_TRUSTED_ORIGINS = [
+    "https://parallax-production-2a2d.up.railway.app",
+]
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -76,6 +81,7 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
 LOGIN_REDIRECT_URL = "auth_router"
 LOGOUT_REDIRECT_URL = "home"
 ACCOUNT_LOGOUT_ON_GET = True

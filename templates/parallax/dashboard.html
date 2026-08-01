@@ -1,51 +1,3 @@
-{% comment %}
-====================================================================
-  PARALLAX — PARTICIPANT DASHBOARD (participant_dashboard.html)
-====================================================================
-  Frontend-only Django template. No models/views/URLs/auth are
-  implemented here. Every dynamic value below is a template variable
-  the view layer is expected to pass in. Nothing is hardcoded.
-
-  EXPECTED CONTEXT VARIABLES (generic names, backend-agnostic)
-  --------------------------------------------------------------
-  team = {
-    "name": str|None,            # None/empty -> team-name modal shows
-    "id": str,
-    "leader_name": str,
-    "leader_email": str,
-    "college": str,
-    "registration_date": str,    # pre-formatted by backend
-    "track_id": str|None,
-  }
-  registration = { "status": "complete"|"pending"|"approved"|"rejected" }
-  tracks = [ {"id": str, "name": str} , ... ]      # for the dropdown
-  track = {
-    "released": bool,
-    "name": str|None,
-    "public_problem_statements": [
-       {"id": str, "code": str, "title": str, "description": str,
-        "context": str, "expected_impact": str,
-        "minimum_requirements": [str, ...],
-        "dependencies": [str, ...]}, ...
-    ]
-  }
-  marks = [ {"round": str, "score": num, "weightage": str,
-             "remarks": str, "last_updated": str}, ... ]   # [] -> empty state
-  members = [ {"name": str, "role": str, "email": str|None,
-               "phone": str|None, "is_leader": bool}, ... ]
-  notifications = [ {"title": str, "message": str, "timestamp": str}, ... ]
-  announcements = [ {"title": str, "message": str, "timestamp": str,
-                      "tag": "general"|"urgent"|"schedule"}, ... ]
-  downloads = { "rulebook_url": str|None, "schedule_url": str|None,
-                "resources_url": str|None, "certificates_url": str|None,
-                "certificates_enabled": bool }
-  timeline = [ {"stage": str, "status": "done"|"active"|"upcoming",
-                "date": str|None}, ... ]
-  urls = {                                    # backend endpoints (submit-only)
-    "home": str, "set_team_name": str, "select_track": str, "logout": str
-  }
-====================================================================
-{% endcomment %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -86,9 +38,7 @@
     --font-mono:'JetBrains Mono','SFMono-Regular',Consolas,monospace;
     --sidebar-w:240px;
   }
-
   *{box-sizing:border-box;margin:0;padding:0;}
-
   body{
     background:linear-gradient(160deg,var(--bg-deep) 0%,var(--bg-mid) 45%,var(--bg-deep) 100%);
     font-family:var(--font-body);
@@ -97,7 +47,6 @@
     line-height:1.5;
     position:relative;
   }
-
   body::before{
     content:'';
     position:fixed;
@@ -108,20 +57,16 @@
     pointer-events:none;
     z-index:0;
   }
-
   a{color:inherit;text-decoration:none;}
   button{font-family:inherit;cursor:pointer;}
   ul{list-style:none;}
-
   button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible, a:focus-visible{
     outline:2px solid var(--accent);
     outline-offset:2px;
   }
-
   ::-webkit-scrollbar{width:8px;height:8px;}
   ::-webkit-scrollbar-track{background:transparent;}
   ::-webkit-scrollbar-thumb{background:rgba(34,211,238,0.3);border-radius:20px;}
-
   .btn{
     display:inline-flex; align-items:center; justify-content:center;
     gap:8px;
@@ -135,7 +80,6 @@
     transition:box-shadow .18s ease, background .18s ease, border-color .18s ease, transform .12s ease;
   }
   .btn:active{transform:scale(.98);}
-
   .btn-primary{
     background:var(--accent-gradient);
     color:#04121C;
@@ -143,17 +87,12 @@
   }
   .btn-primary:hover{box-shadow:0 8px 26px rgba(34,211,238,0.42);}
   .btn-primary:disabled{background:rgba(255,255,255,0.08); color:var(--text-muted); box-shadow:none; cursor:not-allowed;}
-
   .btn-secondary{background:rgba(255,255,255,0.04); border-color:var(--border); color:var(--text-primary);}
   .btn-secondary:hover{background:rgba(255,255,255,0.08);}
-
   .btn-outline-danger{background:transparent; border-color:var(--border); color:var(--danger);}
   .btn-outline-danger:hover{background:var(--danger-soft);}
-
   .btn-small{padding:7px 14px;font-size:12.5px;}
   .btn[disabled]{opacity:.5; cursor:not-allowed;}
-
-  /* ================= SKELETON / LOADING ================= */
   .skel{
     background:linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.09) 37%, rgba(255,255,255,0.04) 63%);
     background-size:400% 100%;
@@ -161,11 +100,7 @@
     border-radius:6px;
   }
   @keyframes skel-shine{0%{background-position:100% 0;}100%{background-position:0 0;}}
-
-  /* ================= APP SHELL ================= */
   .app-shell{display:flex; min-height:100vh; position:relative; z-index:1;}
-
-  /* ---------- Sidebar ---------- */
   .sidebar{
     width:var(--sidebar-w);
     flex-shrink:0;
@@ -181,9 +116,7 @@
     z-index:40;
     transition:transform .25s ease;
   }
-
   .sidebar-brand{display:flex; align-items:center; gap:11px; padding:4px 8px 26px;}
-
   .brand-mark{
     width:36px;height:36px;
     border-radius:9px;
@@ -196,12 +129,9 @@
     flex-shrink:0;
     box-shadow:0 4px 16px rgba(34,211,238,0.35);
   }
-
   .sidebar-brand .brand-name{font-family:var(--font-display); font-weight:700; font-size:15px; color:var(--text-primary);}
   .sidebar-brand .brand-sub{font-size:10.5px; color:var(--text-muted); letter-spacing:.06em; text-transform:uppercase;}
-
   .sidebar-nav{display:flex; flex-direction:column; gap:3px; flex:1;}
-
   .nav-item{
     display:flex; align-items:center; gap:12px;
     padding:10px 12px;
@@ -217,9 +147,7 @@
   .nav-item svg{width:17px;height:17px;flex-shrink:0;}
   .nav-item:hover{background:rgba(255,255,255,0.04); color:var(--text-primary);}
   .nav-item.active{background:var(--accent-soft); color:var(--accent); border-color:rgba(34,211,238,0.25);}
-
   .sidebar-foot{display:flex; flex-direction:column; gap:4px; padding-top:14px; border-top:1px solid var(--border-soft);}
-
   .sidebar-toggle{
     display:none;
     position:fixed; top:16px; left:16px; z-index:60;
@@ -230,12 +158,8 @@
     color:var(--text-primary);
     align-items:center; justify-content:center;
   }
-
   .sidebar-scrim{display:none; position:fixed; inset:0; background:rgba(4,9,22,0.6); z-index:35;}
-
-  /* ---------- Main column ---------- */
   .main-col{flex:1; min-width:0; display:flex; flex-direction:column;}
-
   header.topbar{
     background:rgba(9,16,36,0.72);
     backdrop-filter:blur(14px);
@@ -250,7 +174,6 @@
     top:0;
     z-index:10;
   }
-
   .topbar-left{display:flex; align-items:center; gap:14px;}
   .back-link{
     display:inline-flex; align-items:center; gap:6px;
@@ -260,9 +183,7 @@
     background:rgba(255,255,255,0.03);
   }
   .back-link:hover{color:var(--text-primary); border-color:var(--border);}
-
   .topbar-right{display:flex; align-items:center; gap:14px;}
-
   .sync-pill{
     display:flex;align-items:center;gap:6px;
     font-size:12px;color:var(--text-secondary);
@@ -272,14 +193,12 @@
     border-radius:20px;
   }
   .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--success);flex-shrink:0;box-shadow:0 0 6px var(--success);}
-
   main.layout{
     max-width:1320px;
     width:100%;
     margin:0 auto;
     padding:26px 30px 70px;
   }
-
   .welcome-block{margin-bottom:22px;}
   .eyebrow{
     font-family:var(--font-display);
@@ -292,7 +211,6 @@
   }
   .welcome-block h1{font-family:var(--font-display); font-size:26px; font-weight:700;}
   .welcome-block p{color:var(--text-secondary); font-size:13.5px; margin-top:4px;}
-
   .grid{
     display:grid;
     grid-template-columns:1fr 340px;
@@ -300,14 +218,10 @@
     align-items:start;
   }
   @media (max-width:980px){ .grid{grid-template-columns:1fr;} }
-
   .col-main{display:flex;flex-direction:column;gap:20px;}
   .col-side{display:flex;flex-direction:column;gap:20px;}
-
   .row-2{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
   @media (max-width:640px){ .row-2{grid-template-columns:1fr;} }
-
-  /* ---------- Card base ---------- */
   .card{
     background:var(--surface);
     backdrop-filter:blur(18px);
@@ -325,7 +239,6 @@
     height:3px;
     background:var(--accent-gradient);
   }
-
   .card-header{
     display:flex;
     align-items:center;
@@ -336,12 +249,10 @@
   .card-header h2{font-family:var(--font-display); font-size:15px; font-weight:700; letter-spacing:0.01em; color:var(--text-primary);}
   .card-header .card-icon{color:var(--accent); display:flex; align-items:center;}
   .card-header-title{display:flex; align-items:center; gap:10px;}
-
   .count-badge{
     font-size:12px; font-weight:600; color:var(--accent);
     background:var(--accent-soft); padding:2px 9px; border-radius:20px;
   }
-
   .empty-state{
     text-align:center;
     color:var(--text-muted);
@@ -350,8 +261,6 @@
     display:flex; flex-direction:column; align-items:center; gap:10px;
   }
   .empty-state svg{opacity:.5;}
-
-  /* ---------- Card 1: Team Overview ---------- */
   .info-row{
     display:flex; justify-content:space-between; gap:12px;
     padding:9px 0;
@@ -362,21 +271,6 @@
   .info-row .label{color:var(--text-secondary);}
   .info-row .value{font-weight:600; text-align:right; color:var(--text-primary);}
   .info-row .value.mono{font-family:var(--font-mono); font-size:12.5px;}
-
-  /* ---------- Card 2: Registration status badges ---------- */
-  .status-badge{
-    display:inline-flex; align-items:center; gap:6px;
-    font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.03em;
-    padding:7px 14px; border-radius:20px; white-space:nowrap;
-  }
-  .status-badge::before{content:''; width:6px; height:6px; border-radius:50%; background:currentColor;}
-  .status-badge.st-complete{background:var(--success-soft); color:var(--success);}
-  .status-badge.st-pending{background:var(--warning-soft); color:var(--warning);}
-  .status-badge.st-approved{background:var(--accent-soft); color:var(--accent);}
-  .status-badge.st-rejected{background:var(--danger-strong-soft); color:var(--danger-strong);}
-  .reg-status-desc{font-size:13px; color:var(--text-secondary); margin-top:12px;}
-
-  /* ---------- Card 3: Track selection ---------- */
   .field{margin-bottom:14px;}
   .field label{display:block; font-size:12.5px; font-weight:600; color:var(--text-secondary); margin-bottom:6px;}
   select, input[type="text"]{
@@ -402,7 +296,6 @@
     box-shadow:0 0 0 3px rgba(34,211,238,0.15);
   }
   select:disabled{opacity:.5; cursor:not-allowed;}
-
   .track-current{
     display:flex; align-items:center; gap:10px;
     padding:11px 13px;
@@ -413,8 +306,6 @@
     margin-bottom:14px;
   }
   .track-current .dot{width:8px;height:8px;border-radius:50%;background:var(--accent); flex-shrink:0; box-shadow:0 0 6px var(--accent);}
-
-  /* ---------- Card 4: Problem statements accordion ---------- */
   .accordion{display:flex; flex-direction:column; gap:10px;}
   .accordion-item{border:1px solid var(--border-soft); border-radius:var(--radius-sm); background:rgba(255,255,255,0.025); overflow:hidden;}
   .accordion-trigger{
@@ -426,7 +317,6 @@
   .accordion-trigger .ps-title{font-size:13.5px; font-weight:600; flex:1;}
   .accordion-trigger .chevron{color:var(--text-muted); transition:transform .2s ease; flex-shrink:0;}
   .accordion-item.open .chevron{transform:rotate(180deg); color:var(--accent);}
-
   .accordion-panel{max-height:0; overflow:hidden; transition:max-height .28s ease;}
   .accordion-item.open .accordion-panel{max-height:900px;}
   .accordion-body{padding:0 16px 18px; display:flex; flex-direction:column; gap:14px;}
@@ -435,8 +325,6 @@
   .ps-block ul{display:flex; flex-direction:column; gap:5px;}
   .ps-block ul li{font-size:13px; color:var(--text-secondary); padding-left:16px; position:relative;}
   .ps-block ul li::before{content:'—'; position:absolute; left:0; color:var(--accent-2);}
-
-  /* ---------- Card 5: Scorecard ---------- */
   .score-list{display:flex; flex-direction:column; gap:10px;}
   .score-row{
     display:flex; align-items:center; justify-content:space-between; gap:14px;
@@ -449,8 +337,6 @@
   .score-remarks{font-size:12.5px; color:var(--text-secondary);}
   .score-updated{font-size:11px; color:var(--text-muted); margin-top:3px;}
   .score-value{font-family:var(--font-mono); font-size:19px; font-weight:700; color:var(--accent); flex-shrink:0;}
-
-  /* ---------- Card 6: Team members ---------- */
   .members-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:12px;}
   .member-card{
     display:flex; align-items:center; gap:12px;
@@ -470,8 +356,6 @@
   .leader-chip{font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--accent); background:var(--accent-soft); padding:2px 7px; border-radius:20px;}
   .member-role{font-size:12px; color:var(--text-secondary); margin-top:1px;}
   .member-contact{font-size:11.5px; color:var(--text-muted); margin-top:3px; font-family:var(--font-mono); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-
-  /* ---------- Card 7 / 8: Notifications & Announcements ---------- */
   .feed-list{display:flex; flex-direction:column; gap:10px; max-height:380px; overflow-y:auto; padding-right:6px;}
   .feed-item{border:1px solid var(--border-soft); border-radius:var(--radius-sm); padding:12px 14px; background:rgba(255,255,255,0.03);}
   .feed-item .meta{display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;}
@@ -482,21 +366,6 @@
   .feed-item .timestamp{font-size:11.5px; color:var(--text-muted);}
   .feed-item .feed-title{font-size:13px; font-weight:700; color:var(--text-primary); margin-bottom:3px;}
   .feed-item .feed-body{font-size:12.5px; color:var(--text-secondary); line-height:1.5;}
-
-  /* ---------- Card 9: Downloads ---------- */
-  .downloads-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
-  @media (max-width:480px){ .downloads-grid{grid-template-columns:1fr;} }
-  .download-btn{
-    display:flex; align-items:center; gap:10px;
-    padding:13px 14px; border:1px solid var(--border-soft); border-radius:var(--radius-sm);
-    background:rgba(255,255,255,0.03); color:var(--text-primary); font-size:13px; font-weight:600;
-  }
-  .download-btn:hover{border-color:var(--accent); background:rgba(34,211,238,0.06);}
-  .download-btn svg{color:var(--accent); flex-shrink:0;}
-  .download-btn[aria-disabled="true"]{opacity:.45; cursor:not-allowed; pointer-events:none;}
-  .download-btn .dl-sub{display:block; font-size:10.5px; font-weight:500; color:var(--text-muted); margin-top:1px;}
-
-  /* ---------- Card 10: Event timeline ---------- */
   .timeline{display:flex; flex-direction:column;}
   .tl-step{display:flex; gap:14px; padding:12px 0; position:relative;}
   .tl-step .dot{
@@ -515,8 +384,6 @@
     height:calc(100% - 14px); background:var(--border-soft);
   }
   .tl-step.done:not(:last-child)::after{background:var(--success);}
-
-  /* ================= TEAM NAME MODAL ================= */
   .modal-overlay{
     position:fixed; inset:0; background:rgba(4,9,22,0.72);
     display:flex; align-items:center; justify-content:center;
@@ -536,11 +403,8 @@
   .field .error-msg{display:none; color:var(--danger-strong); font-size:12px; margin-top:5px;}
   .field.has-error input{border-color:var(--danger-strong);}
   .field.has-error .error-msg{display:block;}
-
-  /* ================= UTIL ================= */
   .hidden{display:none !important;}
   .sr-only{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
-
   @media (max-width:900px){
     .sidebar{position:fixed; top:0; left:0; transform:translateX(-100%); box-shadow:0 0 60px rgba(0,0,0,0.5);}
     .sidebar.open{transform:translateX(0);}
@@ -552,15 +416,12 @@
 </style>
 </head>
 <body>
-
-{% comment %} ================= TEAM NAME MODAL (Step 2) ================= {% endcomment %}
 {% if not team.name %}
 <div class="modal-overlay" id="teamNameOverlay">
   <div class="modal-box">
     <div class="eyebrow">One quick step</div>
     <h1 class="modal-title">Enter your team name</h1>
     <p class="modal-sub">This is how your team will appear across Parallax. You can't change it later, so pick carefully.</p>
-
     <form id="teamNameForm" data-action="{{ urls.set_team_name }}" novalidate>
       {% csrf_token %}
       <div class="field" id="field-teamNameInput">
@@ -573,15 +434,11 @@
   </div>
 </div>
 {% endif %}
-
 <div class="sidebar-scrim" id="sidebarScrim"></div>
 <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle navigation" aria-expanded="false">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
 </button>
-
 <div class="app-shell">
-
-  {% comment %} ================= SIDEBAR ================= {% endcomment %}
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
       <div class="brand-mark">PX</div>
@@ -590,7 +447,6 @@
         <div class="brand-sub">Participant</div>
       </div>
     </div>
-
     <nav class="sidebar-nav" aria-label="Dashboard navigation">
       <a href="#dashboard-top" class="nav-item active" data-nav="dashboard">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
@@ -604,16 +460,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.4 5.3 5.6.6-4.2 3.9 1.2 5.6L12 15.9 6.9 18.4 8.1 12.8 3.9 8.9l5.6-.6L12 3z"/></svg>
         Scorecard
       </a>
-      <a href="#announcements" class="nav-item" data-nav="announcements">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a2 2 0 0 0 2 2h1l3 4V5L6 9H5a2 2 0 0 0-2 2z"/><path d="M15 8a4 4 0 0 1 0 8"/></svg>
-        Announcements
-      </a>
-      <a href="#downloads" class="nav-item" data-nav="downloads">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 19h16"/></svg>
-        Downloads
-      </a>
     </nav>
-
     <div class="sidebar-foot">
       <a href="{{ urls.home|default:'#' }}" class="nav-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
@@ -625,8 +472,6 @@
       </button>
     </div>
   </aside>
-
-  {% comment %} ================= MAIN COLUMN ================= {% endcomment %}
   <div class="main-col">
     <header class="topbar">
       <div class="topbar-left">
@@ -639,18 +484,14 @@
         <div class="sync-pill"><span class="sync-dot"></span> Synced with organizer dashboard</div>
       </div>
     </header>
-
     <main class="layout" id="dashboard-top">
       <div class="welcome-block">
         <div class="eyebrow">Participant Dashboard</div>
         <h1>Welcome, {% if team.leader_name %}{{ team.leader_name }}{% else %}<span class="skel" style="display:inline-block;width:160px;height:22px;vertical-align:middle;"></span>{% endif %}</h1>
         <p>Track your team's registration, track selection, scoring and updates in one place.</p>
       </div>
-
       <div class="grid">
         <div class="col-main">
-
-          {% comment %} ===== ROW: Team Overview + Registration Status ===== {% endcomment %}
           <div class="row-2">
             {% comment %} ---- Card 1: Team Overview ---- {% endcomment %}
             <section class="card" id="team-overview">
@@ -665,36 +506,9 @@
               <div class="info-row"><span class="label">Team Leader</span><span class="value">{{ team.leader_name|default:"—" }}</span></div>
               <div class="info-row"><span class="label">Leader Email</span><span class="value">{{ team.leader_email|default:"—" }}</span></div>
               <div class="info-row"><span class="label">College</span><span class="value">{{ team.college|default:"—" }}</span></div>
-              <div class="info-row"><span class="label">Registration Date</span><span class="value">{{ team.registration_date|default:"—" }}</span></div>
               <div class="info-row"><span class="label">Current Track</span><span class="value">{{ track.name|default:"Not selected" }}</span></div>
             </section>
 
-            {% comment %} ---- Card 2: Registration Status ---- {% endcomment %}
-            <section class="card" id="registration-status">
-              <div class="card-header">
-                <div class="card-header-title">
-                  <span class="card-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
-                  <h2>Registration Status</h2>
-                </div>
-              </div>
-
-              {% if registration.status == "complete" %}
-                <span class="status-badge st-complete">Registration Complete</span>
-                <p class="reg-status-desc">Your team's registration is confirmed. You're all set for the event.</p>
-              {% elif registration.status == "approved" %}
-                <span class="status-badge st-approved">Approved</span>
-                <p class="reg-status-desc">Your team has been approved by the organizers.</p>
-              {% elif registration.status == "rejected" %}
-                <span class="status-badge st-rejected">Rejected</span>
-                <p class="reg-status-desc">Your registration was not approved. Check announcements or contact the organizing team for details.</p>
-              {% else %}
-                <span class="status-badge st-pending">Pending Approval</span>
-                <p class="reg-status-desc">Your registration is being reviewed by the organizers.</p>
-              {% endif %}
-            </section>
-          </div>
-
-          {% comment %} ---- Card 3: Track Selection ---- {% endcomment %}
           <section class="card" id="track-selection">
             <div class="card-header">
               <div class="card-header-title">
@@ -731,8 +545,6 @@
               </form>
             {% endif %}
           </section>
-
-          {% comment %} ---- Card 4: Problem Statements ---- {% endcomment %}
           <section class="card" id="problem-statements">
             <div class="card-header">
               <div class="card-header-title">
@@ -843,36 +655,6 @@
               </div>
             {% endif %}
           </section>
-
-          {% comment %} ---- Card 9: Downloads ---- {% endcomment %}
-          <section class="card" id="downloads">
-            <div class="card-header">
-              <div class="card-header-title">
-                <span class="card-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 19h16"/></svg></span>
-                <h2>Downloads</h2>
-              </div>
-            </div>
-            <div class="downloads-grid">
-              <a class="download-btn" href="{{ downloads.rulebook_url|default:'#' }}" {% if not downloads.rulebook_url %}aria-disabled="true"{% endif %} target="_blank" rel="noopener">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-                <span>Rulebook</span>
-              </a>
-              <a class="download-btn" href="{{ downloads.schedule_url|default:'#' }}" {% if not downloads.schedule_url %}aria-disabled="true"{% endif %} target="_blank" rel="noopener">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                <span>Schedule</span>
-              </a>
-              <a class="download-btn" href="{{ downloads.resources_url|default:'#' }}" {% if not downloads.resources_url %}aria-disabled="true"{% endif %} target="_blank" rel="noopener">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                <span>Resources</span>
-              </a>
-              <a class="download-btn" href="{{ downloads.certificates_url|default:'#' }}" {% if not downloads.certificates_enabled %}aria-disabled="true"{% endif %} target="_blank" rel="noopener">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M9 14l-2 7 5-3 5 3-2-7"/></svg>
-                <span>Certificates{% if not downloads.certificates_enabled %}<span class="dl-sub">Unlocks after the event</span>{% endif %}</span>
-              </a>
-            </div>
-          </section>
-
-          {% comment %} ---- Card 10: Event Timeline ---- {% endcomment %}
           <section class="card" id="event-timeline">
             <div class="card-header">
               <div class="card-header-title">
@@ -932,30 +714,6 @@
             {% endif %}
           </section>
 
-          {% comment %} ---- Card 7: Notifications ---- {% endcomment %}
-          <section class="card" id="notifications">
-            <div class="card-header">
-              <div class="card-header-title">
-                <span class="card-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
-                <h2>Notifications</h2>
-              </div>
-              <span class="count-badge">{{ notifications|length|default:0 }}</span>
-            </div>
-            {% if not notifications %}
-              <div class="empty-state">You're all caught up.</div>
-            {% else %}
-              <div class="feed-list">
-                {% for n in notifications %}
-                  <div class="feed-item">
-                    <div class="meta"><span class="timestamp">{{ n.timestamp }}</span></div>
-                    <div class="feed-title">{{ n.title }}</div>
-                    <div class="feed-body">{{ n.message }}</div>
-                  </div>
-                {% endfor %}
-              </div>
-            {% endif %}
-          </section>
-
         </div>
       </div>
     </main>
@@ -970,12 +728,6 @@
     var el = root ? root.querySelector('[name=csrfmiddlewaretoken]') : document.querySelector('[name=csrfmiddlewaretoken]');
     return el ? el.value : '';
   }
-
-  /* ---------- Generic backend-driven form submit ----------
-     Every form here just POSTs its data to the URL supplied by the
-     backend via data-action. No local persistence, no fake success
-     states — the UI reflects whatever the server responds with by
-     re-rendering (a full reload) once the backend confirms the write. */
   function bindFormSubmit(form, onSuccess){
     if(!form) return;
     form.addEventListener('submit', function(e){
@@ -1004,8 +756,6 @@
       });
     });
   }
-
-  /* ---------- Team name modal ---------- */
   var teamNameForm = document.getElementById('teamNameForm');
   bindFormSubmit(teamNameForm, function(){
     window.location.reload();
@@ -1022,13 +772,9 @@
       }
     });
   }
-
-  /* ---------- Track selection form ---------- */
   bindFormSubmit(document.getElementById('trackForm'), function(){
     window.location.reload();
   });
-
-  /* ---------- Logout ---------- */
   var logoutBtn = document.getElementById('logoutBtn');
   if(logoutBtn){
     logoutBtn.addEventListener('click', function(){
@@ -1039,8 +785,6 @@
         .catch(function(err){ console.error(err); });
     });
   }
-
-  /* ---------- Problem statement accordion ---------- */
   document.querySelectorAll('.accordion-trigger').forEach(function(btn){
     btn.addEventListener('click', function(){
       var item = btn.closest('.accordion-item');
@@ -1055,8 +799,6 @@
       btn.setAttribute('aria-expanded', String(!isOpen));
     });
   });
-
-  /* ---------- Sidebar nav active state + mobile toggle ---------- */
   var navItems = document.querySelectorAll('.nav-item[data-nav]');
   var sections = {};
   navItems.forEach(function(item){

@@ -107,7 +107,6 @@ def about(request):
     }
     return render(request, 'parallax/about.html', context)
 from django.db.models import Prefetch
-
 def tracks(request):
     published_tracks = (
         Track.objects.filter(is_published=True)
@@ -145,14 +144,11 @@ def information(request, page):
         'reviews': Review.objects.all().order_by('scheduled_at'),
     }
 )
-
 def team_login(request):
     if request.user.is_authenticated:
         if request.user.is_staff:
             return redirect("admin_panel")
         return redirect("participant_dashboard")
-    
-
     return render(
         request,
         "parallax/team_login.html",
@@ -169,42 +165,30 @@ def registration_index(request):
     return redirect("https://eventhubcc.vit.ac.in/EventHub/#:~:text=Parallax")
 from django.shortcuts import redirect
 from django.conf import settings
-
 def registration_event_hub(request):
     return redirect(settings.EVENT_HUB_URL)
-
 @login_required
 def participant_dashboard(request):
     if request.user.is_staff:
         return redirect("admin_panel")
-
     participant = Participant.objects.filter(user=request.user).first()
-
     if participant is None:
         return redirect("access_denied")
-
     team = participant.team
     track_id = None
-
     if request.method == "POST":
         track_id = request.POST.get("track")
-
     if track_id:
         track = get_object_or_404(Track, id=track_id)
-
         team.track = track
         team.save(update_fields=["track"])
-
         messages.success(request, "Track selected successfully.")
         return redirect("participant_dashboard")
-
     tracks = Track.objects.filter(is_published=True)
     problem_statements = ProblemStatement.objects.filter(is_published=True)
     announcements = Announcement.objects.all().order_by("-created_at")
     reviews = Review.objects.all().order_by("scheduled_at")
-
     context = {
-
     "team": {
         "name": team.team_name,
         "id": team.team_code,
@@ -213,15 +197,12 @@ def participant_dashboard(request):
         "college": participant.college_name,
         "track_id": team.track.id if team.track else None,
     },
-
     "registration": {
         "status": team.status.lower(),
     },
-
     "tracks": Track.objects.filter(
         is_published=True
     ),
-
     "track": {
         "released": bool(team.track),
         "name": team.track.name if team.track else None,
@@ -232,7 +213,6 @@ def participant_dashboard(request):
                 is_active=True,
             ) if team.track else [],
     },
-
     "marks": [
         {
             "round": mark.review.name,
@@ -243,7 +223,6 @@ def participant_dashboard(request):
         }
         for mark in Marks.objects.filter(team=team).select_related("review")
     ],
-
     "members": [
         {
             "name": member.full_name,
@@ -254,9 +233,6 @@ def participant_dashboard(request):
         }
         for member in team.members.all()
     ],
-
-    "notifications": [],
-
     "announcements": [
         {
             "title": a.title,
@@ -266,7 +242,6 @@ def participant_dashboard(request):
         }
         for a in Announcement.objects.all().order_by("-created_at")
     ],
-
     "downloads": {
         "rulebook_url": None,
         "schedule_url": None,
@@ -274,7 +249,6 @@ def participant_dashboard(request):
         "certificates_url": None,
         "certificates_enabled": False,
     },
-
     "timeline": [
         {
             "stage": "Registration",
@@ -292,7 +266,6 @@ def participant_dashboard(request):
             "date": None,
         },
     ],
-
     "urls": {
         "home": reverse("home"),
         "set_team_name": reverse("participant_dashboard"),
@@ -356,29 +329,22 @@ def admin_panel(request):
 def admin_teams(request):
     if not request.user.is_staff:
         return redirect('home')
-
     teams = []
-
     for row in get_all_teams():
         team = {
         "team_id": row.get("Team ID", ""),
         "team_name": row.get("Team Name", ""),
-    "leader_name": row.get("Lead Name", ""),
-    "registration_email": row.get("Registration Email", ""),
-    "phone_number": row.get("Phone number ", ""),   # note the trailing space
-    "college_name": row.get("Collage name", ""),
-    "track": row.get("Track", ""),
-    "members": row.get("Members", ""),
+        "leader_name": row.get("Lead Name", ""),
+        "registration_email": row.get("Registration Email", ""),
+        "phone_number": row.get("Phone number ", ""),   # note the trailing space
+        "college_name": row.get("Collage name", ""),
+        "track": row.get("Track", ""),
+        "members": row.get("Members", ""),
             }
-
         teams.append(team)
-
-    # Track filter
     selected_track_id = request.GET.get("track", "").strip()
-
     if selected_track_id:
         selected_track = Track.objects.filter(id=selected_track_id).first()
-
         if selected_track:
             teams = [
                 team
@@ -386,13 +352,11 @@ def admin_teams(request):
                 if team["track"].strip().lower()
                 == selected_track.name.strip().lower()
             ]
-
     context = {
         "teams": teams,
         "tracks": Track.objects.order_by("name"),
         "selected_track_id": selected_track_id,
     }
-
     return render(request, "parallax/admin/teams.html", context)
 @login_required(login_url='team_login')
 def admin_marks(request):

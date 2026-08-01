@@ -62,12 +62,6 @@
       TEAM LOGIN <i class="fa-solid fa-arrow-right"></i>
     </a>
     {% endif %}
-    <a href="https://eventhubcc.vit.ac.in/EventHub/#:~:text=Parallax"
-   class="nav-register-btn"
-   target="_blank"
-   rel="noopener">
-    REGISTER
-</a>  </div>
 
   <button type="button" id="nav-hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="nav-drawer">
     <span></span><span></span><span></span>
@@ -92,7 +86,6 @@
     {% else %}
     <a href="{% provider_login_url 'google' %}" class="nav-login-btn">TEAM LOGIN <i class="fa-solid fa-arrow-right"></i></a>
     {% endif %}
-    <a href="{% url 'registration_index' %}" class="nav-register-btn">Register <i class="fa-solid fa-arrow-right"></i></a>
   </div>
 </aside>
 
@@ -167,5 +160,35 @@
 <script src="{% static 'js/backtotop.js' %}"></script>
 <script src="{% static 'js/app.js' %}"></script>
 {% block extra_js %}{% endblock %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const navToggle = document.querySelector('.nav-toggle');
+    const mobileNav = document.querySelector('.mobile-nav');
+    
+    if (navToggle) {
+      navToggle.addEventListener('click', function() {
+        navToggle.classList.toggle('active');
+        mobileNav.classList.toggle('active');
+      });
+      
+      // Close menu when link clicked
+      const navLinks = mobileNav.querySelectorAll('a');
+      navLinks.forEach(link => {
+        link.addEventListener('click', function() {
+          navToggle.classList.remove('active');
+          mobileNav.classList.remove('active');
+        });
+      });
+      
+      // Close menu on outside click
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('.topbar')) {
+          navToggle.classList.remove('active');
+          mobileNav.classList.remove('active');
+        }
+      });
+    }
+  });
+</script>
 </body>
 </html>

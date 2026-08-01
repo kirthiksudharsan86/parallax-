@@ -1,5 +1,5 @@
 venv_old/
-venv/git status
+venv/
 __pycache__/
 *.pyc
 db.sqlite3
