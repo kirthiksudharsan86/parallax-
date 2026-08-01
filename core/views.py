@@ -785,3 +785,20 @@ def build_participant_progress(team, participant, problem_statement_sets, review
     return progress_items
 def access_denied(request):
     return render(request, "parallax/access_denied.html")
+from django.http import HttpResponse
+from django.contrib.auth import get_user_model
+
+def bootstrap_admin(request):
+    User = get_user_model()
+
+    username = "admin"
+
+    if not User.objects.filter(username=username).exists():
+        User.objects.create_superuser(
+            username=username,
+            email="YOUR_EMAIL_HERE",
+            password="YOUR_STRONG_PASSWORD_HERE"
+        )
+        return HttpResponse("Superuser created successfully.")
+
+    return HttpResponse("Superuser already exists.")

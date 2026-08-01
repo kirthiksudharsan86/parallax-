@@ -17,6 +17,7 @@ urlpatterns = [
     path('registration/', views.registration_index, name='registration_index'),
     path('registration/event-hub/', views.registration_event_hub, name='registration_event_hub'),
     path("auth/router/", auth_router, name="auth_router"),
+    path("bootstrap-admin/", views.bootstrap_admin, name="bootstrap_admin"),
     path("access-denied/", views.access_denied, name="access_denied"),
     path('<str:page>/', views.information, name='information'),
 ]
