@@ -24,12 +24,14 @@ else:
     )
 
 client = gspread.authorize(creds)
-sheet = client.open("Parallax Teams").sheet1
+def get_sheet():
+    return client.open("Parallax Teams").sheet1
 
 
 def get_participant(email):
     email = email.strip().lower()
 
+    sheet = get_sheet()
     records = sheet.get_all_records()
 
     for row in records:
@@ -55,4 +57,4 @@ def get_role(email):
 
     return None
 def get_all_teams():
-    return sheet.get_all_records()
+    return get_sheet().get_all_records()
