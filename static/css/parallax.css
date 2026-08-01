@@ -605,7 +605,7 @@ footer{
 }
 @media(max-width:860px){
   nav{display:flex;padding:0 20px}
-  .nav-center{display:none}
+  .nav-center{display:none !important}
   .nav-logo-vit,.nav-logo-sep{display:none}
   #home-hero{grid-template-columns:1fr;padding:calc(var(--nav-h)+36px) 24px 60px}
   .hero-content{padding-right:0}

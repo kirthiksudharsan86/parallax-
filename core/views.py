@@ -178,7 +178,32 @@ def participant_dashboard(request):
     track_id = None
     if request.method == "POST":
         track_id = request.POST.get("track")
-    if track_id:
+        problem_statement_id = request.POST.get("problem_statement")
+        if problem_statement_id:
+            problem_statement = get_object_or_404(
+                ProblemStatement,
+                id=problem_statement_id,
+                is_published=True,
+                is_active=True,
+            )
+            # Block booking only when switching into a problem statement that is full.
+            if (
+                team.problem_statement_id != problem_statement.id
+                and problem_statement.is_full
+            ):
+                messages.error(
+                    request,
+                    "This problem statement's slots are filled.",
+                )
+            else:
+                team.problem_statement = problem_statement
+                team.save(update_fields=["problem_statement"])
+                messages.success(
+                    request,
+                    "Problem statement selected successfully.",
+                )
+            return redirect("participant_dashboard")    
+    if track_id:      
         track = get_object_or_404(Track, id=track_id)
         team.track = track
         team.save(update_fields=["track"])
@@ -787,12 +812,9 @@ def access_denied(request):
     return render(request, "parallax/access_denied.html")
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
-
 def bootstrap_admin(request):
     User = get_user_model()
-
     username = "admin"
-
     if not User.objects.filter(username=username).exists():
         User.objects.create_superuser(
             username="mkirt",
@@ -800,5 +822,10 @@ def bootstrap_admin(request):
             password="mkirt"
         )
         return HttpResponse("Superuser created successfully.")
-
     return HttpResponse("Superuser already exists.")
+from django.shortcuts import get_object_or_404, redirect
+def delete_announcement(request, announcement_id):
+    if request.method == "POST":
+        announcement = get_object_or_404(Announcement, id=announcement_id)
+        announcement.delete()
+    return redirect("announcements")

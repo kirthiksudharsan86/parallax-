@@ -72,7 +72,20 @@
             </div>
             <h3>{{ announcement.title }}</h3>
             <p>{{ announcement.body }}</p>
-            <p class="announcement-meta">{{ announcement.created_at|date:"M d, Y H:i" }}</p>
+            <div class="announcement-footer">
+    <p class="announcement-meta">
+        {{ announcement.created_at|date:"M d, Y H:i" }}
+    </p>
+
+    <form method="post"
+          action="{% url 'delete_announcement' announcement.id %}"
+          onsubmit="return confirm('Delete this announcement?');">
+        {% csrf_token %}
+        <button type="submit" class="dashboard-button-danger">
+            Delete
+        </button>
+    </form>
+</div>
           </article>
           {% endfor %}
         </div>

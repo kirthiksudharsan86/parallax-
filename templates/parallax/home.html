@@ -76,42 +76,49 @@
     </div>
     <div class="title-sponsor reveal">
       <div class="sponsor-card featured">
-        <span class="sponsor-tag">TITLE SPONSOR</span>
-        <img src="{% static 'assets/econ.png' %}" class="sponsor-logo">
+        <span class="sponsor-tag">POWERED BY</span>
+        <img src="{% static 'assets/econ.png' %}" class="sponsor-logo" alt="E-CON">
         <h3>E-CON</h3>
-        <p>Pioneering embedded vision with AI-powered camera solutions.</p>
+        <p>Think Camera. Think e-con..</p>
       </div>
-     {% for sponsor in title_sponsors %}
       <div class="sponsor-card featured">
-        <span class="sponsor-tag">TITLE SPONSOR</span>
+        <span class="sponsor-tag">CO-POWERED BY</span>
+        <img src="{% static 'assets/keysight.png' %}"
+             class="sponsor-logo"
+             alt="Co Powered Sponsor">
+        <h3>Keysight Technologies</h3>
+        <p> Breakthroughs Start Here..</p>
+      </div>
+    </div>
+      {% for sponsor in title_sponsors %}
+      <div class="sponsor-card featured">
+        <span class="sponsor-tag">POWERED BY</span>
         {% if sponsor.logo %}
-          <img src="{{ sponsor.logo.url }}" class="sponsor-logo" alt="{{ sponsor.name }}">
+        <img src="{{ sponsor.logo.url }}" class="sponsor-logo" alt="{{ sponsor.name }}">
         {% endif %}
-        <h3>{{ sponsor.name }}</h3> 
+        <h3>{{ sponsor.name }}</h3>
         {% if sponsor.tagline %}
         <p>{{ sponsor.tagline }}</p>
-        {% endif %} 
-       </div>
-     {% endfor %}
+        {% endif %}
+      </div>
+      {% endfor %}
     </div>
     <div class="technical-sponsors reveal">
       <div class="sponsor-card">
         <span class="sponsor-tag small">TECHNICAL SPONSOR</span>
-        <img src="{% static 'assets/zyro byte.png' %}" class="sponsor-logo" >
-        <h3>Zyro Byte</h3>
-        <p> Building intelligent solutions through AI and software innovation.</p>
+        <img src="{% static 'assets/zyro byte.png' %}" class="sponsor-logo" alt="Zyro Byte">
+        <h3>ZyoraByte</h3>
+        <p>Building intelligent solutions through AI and software innovation.</p>
       </div>
       <div class="sponsor-card">
         <span class="sponsor-tag small">TECHNICAL SPONSOR</span>
-        <img src="{% static 'assets/nokkia.png' %}" class="sponsor-logo" alt="">
+        <img src="{% static 'assets/nokkia.png' %}" class="sponsor-logo" alt="Nokia">
         <h3>Nokia</h3>
-        <p> Shaping the future of connectivity with advanced 5G and networking.</p>
+        <p>Shaping the future of connectivity with advanced 5G and networking.</p>
       </div>
       {% for sponsor in technical_sponsors %}
       <div class="sponsor-card">
-        <span class="sponsor-tag small">
-          TECHNICAL SPONSOR
-        </span>
+        <span class="sponsor-tag small">TECHNICAL SPONSOR</span>
         {% if sponsor.logo %}
         <img src="{{ sponsor.logo.url }}" class="sponsor-logo" alt="{{ sponsor.name }}">
         {% endif %}
@@ -123,18 +130,18 @@
       {% endfor %}
       {% for sponsor in sponsors %}
       <div class="sponsor-card">
-      <span class="sponsor-tag">
-        {{ sponsor.sponsor_type|upper }}
-      </span>
-    {% if sponsor.logo %}
-        <img src="{{ sponsor.logo.url }}" class="sponsor-logo">
-    {% endif %}
-    <h3>{{ sponsor.name }}</h3>
-    {% if sponsor.tagline %}
+        <span class="sponsor-tag">
+          {{ sponsor.sponsor_type|upper }}
+        </span>
+        {% if sponsor.logo %}
+        <img src="{{ sponsor.logo.url }}" class="sponsor-logo" alt="{{ sponsor.name }}">
+        {% endif %}
+        <h3>{{ sponsor.name }}</h3>
+        {% if sponsor.tagline %}
         <p>{{ sponsor.tagline }}</p>
-    {% endif %}
-</div>
-{% endfor %}
+        {% endif %}
+      </div>
+      {% endfor %}
     </div>
   </div>
 </section>
