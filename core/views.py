@@ -11,13 +11,6 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import urlencode
-from .models import (
-    Participant,
-    Track,
-    ProblemStatement,
-    Announcement,
-    Review,
-)
 from core.models import (
     Announcement,
     EventConfiguration,
@@ -186,7 +179,6 @@ def participant_dashboard(request):
                 is_published=True,
                 is_active=True,
             )
-            # Block booking only when switching into a problem statement that is full.
             if (
                 team.problem_statement_id != problem_statement.id
                 and problem_statement.is_full
@@ -213,6 +205,12 @@ def participant_dashboard(request):
     problem_statements = ProblemStatement.objects.filter(is_published=True)
     announcements = Announcement.objects.all().order_by("-created_at")
     reviews = Review.objects.all().order_by("scheduled_at")
+
+    def split_lines(raw_text):
+        if not raw_text:
+            return []
+        return [line.strip() for line in raw_text.splitlines() if line.strip()]
+
     context = {
     "team": {
         "name": team.team_name,
@@ -221,6 +219,9 @@ def participant_dashboard(request):
         "leader_email": team.leader.email if team.leader else "",
         "college": participant.college_name,
         "track_id": team.track.id if team.track else None,
+        "problem_statement_id": team.problem_statement_id,
+        "problem_statement_code": team.problem_statement.code if team.problem_statement else None,
+        "problem_statement_title": team.problem_statement.title if team.problem_statement else None,
     },
     "registration": {
         "status": team.status.lower(),
@@ -228,15 +229,30 @@ def participant_dashboard(request):
     "tracks": Track.objects.filter(
         is_published=True
     ),
+    "tracks_json": [
+        {"id": t.id, "name": t.name, "description": t.description}
+        for t in Track.objects.filter(is_published=True)
+    ],
     "track": {
         "released": bool(team.track),
         "name": team.track.name if team.track else None,
-        "public_problem_statements":
-            ProblemStatement.objects.filter(
+        "public_problem_statements": [
+            {
+                "id": ps.id,
+                "code": ps.code,
+                "title": ps.title,
+                "description": ps.description,
+                "context": ps.context,
+                "expected_impact": ps.impact,
+                "minimum_requirements": split_lines(ps.min_requirements),
+                "dependencies": split_lines(ps.dependencies),
+            }
+            for ps in ProblemStatement.objects.filter(
                 track=team.track,
                 is_published=True,
                 is_active=True,
-            ) if team.track else [],
+            )
+        ] if team.track else [],
     },
     "marks": [
         {
@@ -295,7 +311,8 @@ def participant_dashboard(request):
         "home": reverse("home"),
         "set_team_name": reverse("participant_dashboard"),
         "select_track": reverse("participant_dashboard"),
-        "logout":"#",
+        "select_problem_statement": reverse("participant_dashboard"),
+        "logout": reverse("account_logout"),
     },
     }
     return render(request, "parallax/dashboard.html", context)

@@ -44,9 +44,6 @@ body {
   overflow-x: hidden;
 }
 
-.registration-shell .bg-field {
-  display: none;
-}
 
 a {
   color: inherit;
@@ -62,20 +59,6 @@ textarea {
 
 button {
   border: 0;
-}
-
-.registration-shell {
-  position: relative;
-}
-
-.registration-block {
-  padding-top: 148px;
-  padding-bottom: 96px;
-}
-
-.registration-wrap {
-  position: relative;
-  z-index: 1;
 }
 
 .ambient-layer {

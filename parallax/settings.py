@@ -21,9 +21,15 @@ def get_staticfiles_storage():
     return 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 SECRET_KEY = config('DJANGO_SECRET_KEY', default='dev-insecure-change-in-production')
 DEBUG = get_debug_flag()
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = config(
+    'ALLOWED_HOSTS',
+    default='parallax-production-2a2d.up.railway.app,parallax2026.in,localhost,127.0.0.1',
+).split(',')
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 USE_X_FORWARDED_HOST = True
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_SSL_REDIRECT = not DEBUG
 CSRF_TRUSTED_ORIGINS = [
     "https://parallax-production-2a2d.up.railway.app",
     "https://parallax2026.in",
@@ -79,6 +85,13 @@ DATABASES = {
         conn_max_age=600,
     )
 }
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'security_shield_cache_table',
+    }
+}
+
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',

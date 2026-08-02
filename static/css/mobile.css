@@ -459,18 +459,6 @@
     color: #93A8D1;
   }
 
-  /* ======================== REGISTRATION FLOW ======================== */
-
-  .registration-wrap {
-    width: 100%;
-    padding: 0;
-    margin: 0;
-  }
-
-  .registration-block {
-    padding: 16px;
-  }
-
   .field-grid {
     grid-template-columns: 1fr;
   }
@@ -689,14 +677,7 @@
     gap: 8px;
   }
 
-  .registration-wrap {
-    width: 100%;
-    padding: 0;
-  }
 
-  .registration-block {
-    padding: 12px;
-  }
 }
 
 /* ======================== MEDIUM MOBILE (376px - 425px) ======================== */
