@@ -27,9 +27,9 @@ ALLOWED_HOSTS = config(
 ).split(',')
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 USE_X_FORWARDED_HOST = True
-SESSION_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SECURE = not DEBUG
-SECURE_SSL_REDIRECT = not DEBUG
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+SECURE_SSL_REDIRECT = False
 CSRF_TRUSTED_ORIGINS = [
     "https://parallax-production-2a2d.up.railway.app",
     "https://parallax2026.in",
