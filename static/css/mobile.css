@@ -745,3 +745,24 @@
     top: 0;
   }
 }
+.lead-grid{
+    display:flex !important;
+    flex-direction:column !important;
+    gap:24px;
+}
+
+.lead-box{
+    width:100%;
+}
+
+.lead-members{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:20px;
+}
+
+.lead-members .person-card{
+    width:100%;
+    max-width:320px;
+}

@@ -5,6 +5,40 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<style>
+  .offline-toggle-form{display:inline-block;}
+  .offline-toggle-btn{
+    display:inline-flex;align-items:center;gap:8px;
+    border:1px solid rgba(255,255,255,0.18);
+    background:rgba(255,255,255,0.06);
+    color:inherit;
+    border-radius:999px;
+    padding:5px 12px 5px 6px;
+    cursor:pointer;
+    font-size:12.5px;
+    font-weight:600;
+    font-family:inherit;
+  }
+  .offline-toggle-track{
+    position:relative;
+    width:32px;height:18px;
+    border-radius:999px;
+    background:rgba(255,255,255,0.22);
+    transition:background .15s ease;
+    flex-shrink:0;
+  }
+  .offline-toggle-track::before{
+    content:'';
+    position:absolute;
+    top:2px;left:2px;
+    width:14px;height:14px;
+    border-radius:50%;
+    background:#fff;
+    transition:transform .15s ease;
+  }
+  .offline-toggle-btn.is-on .offline-toggle-track{background:#34D399;}
+  .offline-toggle-btn.is-on .offline-toggle-track::before{transform:translateX(14px);}
+</style>
 {% endblock %}
 
 {% block content %}
@@ -39,6 +73,7 @@
           <th>College</th>
           <th>Track</th>
           <th>Members</th>
+          <th>Offline Registration</th>
         </tr>
         </thead>
         <tbody>
@@ -52,6 +87,20 @@
           <td>{{ team.college_name }}</td>
           <td>{{ team.track }}</td>
           <td>{{ team.members }}</td>
+          <td>
+            {% if team.team_id %}
+            <form class="offline-toggle-form" method="post" action="{% url 'admin_toggle_offline_registration' team.team_id %}">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <button type="submit" class="offline-toggle-btn{% if team.offline_registered %} is-on{% endif %}">
+                <span class="offline-toggle-track"></span>
+                {% if team.offline_registered %}Checked in{% else %}Not checked in{% endif %}
+              </button>
+            </form>
+            {% else %}
+            <span class="dashboard-copy" style="font-size:12px;">No Team ID</span>
+            {% endif %}
+          </td>
         </tr>
     {% empty %}
 <tr>

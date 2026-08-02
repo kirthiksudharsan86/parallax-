@@ -58,6 +58,10 @@ class Team(models.Model):
         'ProblemStatement', on_delete=models.SET_NULL, null=True, blank=True, related_name='booked_teams'
     )
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
+    offline_registered = models.BooleanField(
+        default=False,
+        help_text='Ticked by an OC member once the team has physically checked in at the venue.',
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     class Meta:

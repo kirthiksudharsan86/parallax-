@@ -335,7 +335,8 @@
   }
   .modal-back:hover{color:var(--accent);}
 
-  .modal-domain-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:12px;}
+  .modal-domain-grid{display:flex; flex-wrap:wrap; justify-content:center; gap:12px;}
+  .modal-domain-grid .modal-domain-card{flex:0 1 calc(33.333% - 8px); min-width:190px;}
   .modal-domain-card{
     border:1.5px solid var(--border-soft); border-radius:var(--radius-sm);
     padding:16px 14px; background:rgba(255,255,255,0.025);
@@ -589,7 +590,8 @@
                   <div class="info-row"><span class="label">Team Leader</span><span class="value">{{ team.leader_name|default:"—" }}</span></div>
                   <div class="info-row"><span class="label">Leader Email</span><span class="value">{{ team.leader_email|default:"—" }}</span></div>
                   <div class="info-row"><span class="label">College</span><span class="value">{{ team.college|default:"—" }}</span></div>
-                  <div class="info-row"><span class="label">Current Track</span><span class="value">{{ track.name|default:"Not selected" }}</span></div>
+                  <div class="info-row"><span class="label">Current Track</span><span class="value">{{ track.name|default:"—" }}</span></div>
+                  <div class="info-row"><span class="label">Problem Statement</span><span class="value">{{ team.problem_statement_code|default:"—" }}</span></div>
                 </div>
                 <div class="team-overview-col team-members-block" id="teamMembersCol">
                   <div class="team-members-label">
@@ -748,7 +750,21 @@
   }
 
   var trackForm = document.getElementById('trackForm');
-  bindFormSubmit(trackForm, function(){ window.location.reload(); });
+  bindFormSubmit(trackForm, function(data){
+    var cb = pendingTrackSelectionCallback;
+    pendingTrackSelectionCallback = null;
+    if(data && data.ok){
+      // Keep local state in sync with what was just saved, without a full
+      // page reload, so the domain modal can move straight to Step 2.
+      TEAM.trackId = data.track.id;
+      CURRENT_TRACK_NAME = data.track.name;
+      PROBLEM_STATEMENTS = data.problem_statements || [];
+      chosenPSIndex = null;
+      renderDomainStatusCard();
+      if(cb){ cb(); return; }
+    }
+    window.location.reload();
+  });
 
   var psForm = document.getElementById('psForm');
   bindFormSubmit(psForm, function(){ window.location.reload(); });
@@ -855,7 +871,9 @@
     badge.textContent = status.text;
     badge.className = 'status-badge ' + status.cls;
     document.getElementById('domainSquareDesc').textContent = DOMAIN_DESCRIPTIONS[status.cls];
-    document.getElementById('viewDomainBtn').disabled = !getDomainViewEnabled();
+    var domainBtn = document.getElementById('viewDomainBtn');
+    domainBtn.disabled = !getDomainViewEnabled();
+    domainBtn.textContent = (status.cls === 'selected') ? 'Modify' : 'View';
 
     var scoreBtn = document.getElementById('viewScoreBtn');
     scoreBtn.disabled = !getScoreViewEnabled();
@@ -902,8 +920,10 @@
     document.getElementById('domainModalOverlay').classList.remove('visible');
   }
 
-  function submitTrackSelection(trackId){
+  var pendingTrackSelectionCallback = null;
+  function submitTrackSelection(trackId, onDone){
     document.getElementById('trackSelectHidden').value = trackId;
+    pendingTrackSelectionCallback = onDone || null;
     document.getElementById('trackForm').requestSubmit
       ? document.getElementById('trackForm').requestSubmit()
       : document.getElementById('trackForm').dispatchEvent(new Event('submit', {cancelable:true}));
@@ -944,9 +964,16 @@
             renderDomainModal();
           } else {
             // Switching to a genuinely different domain resets any PS already
-            // chosen under the old domain, then goes through the real submit.
+            // chosen under the old domain, saves the new domain in the
+            // background, then advances to Step 2 within the same modal
+            // (no page reload, so the popup stays open).
             chosenPSIndex = null;
-            submitTrackSelection(pendingTrackId);
+            nextBtn.disabled = true;
+            nextBtn.textContent = 'Saving\u2026';
+            submitTrackSelection(pendingTrackId, function(){
+              domainModalStep = 'ps';
+              renderDomainModal();
+            });
           }
         });
       }

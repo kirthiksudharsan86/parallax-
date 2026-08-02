@@ -1,12 +1,12 @@
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 from django.shortcuts import render
-from .google_sheet import get_role, get_all_teams
+from .google_sheet import get_role, get_all_teams, get_participant, update_team_selection, update_offline_registration
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Prefetch, Q
-from django.http import Http404, request
+from django.http import Http404, request, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
@@ -169,6 +169,35 @@ def participant_dashboard(request):
         return redirect("access_denied")
     team = participant.team
     track_id = None
+
+    def split_lines(raw_text):
+        if not raw_text:
+            return []
+        return [line.strip() for line in raw_text.splitlines() if line.strip()]
+
+    def serialize_problem_statements(track):
+        if not track:
+            return []
+        return [
+            {
+                "id": ps.id,
+                "code": ps.code,
+                "title": ps.title,
+                "description": ps.description,
+                "context": ps.context,
+                "expected_impact": ps.impact,
+                "minimum_requirements": split_lines(ps.min_requirements),
+                "dependencies": split_lines(ps.dependencies),
+                "slot_capacity": ps.slot_capacity,
+                "slots_available": ps.slots_available,
+                "is_full": ps.is_full,
+                "slots_label": f"[{ps.slots_available}/{ps.slot_capacity}]",
+            }
+            for ps in ProblemStatement.objects.filter(
+                track=track, is_published=True, is_active=True
+            )
+        ]
+
     if request.method == "POST":
         team_name = request.POST.get("team_name")
         if team_name is not None:
@@ -200,6 +229,7 @@ def participant_dashboard(request):
             else:
                 team.problem_statement = problem_statement
                 team.save(update_fields=["problem_statement"])
+                update_team_selection(participant.email, ps_code=problem_statement.code)
                 messages.success(
                     request,
                     "Problem statement selected successfully.",
@@ -209,20 +239,55 @@ def participant_dashboard(request):
         track = get_object_or_404(Track, id=track_id)
         team.track = track
         team.save(update_fields=["track"])
+        update_team_selection(participant.email, track_name=track.name)
         messages.success(request, "Track selected successfully.")
-        return redirect("participant_dashboard")
+        return JsonResponse({
+            "ok": True,
+            "track": {"id": track.id, "name": track.name},
+            "problem_statements": serialize_problem_statements(track),
+        })
     needs_team_name = not bool((team.team_name or "").strip())
     tracks = Track.objects.filter(is_published=True)
     problem_statements = ProblemStatement.objects.filter(is_published=True)
     announcements = Announcement.objects.all().order_by("-created_at")
     reviews = Review.objects.all().order_by("scheduled_at")
 
-    def split_lines(raw_text):
-        if not raw_text:
-            return []
-        return [line.strip() for line in raw_text.splitlines() if line.strip()]
-
     timeline = build_participant_timeline(team)
+    sheet_row = get_participant(participant.email) or {}
+    sheet_member_names = [
+        name.strip()
+        for name in str(sheet_row.get("Members", "")).replace(";", ",").split(",")
+        if name.strip()
+    ]
+    lead_name_from_sheet = sheet_row.get("Lead Name", "").strip()
+    registered_by_name = {
+        member.full_name.strip().lower(): member for member in team.members.all()
+    }
+    if sheet_member_names:
+        members_context = []
+        for name in sheet_member_names:
+            matched = registered_by_name.get(name.strip().lower())
+            is_leader = name.strip().lower() == lead_name_from_sheet.lower()
+            members_context.append({
+                "name": matched.full_name if matched else name,
+                "role": "Leader" if is_leader else "Member",
+                "email": matched.email if matched else "",
+                "phone": matched.phone_number if matched else "",
+                "is_leader": is_leader,
+            })
+    else:
+        # Fall back to whatever is in the DB if the sheet has no Members
+        # column data for this team yet.
+        members_context = [
+            {
+                "name": member.full_name,
+                "role": "Leader" if member.is_team_leader else "Member",
+                "email": member.email,
+                "phone": member.phone_number,
+                "is_leader": member.is_team_leader,
+            }
+            for member in team.members.all()
+        ]
     context = {
     "needs_team_name": needs_team_name,
     "team": {
@@ -281,16 +346,7 @@ def participant_dashboard(request):
         }
         for mark in Marks.objects.filter(team=team).select_related("review")
     ],
-    "members": [
-        {
-            "name": member.full_name,
-            "role": "Leader" if member.is_team_leader else "Member",
-            "email": member.email,
-            "phone": member.phone_number,
-            "is_leader": member.is_team_leader,
-        }
-        for member in team.members.all()
-    ],
+    "members": members_context,
     "announcements": [
         {
             "title": a.title,
@@ -372,10 +428,14 @@ def admin_panel(request):
 def admin_teams(request):
     if not request.user.is_staff:
         return redirect('home')
+    offline_status_by_code = dict(
+        Team.objects.values_list('team_code', 'offline_registered')
+    )
     teams = []
     for row in get_all_teams():
+        team_id = row.get("Team ID", "")
         team = {
-        "team_id": row.get("Team ID", ""),
+        "team_id": team_id,
         "team_name": row.get("Team Name", ""),
         "leader_name": row.get("Lead Name", ""),
         "registration_email": row.get("Registration Email", ""),
@@ -383,6 +443,7 @@ def admin_teams(request):
         "college_name": row.get("Collage name", ""),
         "track": row.get("Track", ""),
         "members": row.get("Members", ""),
+        "offline_registered": offline_status_by_code.get(team_id, False),
             }
         teams.append(team)
     selected_track_id = request.GET.get("track", "").strip()
@@ -401,6 +462,22 @@ def admin_teams(request):
         "selected_track_id": selected_track_id,
     }
     return render(request, "parallax/admin/teams.html", context)
+@login_required(login_url='team_login')
+def admin_toggle_offline_registration(request, team_code):
+    if not request.user.is_staff:
+        return redirect('home')
+    if request.method == "POST":
+        team = Team.objects.filter(team_code=team_code).first()
+        if team is None:
+            messages.error(request, f'No team found with ID "{team_code}".')
+        else:
+            team.offline_registered = not team.offline_registered
+            team.save(update_fields=["offline_registered"])
+            update_offline_registration(team.team_code, team.offline_registered)
+            state_label = "checked in" if team.offline_registered else "not checked in"
+            messages.success(request, f'{team.team_name} marked as {state_label}.')
+    next_url = request.POST.get("next") or reverse("admin_teams")
+    return redirect(next_url)
 @login_required(login_url='team_login')
 def admin_marks(request):
     if not request.user.is_staff:
@@ -781,9 +858,43 @@ def parse_problem_statement_text(raw_text):
 def build_participant_timeline(team):
     """Eight-step participant journey for the dashboard "Your Progress" strip.
 
-    Stage labels and the current-stage logic mirror what the frontend
-    previously hardcoded, so the UI can render straight from this data.
+    Each stage is judged independently against a real signal, instead of a
+    single cascading index:
+      - Online Registration & Payment: always done once the team exists.
+      - Domain & Problem Statement: done once team.track is set.
+      - Offline Registration at Venue: done once team.offline_registered is
+        toggled on from the OC dashboard's Manage Teams table.
+      - Hackathon Inauguration: done once the hardcoded event time has passed.
+      - Round 1 / Round 2 / Final Review: done once the OC dashboard has
+        released marks for that many reviews, matching reviews to rounds in
+        the order they're scheduled (scheduled_at), so whichever review the
+        OC dashboard enters marks for first counts as Round 1, the second as
+        Round 2, and the third as the Final Review.
+      - Closing Ceremony & Prize Distribution: done once its hardcoded event
+        time has passed.
     """
+    # Hardcoded event times (IST, event venue time).
+    INAUGURATION_AT = timezone.make_aware(datetime(2026, 8, 17, 15, 0, 0))
+    CLOSING_CEREMONY_AT = timezone.make_aware(datetime(2026, 8, 18, 16, 0, 0))
+    now = timezone.now()
+
+    # Match released marks to Round 1 / Round 2 / Final Review by the
+    # chronological order reviews were scheduled in, so this stays in sync
+    # automatically with whatever rounds the OC dashboard creates and enters.
+    ordered_review_ids = list(
+        Review.objects.order_by("scheduled_at", "name").values_list("id", flat=True)
+    )
+    released_review_ids = set(
+        Marks.objects.filter(team=team).values_list("review_id", flat=True)
+    )
+    released_ranks = sorted(
+        i for i, rid in enumerate(ordered_review_ids) if rid in released_review_ids
+    )
+
+    def round_done(round_number):
+        # round_number is 1-indexed: 1 = Round 1, 2 = Round 2, 3 = Final Review.
+        return len(released_ranks) >= round_number
+
     stages = [
         "Online Registration & Payment",
         "Domain & Problem Statement",
@@ -794,23 +905,26 @@ def build_participant_timeline(team):
         "Final Review (Industry Review)",
         "Closing Ceremony & Prize Distribution",
     ]
+    stage_done = [
+        True,
+        bool(team.track_id),
+        bool(team.offline_registered),
+        now >= INAUGURATION_AT,
+        round_done(1),
+        round_done(2),
+        round_done(3),
+        now >= CLOSING_CEREMONY_AT,
+    ]
 
-    marks_count = Marks.objects.filter(team=team).count()
-
-    # Registration & payment is done once the team exists -> Domain & PS is next.
-    current_index = 1
-    if team.track_id:
-        current_index = max(current_index, 2)
-    if team.status == "APPROVED":
-        current_index = max(current_index, 4)
-    current_index += marks_count
-    current_index = min(current_index, len(stages))
+    # "active" = first not-yet-done stage; everything before it is "done",
+    # everything after it is "upcoming".
+    first_upcoming = next((i for i, done in enumerate(stage_done) if not done), len(stages))
 
     timeline = []
     for index, stage in enumerate(stages):
-        if index < current_index:
+        if stage_done[index]:
             status = "done"
-        elif index == current_index:
+        elif index == first_upcoming:
             status = "active"
         else:
             status = "upcoming"
