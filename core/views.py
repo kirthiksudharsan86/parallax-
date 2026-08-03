@@ -1,7 +1,14 @@
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 from django.shortcuts import render
-from .google_sheet import get_role, get_all_teams, get_participant, update_team_selection, update_offline_registration
+from .google_sheet import (
+    get_role,
+    get_all_teams,
+    get_participant,
+    update_team_selection,
+    update_team_name,
+    update_offline_registration,
+)
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -85,7 +92,6 @@ def home(request):
             if published_tracks
             else build_default_track_cards()
         ),
-
     'title_sponsors': active_sponsors.filter(sponsor_type__iexact="Title Sponsor"),
     'technical_sponsors': active_sponsors.filter(sponsor_type__iexact="Technical Sponsor"),
     'co_powered_sponsors': active_sponsors.filter(sponsor_type__iexact="Co-Powered"),
@@ -107,15 +113,14 @@ def tracks(request):
             Prefetch(
                 'problem_statement_slots',
                 queryset=ProblemStatement.objects.filter(
-                    is_active=True
+                        is_active=True,
+                        is_published=True,
                 ).order_by('code', 'title'),
                 to_attr='public_problem_statements',
             )
         )
         .order_by('name')
     )
-    for track in published_tracks:
-        print(track.name, len(track.public_problem_statements))
     context = {
         'tracks': published_tracks,
     }
@@ -154,12 +159,7 @@ def team_login(request):
         },
     )
 from django.shortcuts import redirect
-def registration_index(request):
-    return redirect("https://eventhubcc.vit.ac.in/EventHub/#:~:text=Parallax")
-from django.shortcuts import redirect
 from django.conf import settings
-def registration_event_hub(request):
-    return redirect(settings.EVENT_HUB_URL)
 @login_required
 def participant_dashboard(request):
     if request.user.is_staff:
@@ -169,12 +169,10 @@ def participant_dashboard(request):
         return redirect("access_denied")
     team = participant.team
     track_id = None
-
     def split_lines(raw_text):
         if not raw_text:
             return []
         return [line.strip() for line in raw_text.splitlines() if line.strip()]
-
     def serialize_problem_statements(track):
         if not track:
             return []
@@ -197,7 +195,6 @@ def participant_dashboard(request):
                 track=track, is_published=True, is_active=True
             )
         ]
-
     if request.method == "POST":
         team_name = request.POST.get("team_name")
         if team_name is not None:
@@ -207,7 +204,14 @@ def participant_dashboard(request):
             else:
                 team.team_name = team_name
                 team.save(update_fields=["team_name"])
-                messages.success(request, "Team name saved successfully.")
+                update_team_name(
+                        participant.email,
+                        team_name,
+                        )
+                messages.success(
+                        request,
+                        "Team name saved successfully."
+                        )
             return redirect("participant_dashboard")
         track_id = request.POST.get("track")
         problem_statement_id = request.POST.get("problem_statement")
@@ -251,7 +255,6 @@ def participant_dashboard(request):
     problem_statements = ProblemStatement.objects.filter(is_published=True)
     announcements = Announcement.objects.all().order_by("-created_at")
     reviews = Review.objects.all().order_by("scheduled_at")
-
     timeline = build_participant_timeline(team)
     sheet_row = get_participant(participant.email) or {}
     sheet_member_names = [
@@ -276,8 +279,6 @@ def participant_dashboard(request):
                 "is_leader": is_leader,
             })
     else:
-        # Fall back to whatever is in the DB if the sheet has no Members
-        # column data for this team yet.
         members_context = [
             {
                 "name": member.full_name,
@@ -291,15 +292,15 @@ def participant_dashboard(request):
     context = {
     "needs_team_name": needs_team_name,
     "team": {
-        "name": team.team_name,
-        "id": team.team_code,
-        "leader_name": team.leader.full_name if team.leader else "",
-        "leader_email": team.leader.email if team.leader else "",
-        "college": participant.college_name,
-        "track_id": team.track.id if team.track else None,
-        "problem_statement_id": team.problem_statement_id,
-        "problem_statement_code": team.problem_statement.code if team.problem_statement else None,
-        "problem_statement_title": team.problem_statement.title if team.problem_statement else None,
+    "name": sheet_row.get("Team Name", team.team_name),
+    "id": sheet_row.get("Team ID", team.team_code),
+    "leader_name": sheet_row.get("Lead Name", ""),
+    "leader_email": sheet_row.get("Registration Email", ""),
+    "college": sheet_row.get("Collage name", ""),
+    "track_id": team.track.id if team.track else None,
+    "problem_statement_id": team.problem_statement_id,
+    "problem_statement_code": team.problem_statement.code if team.problem_statement else None,
+    "problem_statement_title": team.problem_statement.title if team.problem_statement else None,
     },
     "registration": {
         "status": team.status.lower(),
@@ -428,9 +429,6 @@ def admin_panel(request):
 def admin_teams(request):
     if not request.user.is_staff:
         return redirect('home')
-    offline_status_by_code = dict(
-        Team.objects.values_list('team_code', 'offline_registered')
-    )
     teams = []
     for row in get_all_teams():
         team_id = row.get("Team ID", "")
@@ -441,7 +439,7 @@ def admin_teams(request):
                 "phone_number": row.get("Phone number ", ""),
                 "track": row.get("Track", ""),
                 "ps": row.get("PS", ""),
-                "offline_registered": offline_status_by_code.get(team_id, False),
+            "offline_registered": str(row.get("Offline Registration", "0")).strip() == "1",
                 }
         teams.append(team)
     selected_track_id = request.GET.get("track", "").strip()
@@ -465,15 +463,38 @@ def admin_toggle_offline_registration(request, team_code):
     if not request.user.is_staff:
         return redirect('home')
     if request.method == "POST":
-        team = Team.objects.filter(team_code=team_code).first()
-        if team is None:
+        teams = get_all_teams()
+        row = next(
+            (
+                t for t in teams
+                if str(t.get("Team ID", "")).strip() == team_code
+            ),
+            None,
+        )
+        if row is None:
             messages.error(request, f'No team found with ID "{team_code}".')
         else:
-            team.offline_registered = not team.offline_registered
-            team.save(update_fields=["offline_registered"])
-            update_offline_registration(team.team_code, team.offline_registered)
-            state_label = "checked in" if team.offline_registered else "not checked in"
-            messages.success(request, f'{team.team_name} marked as {state_label}.')
+            current = str(
+                row.get("Offline Registration", "0")
+            ).strip()
+            new_state = current != "1"
+            update_offline_registration(
+                team_code,
+                new_state,
+            )
+            team = Team.objects.filter(team_code=team_code).first()
+            if team:
+               team.offline_registered = new_state
+               team.save(update_fields=["offline_registered"])
+            state_label = (
+                "checked in"
+                if new_state
+                else "not checked in"
+            )
+            messages.success(
+                request,
+                f'{row.get("Team Name")} marked as {state_label}.'
+            )
     next_url = request.POST.get("next") or reverse("admin_teams")
     return redirect(next_url)
 @login_required(login_url='team_login')
@@ -718,10 +739,8 @@ def admin_tracks(request):
 def admin_sponsors(request):
     if not request.user.is_staff:
         return redirect('home')
-
     if request.method == 'POST':
         action = request.POST.get('action', '').strip()
-
         if action == 'delete_sponsor':
             sponsor = get_object_or_404(
                 Sponsor,
@@ -730,14 +749,11 @@ def admin_sponsors(request):
             sponsor.delete()
             messages.success(request, 'Sponsor deleted successfully.')
             return redirect('admin_sponsors')
-
         name = request.POST.get('name', '').strip()
         sponsor_type = request.POST.get('sponsor_type', '').strip()
-
         if not name or not sponsor_type:
             messages.error(request, 'Sponsor name and sponsor category are required.')
             return redirect('admin_sponsors')
-
         if action == 'edit_sponsor':
             sponsor = get_object_or_404(
                 Sponsor,
@@ -745,7 +761,6 @@ def admin_sponsors(request):
             )
         else:
             sponsor = Sponsor()
-
         sponsor.name = name
         sponsor.sponsor_type = sponsor_type
         sponsor.tagline = request.POST.get('tagline', '').strip()
@@ -753,19 +768,14 @@ def admin_sponsors(request):
             request.POST.get('display_order')
         )
         sponsor.is_active = request.POST.get('is_active') == 'on'
-
         if request.FILES.get('logo'):
             sponsor.logo = request.FILES['logo']
-
         sponsor.save()
-
         messages.success(request, f'Sponsor "{name}" saved.')
         return redirect('admin_sponsors')
-
     context = {
         'sponsors': Sponsor.objects.all().order_by('display_order', 'name'),
     }
-
     return render(request, 'parallax/admin/sponsors.html', context)
 @login_required(login_url='team_login')
 def _admin_tracks_redirect(request):
@@ -854,31 +864,9 @@ def parse_problem_statement_text(raw_text):
         return cleaned_items
     return ['Problem statements for this set have not been added yet.']
 def build_participant_timeline(team):
-    """Eight-step participant journey for the dashboard "Your Progress" strip.
-
-    Each stage is judged independently against a real signal, instead of a
-    single cascading index:
-      - Online Registration & Payment: always done once the team exists.
-      - Domain & Problem Statement: done once team.track is set.
-      - Offline Registration at Venue: done once team.offline_registered is
-        toggled on from the OC dashboard's Manage Teams table.
-      - Hackathon Inauguration: done once the hardcoded event time has passed.
-      - Round 1 / Round 2 / Final Review: done once the OC dashboard has
-        released marks for that many reviews, matching reviews to rounds in
-        the order they're scheduled (scheduled_at), so whichever review the
-        OC dashboard enters marks for first counts as Round 1, the second as
-        Round 2, and the third as the Final Review.
-      - Closing Ceremony & Prize Distribution: done once its hardcoded event
-        time has passed.
-    """
-    # Hardcoded event times (IST, event venue time).
     INAUGURATION_AT = timezone.make_aware(datetime(2026, 8, 17, 15, 0, 0))
     CLOSING_CEREMONY_AT = timezone.make_aware(datetime(2026, 8, 18, 16, 0, 0))
     now = timezone.now()
-
-    # Match released marks to Round 1 / Round 2 / Final Review by the
-    # chronological order reviews were scheduled in, so this stays in sync
-    # automatically with whatever rounds the OC dashboard creates and enters.
     ordered_review_ids = list(
         Review.objects.order_by("scheduled_at", "name").values_list("id", flat=True)
     )
@@ -888,11 +876,8 @@ def build_participant_timeline(team):
     released_ranks = sorted(
         i for i, rid in enumerate(ordered_review_ids) if rid in released_review_ids
     )
-
     def round_done(round_number):
-        # round_number is 1-indexed: 1 = Round 1, 2 = Round 2, 3 = Final Review.
         return len(released_ranks) >= round_number
-
     stages = [
         "Online Registration & Payment",
         "Domain & Problem Statement",
@@ -913,11 +898,7 @@ def build_participant_timeline(team):
         round_done(3),
         now >= CLOSING_CEREMONY_AT,
     ]
-
-    # "active" = first not-yet-done stage; everything before it is "done",
-    # everything after it is "upcoming".
     first_upcoming = next((i for i, done in enumerate(stage_done) if not done), len(stages))
-
     timeline = []
     for index, stage in enumerate(stages):
         if stage_done[index]:
@@ -940,17 +921,14 @@ from django.http import HttpResponse
 from django.contrib.auth import get_user_model
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
-
 def bootstrap_admin(request):
     User = get_user_model()
-
     user, created = User.objects.get_or_create(
         username="mkirt",
         defaults={
             "email": "kirthiksudharsan.m2025@vitstudent.ac.in"
         }
     )
-
     user.is_staff = True
     user.is_superuser = True
     user.is_active = True
