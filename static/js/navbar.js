@@ -56,5 +56,10 @@
     }, { passive: true });
   };
 
-  window.PXNavbar = PXNavbar;
+window.PXNavbar = PXNavbar;
+
+document.addEventListener("DOMContentLoaded", function () {
+    PXNavbar.init();
+});
+
 })();

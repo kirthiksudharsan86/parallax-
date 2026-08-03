@@ -435,16 +435,14 @@ def admin_teams(request):
     for row in get_all_teams():
         team_id = row.get("Team ID", "")
         team = {
-        "team_id": team_id,
-        "team_name": row.get("Team Name", ""),
-        "leader_name": row.get("Lead Name", ""),
-        "registration_email": row.get("Registration Email", ""),
-        "phone_number": row.get("Phone number ", ""),   # note the trailing space
-        "college_name": row.get("Collage name", ""),
-        "track": row.get("Track", ""),
-        "members": row.get("Members", ""),
-        "offline_registered": offline_status_by_code.get(team_id, False),
-            }
+                "team_id": team_id,
+                "team_name": row.get("Team Name", ""),
+                "leader_name": row.get("Lead Name", ""),
+                "phone_number": row.get("Phone number ", ""),
+                "track": row.get("Track", ""),
+                "ps": row.get("PS", ""),
+                "offline_registered": offline_status_by_code.get(team_id, False),
+                }
         teams.append(team)
     selected_track_id = request.GET.get("track", "").strip()
     if selected_track_id:

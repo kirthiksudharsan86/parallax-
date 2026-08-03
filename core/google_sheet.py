@@ -44,14 +44,6 @@ def get_role(email):
 def get_all_teams():
     return get_sheet().get_all_records()
 def update_team_selection(email, track_name=None, ps_code=None):
-    """Write the participant's selected Track and/or PS code back to their
-    row in the Google Sheet, matched by Registration Email. Only touches
-    the columns that are explicitly passed in (None = leave untouched).
-    Returns True if a matching row was found and updated, False otherwise.
-    Never raises — callers should treat a False/exception as non-fatal,
-    since the DB (Team.track / Team.problem_statement) is the source of
-    truth the dashboard actually reads from.
-    """
     email = (email or "").strip().lower()
     if not email:
         return False
@@ -75,14 +67,6 @@ def update_team_selection(email, track_name=None, ps_code=None):
     except Exception:
         return False
 def update_offline_registration(team_id, offline_registered):
-    """Write the offline-registration checkbox back to the sheet, matched by
-    Team ID (not Registration Email, since the OC toggle only has the team
-    code to work with). Only touches the "Offline Registration" column if it
-    exists on the sheet. Never raises, and never blocks the DB save that
-    already happened; the DB (Team.offline_registered) remains the source of
-    truth the dashboard actually reads from. Returns True if a matching row
-    was found and updated, False otherwise.
-    """
     team_id = (team_id or "").strip()
     if not team_id:
         return False
@@ -102,8 +86,8 @@ def update_offline_registration(team_id, offline_registered):
         sheet.update_cell(
             row_index,
             headers.index("Offline Registration") + 1,
-            "Yes" if offline_registered else "No",
-        )
+            "1" if offline_registered else "0",
+            )
         return True
     except Exception:
         return False

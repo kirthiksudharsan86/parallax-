@@ -68,11 +68,10 @@
           <th>Team ID</th>
           <th>Team Name</th>
           <th>Leader</th>
-          <th>Registration Email</th>
           <th>Phone</th>
           <th>College</th>
           <th>Track</th>
-          <th>Members</th>
+          <th>PS</th>
           <th>Offline Registration</th>
         </tr>
         </thead>
@@ -82,11 +81,10 @@
           <td>{{ team.team_id }}</td>
           <td>{{ team.team_name }}</td>
           <td>{{ team.leader_name }}</td>
-          <td>{{ team.registration_email }}</td>
           <td>{{ team.phone_number }}</td>
           <td>{{ team.college_name }}</td>
           <td>{{ team.track }}</td>
-          <td>{{ team.members }}</td>
+          <td>{{ team.ps|default:"—" }}</td>
           <td>
             {% if team.team_id %}
             <form class="offline-toggle-form" method="post" action="{% url 'admin_toggle_offline_registration' team.team_id %}">
@@ -104,7 +102,7 @@
         </tr>
     {% empty %}
 <tr>
-    <td colspan="9">No teams found.</td>
+    <td colspan="7">No teams found.</td>
 </tr>
 {% endfor %}
 </tbody>
