@@ -104,27 +104,37 @@ def update_team_name(email, team_name):
     except Exception:
         return False    
 def update_offline_registration(team_id, offline_registered):
-    team_id = (team_id or "").strip()
+    team_id = str(team_id).strip()
+
     if not team_id:
         return False
+
     try:
         sheet = get_sheet()
         headers = sheet.row_values(1)
+        values = sheet.get_all_values()
+
+        if "Team ID" not in headers:
+            return False
+
         if "Offline Registration" not in headers:
             return False
-        records = sheet.get_all_records()
-        row_index = None
-        for i, row in enumerate(records, start=2):  # row 1 is the header
-            if str(row.get("Team ID", "")).strip() == team_id:
-                row_index = i
-                break
-        if row_index is None:
-            return False
-        sheet.update_cell(
-                row_index,
-                headers.index("Offline Registration") + 1,
-                "1" if offline_registered else "0",
+
+        team_col = headers.index("Team ID")
+        offline_col = headers.index("Offline Registration")
+
+        for row_number in range(2, len(values) + 1):
+            current_team_id = values[row_number - 1][team_col].strip()
+
+            if current_team_id == team_id:
+                sheet.update_cell(
+                    row_number,
+                    offline_col + 1,
+                    "1" if offline_registered else "0",
                 )
-        return True
+                return True
+
+        return False
+
     except Exception:
         return False

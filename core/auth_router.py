@@ -14,12 +14,17 @@ def auth_router(request):
             request.user.save(update_fields=["is_staff"])
         return redirect("admin_panel")
     team_name = data.get("Team Name", "").strip()
+    team_id = data.get("Team ID", "").strip()
     team = Team.objects.filter(team_name__iexact=team_name).first()
     if team is None:
         team = Team.objects.create(
-        team_name=team_name,
-        team_code=Team.generate_unique_team_code(),
-    )
+            team_name=team_name,
+            team_code=team_id,
+            )
+    else:
+        if team.team_code != team_id:
+            team.team_code = team_id
+            team.save(update_fields=["team_code"])
     participant = Participant.objects.filter(email__iexact=email).first()
     if participant is None:
         participant = Participant.objects.create(

@@ -578,6 +578,7 @@
     top: 0;
   }
 }
+@media (max-width:768px){
 .lead-grid{
     display:flex !important;
     flex-direction:column !important;
@@ -595,6 +596,7 @@
 .lead-members .person-card{
     width:100%;
     max-width:320px;
+}
 }
 @media (max-width:768px){
 #home-hero.px-hero{

@@ -439,7 +439,7 @@ def admin_teams(request):
                 "phone_number": row.get("Phone number ", ""),
                 "track": row.get("Track", ""),
                 "ps": row.get("PS", ""),
-            "offline_registered": str(row.get("Offline Registration", "0")).strip() == "1",
+                "offline_registered": (str(row.get("Offline Registration", "")).strip().upper()in ["1", "TRUE", "YES"]),
                 }
         teams.append(team)
     selected_track_id = request.GET.get("track", "").strip()
@@ -482,7 +482,7 @@ def admin_toggle_offline_registration(request, team_code):
                 team_code,
                 new_state,
             )
-            team = Team.objects.filter(team_code=team_code).first()
+            team = Team.objects.filter(team_name__iexact=row.get("Team Name", "").strip()).first()
             if team:
                team.offline_registered = new_state
                team.save(update_fields=["offline_registered"])
