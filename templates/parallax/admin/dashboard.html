@@ -19,6 +19,22 @@
         <a class="dashboard-button-secondary" href="{% url 'admin_tracks' %}">Track Release</a>
         <a class="dashboard-button-secondary" href="{% url 'admin_sponsors' %}">Sponsors</a>
         <a class="dashboard-button-secondary" href="{% url 'admin_announcements' %}">Announcements</a>
+        <form method="post" style="display:inline;">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="toggle_selection_freeze">
+          <input
+            type="hidden"
+            name="freeze"
+            value="{% if configuration.selection_frozen %}false{% else %}true{% endif %}"
+          >
+          <button type="submit" class="dashboard-button-secondary">
+            {% if configuration.selection_frozen %}
+              Unfreeze Selections
+            {% else %}
+              Freeze Selections
+            {% endif %}
+            </button>
+          </form>
       </div>
       <div class="d-flex justify-content-end mb-4">
         <a href="{% url 'account_logout' %}" class="btn btn-outline-danger">

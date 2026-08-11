@@ -82,6 +82,7 @@ class EventConfiguration(models.Model):
     event_start_date = models.DateField(default=date(2026, 8, 18))
     set_one_released = models.BooleanField(default=False)
     set_two_released = models.BooleanField(default=False)
+    selection_frozen = models.BooleanField(default=False,help_text='Freeze participant Track and Problem Statement selections.')
     set_one_released_at = models.DateTimeField(null=True, blank=True)
     set_two_released_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)

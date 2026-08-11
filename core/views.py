@@ -213,6 +213,9 @@ def participant_dashboard(request):
                         "Team name saved successfully."
                         )
             return redirect("participant_dashboard")
+        if configuration.selection_frozen:
+             messages.error(request,"Track and Problem Statement selections are currently frozen.")
+             return redirect("participant_dashboard")
         track_id = request.POST.get("track")
         problem_statement_id = request.POST.get("problem_statement")
         if problem_statement_id:
@@ -391,6 +394,12 @@ def admin_panel(request):
                     messages.success(request, 'Event start date updated successfully.')
                 except ValueError:
                     messages.error(request, 'Enter a valid event start date.')
+            return redirect('admin_panel')
+        if action == 'toggle_selection_freeze':
+            configuration.selection_frozen = request.POST.get('freeze') == 'true'
+            configuration.save(update_fields=['selection_frozen', 'updated_at'])
+            state_label = 'frozen' if configuration.selection_frozen else 'open'
+            messages.success(request,f'Track and Problem Statement selections are now {state_label}.')
             return redirect('admin_panel')
         if action in {'toggle_set_one', 'toggle_set_two'}:
             release = request.POST.get('release') == 'true'
