@@ -168,6 +168,7 @@ def participant_dashboard(request):
     if participant is None:
         return redirect("access_denied")
     team = participant.team
+    configuration = EventConfiguration.get_solo()
     track_id = None
     def split_lines(raw_text):
         if not raw_text:
@@ -924,35 +925,6 @@ def build_participant_timeline(team):
             }
         )
     return timeline
-def access_denied(request):
-    return render(request, "parallax/access_denied.html")
-from django.http import HttpResponse
-from django.contrib.auth import get_user_model
-from django.contrib.auth import get_user_model
-from django.http import HttpResponse
-def bootstrap_admin(request):
-    User = get_user_model()
-    user, created = User.objects.get_or_create(
-        username="mkirt",
-        defaults={
-            "email": "kirthiksudharsan.m2025@vitstudent.ac.in"
-        }
-    )
-    user.is_staff = True
-    user.is_superuser = True
-    user.is_active = True
-    user.set_password("mkirt")
-    user.save()
-
-    return HttpResponse(
-        f"""
-        Username: {user.username}<br>
-        Staff: {user.is_staff}<br>
-        Superuser: {user.is_superuser}<br>
-        Active: {user.is_active}<br>
-        Password reset successfully.
-        """
-    )
 from django.shortcuts import get_object_or_404, redirect
 def delete_announcement(request, announcement_id):
     if request.method == "POST":

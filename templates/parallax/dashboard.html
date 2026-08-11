@@ -278,8 +278,6 @@
   .team-member-row .m-name{font-weight:600; color:var(--text-primary);}
   .team-member-row .m-role{font-size:11px; color:var(--text-muted); margin-left:6px;}
   .team-member-row .m-contact{color:var(--text-muted); margin-left:auto; font-size:11.5px; font-family:var(--font-mono); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:120px;}
-
-  /* ---------- Domain & Problem Statement / Scorecard: even, expanding status cards ---------- */
   .status-cards-row{display:flex; gap:20px; flex-wrap:wrap;}
   .card-square{flex:1 1 0; min-width:220px; min-height:220px; padding:28px 26px 26px; display:flex; flex-direction:column;}
   .card-square .card-header{margin-bottom:12px;}
@@ -296,8 +294,6 @@
   .status-badge.selected{background:var(--warning-soft);color:var(--warning);}
   .status-badge.locked{background:var(--success-soft);color:var(--success);}
   @media (max-width:520px){ .status-cards-row{flex-direction:column;} .card-square{min-width:0; min-height:220px;} }
-
-  /* ---------- Generic modal (Domain/PS picker + Scorecard viewer) ---------- */
   .modal-overlay{
     position:fixed; inset:0; background:rgba(4,9,22,0.72);
     display:none; align-items:center; justify-content:center;
@@ -313,7 +309,6 @@
     padding:30px 26px 26px;
     box-shadow:0 24px 70px rgba(0,0,0,0.55), 0 0 50px rgba(34,211,238,0.10);
   }
-  /* Domain & PS modal is always a BIG popup from the first step onward */
   .modal-box-lg{max-width:760px;}
   .modal-close{
     position:absolute; top:14px; right:14px;
@@ -334,7 +329,6 @@
     display:inline-flex;align-items:center;gap:5px;margin-bottom:16px;padding:0;
   }
   .modal-back:hover{color:var(--accent);}
-
   .modal-domain-grid{display:flex; flex-wrap:wrap; justify-content:center; gap:12px;}
   .modal-domain-grid .modal-domain-card{flex:0 1 calc(33.333% - 8px); min-width:190px;}
   .modal-domain-card{
@@ -360,9 +354,6 @@
   .modal-domain-icon svg{width:18px;height:18px;}
   .modal-domain-name{font-size:13.5px;font-weight:700;color:var(--text-primary);}
   .modal-domain-desc{font-size:12px;color:var(--text-secondary);}
-
-  /* PS step: expandable accordion rows, whole modal never grows, only the
-     internal list scrolls / the expanded row scrolls its own detail. */
   .modal-ps-list{display:flex; flex-direction:column; gap:10px; padding-right:4px;}
   .modal-ps-item{border:1.5px solid var(--border-soft); border-radius:var(--radius-sm); background:rgba(255,255,255,0.025); overflow:hidden;}
   .modal-ps-item.expanded{border-color:var(--accent);}
@@ -404,7 +395,6 @@
   .ps-block ul li{font-size:13px; color:var(--text-secondary); padding-left:16px; position:relative;}
   .ps-block ul li::before{content:'—'; position:absolute; left:0; color:var(--accent-2);}
   .modal-ps-select-row{display:flex; justify-content:flex-end;}
-
   .modal-confirm-box{
     background:rgba(255,255,255,0.03); border:1px dashed var(--border); border-radius:var(--radius-sm);
     padding:16px; margin-bottom:20px;
@@ -415,7 +405,6 @@
   .modal-actions{display:flex; gap:10px; justify-content:flex-end; margin-top:6px;}
   .modal-actions .btn{width:auto;}
   .modal-footer-row{display:flex; justify-content:space-between; align-items:center; margin-top:18px;}
-
   .modal-score-list{display:flex;flex-direction:column;gap:10px; max-height:56vh; overflow-y:auto;}
   .modal-score-row{
     display:flex; align-items:center; justify-content:space-between; gap:14px;
@@ -429,8 +418,6 @@
   .modal-score-updated{font-size:11px; color:var(--text-muted); margin-top:3px;}
   .modal-score-value{font-family:var(--font-mono); font-size:19px; font-weight:700; color:var(--accent); flex-shrink:0;}
   .modal-score-note{font-size:11px;color:var(--text-muted); margin-top:16px; text-align:center;}
-
-  /* ---------- Announcements (main column) ---------- */
   .feed-list{display:flex; flex-direction:column; gap:10px; max-height:230px; overflow-y:auto; padding-right:6px;}
   .feed-item{border:1px solid var(--border-soft); border-radius:var(--radius-sm); padding:12px 14px; background:rgba(255,255,255,0.03);}
   .feed-item .meta{display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;}
@@ -439,8 +426,6 @@
   .feed-item .timestamp{font-size:11.5px; color:var(--text-muted);}
   .feed-item .feed-title{font-size:13px; font-weight:700; color:var(--text-primary); margin-bottom:3px;}
   .feed-item .feed-body{font-size:12.5px; color:var(--text-secondary); line-height:1.5;}
-
-  /* ---------- Progress steps: horizontal zigzag map ---------- */
   .progress-track{position:relative; display:flex; align-items:center; gap:6px; overflow-x:auto; padding:54px 10px 58px;}
   .progress-track svg.progress-line{position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; overflow:visible;}
   .step-node{position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:9px; flex:1 1 0; min-width:84px; text-align:center; cursor:pointer;}
@@ -481,18 +466,13 @@
     .step-node.up{transform:translateY(-16px);}
     .step-node.down{transform:translateY(16px);}
   }
-
-  /* ---------- Team name modal (first-run) ---------- */
   .modal-box .eyebrow{margin-bottom:8px;}
-
   @media (max-width:900px){
     main.layout{padding-top:20px;}
   }
 </style>
 </head>
 <body>
-
-
 <div class="app-shell">
   <div class="main-col">
     <header class="topbar">
@@ -509,11 +489,9 @@
         <div class="sync-pill"><span class="sync-dot"></span> Synced with organizer dashboard</div>
       </div>
     </header>
-
     <main class="layout" id="dashboard-top">
       <div class="grid">
         <div class="col-main">
-
           <section class="card" id="welcome-card">
             <div class="welcome-card-top">
               <div class="welcome-card-actions">
@@ -527,10 +505,7 @@
             <h1 style="font-family:var(--font-display);font-size:26px;font-weight:700;">Welcome, {{ team.leader_name|default:"Team Lead" }}</h1>
             <p style="color:var(--text-secondary);font-size:13.5px;margin-top:4px;">Track your team's registration, domain &amp; problem statement, scoring and updates in one place.</p>
           </section>
-
-          <!-- Domain & Problem Statement + Scorecard status cards -->
           <div class="status-cards-row" id="status-row">
-
             <section class="card card-square" id="domainStatusCard">
               <div class="card-header">
                 <div class="card-header-title">
@@ -544,7 +519,6 @@
                 <button class="btn btn-secondary btn-small" id="viewDomainBtn" type="button" disabled>View</button>
               </div>
             </section>
-
             <section class="card card-square" id="scorecardCard">
               <div class="card-header">
                 <div class="card-header-title">
@@ -557,10 +531,7 @@
                 <button class="btn btn-secondary btn-small" id="viewScoreBtn" type="button" disabled>View</button>
               </div>
             </section>
-
           </div>
-
-          <!-- Card: Announcements -->
           <section class="card" id="announcements">
             <div class="card-header">
               <div class="card-header-title">
@@ -571,10 +542,7 @@
             </div>
             <div class="feed-list" id="feedList"></div>
           </section>
-
-          <!-- Team Overview + Your Progress: two equal-height cards, side by side -->
           <div class="overview-progress-row">
-
             <section class="card" id="team-overview">
               <div class="card-header">
                 <div class="card-header-title">
@@ -613,7 +581,6 @@
                 </div>
               </div>
             </section>
-
             <section class="card" id="progress-card">
               <div class="card-header">
                 <div class="card-header-title">
@@ -623,17 +590,12 @@
               </div>
               <div class="progress-track" id="stepsList"><svg class="progress-line" id="progressLineSvg"></svg></div>
             </section>
-
           </div>
-
         </div>
       </div>
-
     </main>
   </div>
 </div>
-
-<!-- Hidden forms: submit to the real participant_dashboard POST handler. -->
 <form id="teamNameForm" data-action="{{ urls.set_team_name }}" class="hidden">
   {% csrf_token %}
   <input type="hidden" id="teamNameHidden" name="team_name" value="">
@@ -646,9 +608,6 @@
   {% csrf_token %}
   <input type="hidden" id="psSelectHidden" name="problem_statement" value="">
 </form>
-
-<!-- ================= TEAM NAME MODAL — blocking, shown once per team until a
-     name is saved. Cannot be dismissed/clicked away from while needed. ================= -->
 <div class="modal-overlay" id="teamNameModalOverlay">
   <div class="modal-box" id="teamNameModalBox">
     <div class="modal-eyebrow">Welcome</div>
@@ -662,25 +621,18 @@
     </div>
   </div>
 </div>
-
-
-
-<!-- ================= DOMAIN & PROBLEM STATEMENT MODAL (always a big popup) ================= -->
 <div class="modal-overlay" id="domainModalOverlay">
   <div class="modal-box modal-box-lg" id="domainModalBox">
     <button class="modal-close" id="domainModalClose" aria-label="Close" type="button">&times;</button>
     <div id="domainModalContent"></div>
   </div>
 </div>
-
-<!-- ================= SCORECARD MODAL ================= -->
 <div class="modal-overlay" id="scoreModalOverlay">
   <div class="modal-box" id="scoreModalBox">
     <button class="modal-close" id="scoreModalClose" aria-label="Close" type="button">&times;</button>
     <div id="scoreModalContent"></div>
   </div>
 </div>
-
 {{ team|json_script:"data-team" }}
 {{ registration|json_script:"data-registration" }}
 {{ tracks_json|json_script:"data-tracks" }}
@@ -689,15 +641,9 @@
 {{ announcements|json_script:"data-announcements" }}
 {{ timeline|json_script:"data-timeline" }}
 {{ needs_team_name|json_script:"data-needs-team-name" }}
-
 <script>
 (function(){
   "use strict";
-
-  /* =================================================================
-     REAL DATA — supplied by views.py via context, injected above as
-     json_script blocks. No mock data here.
-     ================================================================= */
   var TEAM_CTX = JSON.parse(document.getElementById('data-team').textContent);
   var REGISTRATION_CTX = JSON.parse(document.getElementById('data-registration').textContent);
   var TRACKS = JSON.parse(document.getElementById('data-tracks').textContent);
@@ -706,25 +652,16 @@
   var ANNOUNCEMENTS_RAW = JSON.parse(document.getElementById('data-announcements').textContent);
   var TIMELINE = JSON.parse(document.getElementById('data-timeline').textContent);
   var NEEDS_TEAM_NAME = JSON.parse(document.getElementById('data-needs-team-name').textContent);
-
   var TEAM = {
     trackId: TEAM_CTX.track_id,
     registrationStatus: REGISTRATION_CTX.status,
     psCode: TEAM_CTX.problem_statement_code
   };
-
   var CURRENT_TRACK_NAME = TRACK_CTX.name;
   var PROBLEM_STATEMENTS = TRACK_CTX.public_problem_statements || [];
-
-  /* Announcements already arrive newest-first from the view's queryset
-     ordering; just adapt field names for the renderer below. */
   var ANNOUNCEMENTS = ANNOUNCEMENTS_RAW.map(function(a){
     return { tag: a.tag, label: a.timestamp, title: a.title, body: a.message };
   });
-
-  /* =================================================================
-     CSRF + generic form submit helper (unchanged pattern from before)
-     ================================================================= */
   function getCsrf(root){
     var el = root ? root.querySelector('[name=csrfmiddlewaretoken]') : document.querySelector('[name=csrfmiddlewaretoken]');
     return el ? el.value : '';
@@ -748,14 +685,11 @@
       }).catch(function(err){ console.error(err); });
     });
   }
-
   var trackForm = document.getElementById('trackForm');
   bindFormSubmit(trackForm, function(data){
     var cb = pendingTrackSelectionCallback;
     pendingTrackSelectionCallback = null;
     if(data && data.ok){
-      // Keep local state in sync with what was just saved, without a full
-      // page reload, so the domain modal can move straight to Step 2.
       TEAM.trackId = data.track.id;
       CURRENT_TRACK_NAME = data.track.name;
       PROBLEM_STATEMENTS = data.problem_statements || [];
@@ -765,25 +699,15 @@
     }
     window.location.reload();
   });
-
   var psForm = document.getElementById('psForm');
   bindFormSubmit(psForm, function(){ window.location.reload(); });
-
-  /* =================================================================
-     TEAM NAME MODAL — blocks the dashboard the first time a team's
-     account has no team_name saved yet (checked server-side via
-     NEEDS_TEAM_NAME, which mirrors views.participant_dashboard's
-     `needs_team_name` context flag). Not dismissible until saved.
-     ================================================================= */
   var teamNameForm = document.getElementById('teamNameForm');
   bindFormSubmit(teamNameForm, function(){ window.location.reload(); });
-
   function showTeamNameModal(){
     document.getElementById('teamNameModalOverlay').classList.add('visible');
     var input = document.getElementById('teamNameVisibleInput');
     setTimeout(function(){ input.focus(); }, 50);
   }
-
   if(NEEDS_TEAM_NAME){
     showTeamNameModal();
     var saveBtn = document.getElementById('teamNameSaveBtn');
@@ -806,17 +730,11 @@
       if(e.key === 'Enter') submitTeamName();
     });
   }
-
   function escapeHtml(str){
     var div = document.createElement('div');
     div.textContent = str == null ? '' : String(str);
     return div.innerHTML;
   }
-
-  /* =================================================================
-     ANNOUNCEMENTS — sorted newest-first by `date`; the feed list itself
-     scrolls (max-height in CSS) once there are more items than fit.
-     ================================================================= */
   function renderAnnouncements(){
     var sorted = ANNOUNCEMENTS.slice().sort(function(a, b){
       return new Date(b.date) - new Date(a.date);
@@ -836,15 +754,6 @@
       : '<div class="empty-state">No announcements yet. Check back soon.</div>';
   }
   renderAnnouncements();
-
-  /* =================================================================
-     DOMAIN & PROBLEM STATEMENT — status card
-     Derived purely from context already sent by views.py:
-       pending  -> no published tracks yet
-       live     -> tracks published, team hasn't picked one
-       selected -> team.track_id is set
-       locked   -> team.track_id is set AND registration has been approved
-     ================================================================= */
   function getDomainStatus(){
     if(TEAM.trackId && TEAM.registrationStatus === 'approved') return { text:'Locked', cls:'locked' };
     if(TEAM.trackId) return { text:'Selected', cls:'selected' };
@@ -874,7 +783,6 @@
     var domainBtn = document.getElementById('viewDomainBtn');
     domainBtn.disabled = !getDomainViewEnabled();
     domainBtn.textContent = (status.cls === 'selected') ? 'Modify' : 'View';
-
     var scoreBtn = document.getElementById('viewScoreBtn');
     scoreBtn.disabled = !getScoreViewEnabled();
     document.getElementById('scorecardSquareDesc').textContent = getScoreViewEnabled()
@@ -882,17 +790,10 @@
       : 'Available once your domain is selected.';
   }
   renderDomainStatusCard();
-
-  /* =================================================================
-     DOMAIN & PROBLEM STATEMENT MODAL
-     Flow: domains -> ps (accordion, expand-in-place) -> confirm
-     Every step past the first has an explicit Back button.
-     ================================================================= */
-  var domainModalStep = 'domains';   // 'domains' | 'ps' | 'confirm'
+  var domainModalStep = 'domains';   
   var expandedPSIndex = null;
   var chosenPSIndex = null;
-  var pendingTrackId = null;   // step 1: highlighted-but-not-yet-submitted domain
-
+  var pendingTrackId = null;   
   function psIndexForCode(code){
     if(!code) return null;
     for(var i = 0; i < PROBLEM_STATEMENTS.length; i++){
@@ -900,13 +801,6 @@
     }
     return null;
   }
-
-  /* Always opens on Step 1, with the team's current domain/PS pre-selected
-     if they have one. This is deliberate: it's the same flow whether a team
-     is choosing for the first time or coming back to modify an existing
-     choice — nothing here is locked out just because a selection already
-     exists (unless the org has hard-locked the track, which the "Locked"
-     status badge separately communicates). */
   function openDomainModal(){
     if(!getDomainViewEnabled()) return;
     domainModalStep = 'domains';
@@ -919,7 +813,6 @@
   function closeDomainModal(){
     document.getElementById('domainModalOverlay').classList.remove('visible');
   }
-
   var pendingTrackSelectionCallback = null;
   function submitTrackSelection(trackId, onDone){
     document.getElementById('trackSelectHidden').value = trackId;
@@ -928,10 +821,8 @@
       ? document.getElementById('trackForm').requestSubmit()
       : document.getElementById('trackForm').dispatchEvent(new Event('submit', {cancelable:true}));
   }
-
   function renderDomainModal(){
     var content = document.getElementById('domainModalContent');
-
     if(domainModalStep === 'domains'){
       content.innerHTML =
         '<div class="modal-eyebrow">Step 1 of 3</div>' +
@@ -963,10 +854,6 @@
             domainModalStep = 'ps';
             renderDomainModal();
           } else {
-            // Switching to a genuinely different domain resets any PS already
-            // chosen under the old domain, saves the new domain in the
-            // background, then advances to Step 2 within the same modal
-            // (no page reload, so the popup stays open).
             chosenPSIndex = null;
             nextBtn.disabled = true;
             nextBtn.textContent = 'Saving\u2026';
@@ -979,7 +866,6 @@
       }
       return;
     }
-
     if(domainModalStep === 'ps'){
       var backHtml = '<button class="modal-back" type="button" id="modalBackToDomains">&larr; Back to domains</button>';
       var backDisabled = TEAM.registrationStatus === 'rejected';
@@ -1022,18 +908,12 @@
             '</div>' +
             '<div class="modal-step-next-row"><button class="btn btn-primary" type="button" id="modalPSNext"' + (chosenPSIndex == null ? ' disabled' : '') + '>Next</button></div>'
           : '<div class="empty-state">Coming Soon — problem statements will appear here once released.</div>');
-
       if(!backDisabled){
         document.getElementById('modalBackToDomains').addEventListener('click', function(){
           domainModalStep = 'domains';
           renderDomainModal();
         });
       }
-
-      // Toggle + select are handled as direct DOM mutations (not a full
-      // renderDomainModal() re-render) so the CSS max-height transition on
-      // .modal-ps-detail actually gets to play instead of being interrupted
-      // by the element being torn down and rebuilt mid-animation.
       var psList = document.getElementById('psList');
       if(psList){
         psList.querySelectorAll('[data-toggle]').forEach(function(btn){
@@ -1073,7 +953,6 @@
       }
       return;
     }
-
     if(domainModalStep === 'confirm'){
       var ps = (chosenPSIndex != null) ? PROBLEM_STATEMENTS[chosenPSIndex] : null;
       var isModify = !!TEAM.psCode;
@@ -1103,16 +982,11 @@
       return;
     }
   }
-
   document.getElementById('viewDomainBtn').addEventListener('click', openDomainModal);
   document.getElementById('domainModalClose').addEventListener('click', closeDomainModal);
   document.getElementById('domainModalOverlay').addEventListener('click', function(e){
     if(e.target.id === 'domainModalOverlay') closeDomainModal();
   });
-
-  /* =================================================================
-     SCORECARD MODAL — read-only, uses real `marks` from views.py
-     ================================================================= */
   function openScoreModal(){
     if(!getScoreViewEnabled()) return;
     document.getElementById('scoreModalOverlay').classList.add('visible');
@@ -1153,28 +1027,13 @@
   document.getElementById('scoreModalOverlay').addEventListener('click', function(e){
     if(e.target.id === 'scoreModalOverlay') closeScoreModal();
   });
-
-  /* =================================================================
-     PROGRESS STEPS (sidebar) — retained exactly as in the working file,
-     just wired to real context instead of a mock fetch. No new backend:
-     the "current stage" is inferred from team.track_id / registration
-     status / number of marks rows already present in the page context.
-     ================================================================= */
-  /* Stage labels and per-stage status ("done"/"active"/"upcoming") now come
-     straight from the backend (views.build_participant_timeline), instead
-     of being recomputed here from TEAM/MARKS. This keeps the strip in sync
-     with the same logic the server uses everywhere else. */
   var PROGRESS_STAGES = TIMELINE.map(function(stage){ return stage.stage; });
-
   function computeCurrentStageIndex(){
     var activeIndex = TIMELINE.findIndex(function(stage){ return stage.status === 'active'; });
     if(activeIndex !== -1) return activeIndex;
-    // No explicit "active" entry (e.g. every stage already done) -> treat
-    // the strip as fully complete.
     var doneCount = TIMELINE.filter(function(stage){ return stage.status === 'done'; }).length;
     return Math.min(doneCount, PROGRESS_STAGES.length);
   }
-
   function renderSteps(){
     var currentIndex = computeCurrentStageIndex();
     var track = document.getElementById('stepsList');
@@ -1191,7 +1050,6 @@
       '</div>';
     }).join('');
     track.innerHTML = '<svg class="progress-line" id="progressLineSvg"></svg>' + nodesHtml;
-
     track.querySelectorAll('.step-node').forEach(function(node){
       node.addEventListener('click', function(){
         var wasVisible = node.classList.contains('tip-visible');
@@ -1199,10 +1057,8 @@
         if(!wasVisible) node.classList.add('tip-visible');
       });
     });
-
     drawProgressLine(currentIndex);
   }
-
   function drawProgressLine(currentIndex){
     requestAnimationFrame(function(){
       var track = document.getElementById('stepsList');
@@ -1229,7 +1085,6 @@
   }
   renderSteps();
   window.addEventListener('resize', function(){ drawProgressLine(computeCurrentStageIndex()); });
-
 })();
 </script>
 </body>

@@ -27,9 +27,9 @@ ALLOWED_HOSTS = config(
 ).split(',')
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 USE_X_FORWARDED_HOST = True
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
-SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = True
 CSRF_TRUSTED_ORIGINS = [
     "https://parallax-production-2a2d.up.railway.app",
     "https://parallax2026.in",
@@ -51,7 +51,7 @@ INSTALLED_APPS = [
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    #'core.security_shield.SecurityShieldMiddleware',
+    'core.security_shield.SecurityShieldMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
