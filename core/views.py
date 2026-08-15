@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 from django.shortcuts import render
+from django.core.cache import cache
 from .google_sheet import (
     get_role,
     get_all_teams,
@@ -260,7 +261,14 @@ def participant_dashboard(request):
     announcements = Announcement.objects.all().order_by("-created_at")
     reviews = Review.objects.all().order_by("scheduled_at")
     timeline = build_participant_timeline(team)
-    sheet_row = get_participant(participant.email) or {}
+    cache_key = f"sheet_row:{participant.email}"
+    sheet_row = cache.get(cache_key)
+    if sheet_row is None:
+        try:
+            sheet_row = get_participant(participant.email) or {}
+            cache.set(cache_key, sheet_row, timeout=30)
+        except Exception:
+            sheet_row = {}
     sheet_member_names = [
         name.strip()
         for name in str(sheet_row.get("Members", "")).replace(";", ",").split(",")
@@ -440,7 +448,14 @@ def admin_teams(request):
     if not request.user.is_staff:
         return redirect('home')
     teams = []
-    for row in get_all_teams():
+    teams_data = cache.get("all_teams_data")
+    if teams_data is None:
+        try:
+            teams_data = get_all_teams()
+            cache.set("all_teams_data", teams_data, timeout=30)
+        except Exception:
+            teams_data = []
+    for row in teams_data:
         team_id = row.get("Team ID", "")
         team = {
                 "team_id": team_id,
