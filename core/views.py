@@ -151,6 +151,8 @@ def team_login(request):
     )
 from django.shortcuts import redirect
 from django.conf import settings
+def access_denied(request):
+    return render(request, "parallax/access_denied.html")
 @login_required
 def participant_dashboard(request):
     if request.user.is_staff:

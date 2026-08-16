@@ -14,6 +14,7 @@ urlpatterns = [
     path('admin-panel/marks/', views.admin_marks, name='admin_marks'),
     path('admin-panel/announcements/', views.admin_announcements, name='admin_announcements'),
     path('admin-panel/tracks/', views.admin_tracks, name='admin_tracks'),
+    path("access-denied/", views.access_denied, name="access_denied"),
     path("auth/router/", auth_router, name="auth_router"),
     path("oc-dashboard/announcements/delete/<int:announcement_id>/",views.delete_announcement,name="delete_announcement",),
     path('<str:page>/', views.information, name='information'),
