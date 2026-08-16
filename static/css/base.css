@@ -452,7 +452,9 @@ footer {background: #0a0e1a;color: #8fa3c4;padding: 60px 60px 24px;font-family: 
     #sponsors .technical-sponsors {
         display: grid !important;
         grid-template-columns: repeat(3, minmax(280px, 320px)) !important;
-        justify-content: center !important;
+       justify-content: center !important;
+margin-left: auto !important;
+margin-right: auto !important;
         align-items: stretch !important;
         gap: 30px !important;
         width: 100% !important;
