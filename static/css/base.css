@@ -446,3 +446,21 @@ footer {background: #0a0e1a;color: #8fa3c4;padding: 60px 60px 24px;font-family: 
 .glass-card .btn{
     min-width:180px;
 }
+/* DESKTOP SPONSOR LAYOUT — FINAL */
+@media (min-width: 769px) {
+    .technical-sponsors {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        align-items: stretch;
+        gap: 30px !important;
+        width: 100% !important;
+    }
+
+    .technical-sponsors .sponsor-card {
+        flex: 0 0 320px !important;
+        width: 320px !important;
+        max-width: 320px !important;
+        min-height: 320px;
+    }
+}
