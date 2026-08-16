@@ -80,12 +80,6 @@ def home(request):
         .order_by('name')
     )
     reviews = Review.objects.all().order_by('scheduled_at')
-    active_sponsors = Sponsor.objects.filter(
-        is_active=True
-    ).order_by(
-        'display_order',
-        'name'
-    )
     context = {
         'stats': build_home_stats(reviews),
         'tracks': (
@@ -93,10 +87,6 @@ def home(request):
             if published_tracks
             else build_default_track_cards()
         ),
-    'title_sponsors': active_sponsors.filter(sponsor_type__iexact="Title Sponsor"),
-    'technical_sponsors': active_sponsors.filter(sponsor_type__iexact="Technical Sponsor"),
-    'co_powered_sponsors': active_sponsors.filter(sponsor_type__iexact="Co-Powered"),
-    'sponsors': active_sponsors,
     'announcements': Announcement.objects.all()
     .order_by('-is_pinned', '-created_at')[:6],
     }
@@ -760,48 +750,6 @@ def admin_tracks(request):
         "parallax/admin/tracks.html",
         context
     )
-@login_required(login_url='team_login')
-def admin_sponsors(request):
-    if not request.user.is_staff:
-        return redirect('home')
-    if request.method == 'POST':
-        action = request.POST.get('action', '').strip()
-        if action == 'delete_sponsor':
-            sponsor = get_object_or_404(
-                Sponsor,
-                id=request.POST.get('sponsor_id')
-            )
-            sponsor.delete()
-            messages.success(request, 'Sponsor deleted successfully.')
-            return redirect('admin_sponsors')
-        name = request.POST.get('name', '').strip()
-        sponsor_type = request.POST.get('sponsor_type', '').strip()
-        if not name or not sponsor_type:
-            messages.error(request, 'Sponsor name and sponsor category are required.')
-            return redirect('admin_sponsors')
-        if action == 'edit_sponsor':
-            sponsor = get_object_or_404(
-                Sponsor,
-                id=request.POST.get('sponsor_id')
-            )
-        else:
-            sponsor = Sponsor()
-        sponsor.name = name
-        sponsor.sponsor_type = sponsor_type
-        sponsor.tagline = request.POST.get('tagline', '').strip()
-        sponsor.display_order = _parse_positive_int(
-            request.POST.get('display_order')
-        )
-        sponsor.is_active = request.POST.get('is_active') == 'on'
-        if request.FILES.get('logo'):
-            sponsor.logo = request.FILES['logo']
-        sponsor.save()
-        messages.success(request, f'Sponsor "{name}" saved.')
-        return redirect('admin_sponsors')
-    context = {
-        'sponsors': Sponsor.objects.all().order_by('display_order', 'name'),
-    }
-    return render(request, 'parallax/admin/sponsors.html', context)
 @login_required(login_url='team_login')
 def _admin_tracks_redirect(request):
     params = {}

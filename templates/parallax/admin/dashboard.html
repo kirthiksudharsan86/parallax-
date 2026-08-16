@@ -11,13 +11,12 @@
       <span class="dashboard-kicker">OC Dashboard</span>
       <h1 class="dashboard-title">Operations and event control</h1>
       <p class="dashboard-copy">
-        Manage teams, marks, track releases, sponsors, and announcements all at one place.
+        Manage teams, marks, track releases,and announcements all at one place.
       </p>
       <div class="dashboard-actions">
         <a class="dashboard-button-secondary" href="{% url 'admin_teams' %}">Manage Teams</a>
         <a class="dashboard-button-secondary" href="{% url 'admin_marks' %}">Marks</a>
         <a class="dashboard-button-secondary" href="{% url 'admin_tracks' %}">Track Release</a>
-        <a class="dashboard-button-secondary" href="{% url 'admin_sponsors' %}">Sponsors</a>
         <a class="dashboard-button-secondary" href="{% url 'admin_announcements' %}">Announcements</a>
         <form method="post" style="display:inline;">
           {% csrf_token %}

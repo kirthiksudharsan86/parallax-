@@ -89,20 +89,6 @@
         <h3>Keysight Technologies</h3>
         <p> Breakthroughs Start Here..</p>
       </div>
-    </div>
-      {% for sponsor in title_sponsors %}
-      <div class="sponsor-card featured">
-        <span class="sponsor-tag">POWERED BY</span>
-        {% if sponsor.logo %}
-        <img src="{{ sponsor.logo.url }}" class="sponsor-logo" alt="{{ sponsor.name }}">
-        {% endif %}
-        <h3>{{ sponsor.name }}</h3>
-        {% if sponsor.tagline %}
-        <p>{{ sponsor.tagline }}</p>
-        {% endif %}
-      </div>
-      {% endfor %}
-    </div>
     <div class="technical-sponsors reveal">
       <div class="sponsor-card">
         <span class="sponsor-tag small">TECHNICAL SPONSOR</span>
@@ -116,33 +102,24 @@
         <h3>Nokia</h3>
         <p>Shaping the future of connectivity with advanced 5G and networking.</p>
       </div>
-      {% for sponsor in technical_sponsors %}
       <div class="sponsor-card">
         <span class="sponsor-tag small">TECHNICAL SPONSOR</span>
-        {% if sponsor.logo %}
-        <img src="{{ sponsor.logo.url }}" class="sponsor-logo" alt="{{ sponsor.name }}">
-        {% endif %}
-        <h3>{{ sponsor.name }}</h3>
-        {% if sponsor.tagline %}
-        <p>{{ sponsor.tagline }}</p>
-        {% endif %}
+        <img src="{% static 'assets/VALEO.png' %}" class="sponsor-logo" alt="Valeo">
+        <h3>Valeo</h3>
+        <p>Smart technology for smarter mobility.</p>
       </div>
-      {% endfor %}
-      {% for sponsor in sponsors %}
       <div class="sponsor-card">
-        <span class="sponsor-tag">
-          {{ sponsor.sponsor_type|upper }}
-        </span>
-        {% if sponsor.logo %}
-        <img src="{{ sponsor.logo.url }}" class="sponsor-logo" alt="{{ sponsor.name }}">
-        {% endif %}
-        <h3>{{ sponsor.name }}</h3>
-        {% if sponsor.tagline %}
-        <p>{{ sponsor.tagline }}</p>
-        {% endif %}
+        <span class="sponsor-tag small">TECHNICAL SPONSOR</span>
+        <img src="{% static 'assets/ansys.png' %}" class="sponsor-logo" alt="Ansys">
+        <h3>Ansys</h3>
+        <p>Empowering innovation with advanced simulation and engineering software.</p>
       </div>
-      {% endfor %}
-    </div>
+      <div class="sponsor-card">
+        <span class="sponsor-tag small">TECHNICAL SPONSOR</span>
+        <img src="{% static 'assets/CST.png' %}" class="sponsor-logo" alt="CST">
+        <h3>CST</h3>
+        <p>Delivering industry-standard CAD & EM tools for complete RF/Microwave design solutions.</p>
+      </div>
   </div>
 </section>
 <section id="about-parallax" class="section">
