@@ -446,21 +446,25 @@ footer {background: #0a0e1a;color: #8fa3c4;padding: 60px 60px 24px;font-family: 
 .glass-card .btn{
     min-width:180px;
 }
-/* DESKTOP SPONSOR LAYOUT — FINAL */
+/* DESKTOP SPONSOR LAYOUT */
 @media (min-width: 769px) {
-    .technical-sponsors {
-        display: flex !important;
-        flex-wrap: wrap !important;
+
+    #sponsors .technical-sponsors {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(280px, 320px)) !important;
         justify-content: center !important;
-        align-items: stretch;
+        align-items: stretch !important;
         gap: 30px !important;
         width: 100% !important;
+        max-width: 1100px !important;
+        margin: 0 auto !important;
     }
 
-    .technical-sponsors .sponsor-card {
-        flex: 0 0 320px !important;
-        width: 320px !important;
+    #sponsors .technical-sponsors .sponsor-card {
+        width: 100% !important;
         max-width: 320px !important;
-        min-height: 320px;
+        min-height: 320px !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
     }
 }
